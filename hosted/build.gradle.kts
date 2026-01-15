@@ -22,9 +22,8 @@ dependencies {
 
     ksp("se.ansman.kotshi:compiler:_")
 
+    testFixturesApi(testFixtures(project(":core")))
     testFixturesApi("org.testcontainers:testcontainers-postgresql")
-
-    testImplementation(testFixtures(project(":core")))
 }
 
 sqldelight {
