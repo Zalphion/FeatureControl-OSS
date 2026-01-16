@@ -4,7 +4,8 @@ plugins {
 
 dependencies {
     api("org.http4k:http4k-core")
-    api("org.http4k:http4k-format-moshi") {
+    api("org.http4k:http4k-format-core")
+    implementation("org.http4k:http4k-format-moshi") {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
     }
     api("dev.andrewohara:service-utils:_")

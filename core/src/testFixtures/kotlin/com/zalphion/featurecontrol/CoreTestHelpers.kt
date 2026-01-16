@@ -60,6 +60,7 @@ fun CoreTestDriver.createFeature(
     ),
     extensions: Extensions = emptyMap()
 ) = CreateFeature(
+    teamId = application.teamId,
     appId = application.appId,
     data = FeatureCreateData(
         featureKey = featureKey,

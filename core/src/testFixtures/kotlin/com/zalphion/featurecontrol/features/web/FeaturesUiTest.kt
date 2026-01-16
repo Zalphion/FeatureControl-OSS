@@ -1,6 +1,5 @@
 package com.zalphion.featurecontrol.features.web
 
-import com.zalphion.featurecontrol.CoreStorage
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.create
@@ -17,13 +16,12 @@ import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import org.http4k.format.ConfigurableMoshi
 import org.http4k.playwright.Http4kBrowser
 import org.http4k.playwright.LaunchPlaywrightBrowser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
-abstract class FeaturesUiTest(coreStorageFn: (ConfigurableMoshi) -> CoreStorage): CoreTestDriver(coreStorageFn) {
+abstract class FeaturesUiTest: CoreTestDriver() {
 
     @RegisterExtension
     val playwright = LaunchPlaywrightBrowser(core.getRoutes())

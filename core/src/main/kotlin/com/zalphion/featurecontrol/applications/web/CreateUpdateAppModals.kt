@@ -9,6 +9,7 @@ import com.zalphion.featurecontrol.web.applicationUri
 import com.zalphion.featurecontrol.web.applicationsUri
 import com.zalphion.featurecontrol.web.tableForm
 import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.lib.asBiDiMapping
 import kotlinx.html.*
 import org.http4k.core.Uri
 

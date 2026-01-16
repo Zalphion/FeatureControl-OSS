@@ -7,29 +7,30 @@ import com.zalphion.featurecontrol.ServiceAction
 import com.zalphion.featurecontrol.featureAlreadyExists
 import com.zalphion.featurecontrol.members.UserRole
 import com.zalphion.featurecontrol.ActionAuth
+import com.zalphion.featurecontrol.teams.TeamId
 import dev.andrewohara.utils.pagination.Paginator
 import dev.forkhandles.result4k.asSuccess
 import dev.forkhandles.result4k.begin
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.peek
 
-class ListFeatures(val appId: AppId): ServiceAction<Paginator<Feature, FeatureKey>>(
-    auth = ActionAuth.byApplication(appId)
+class ListFeatures(val teamId: TeamId, val appId: AppId): ServiceAction<Paginator<Feature, FeatureKey>>(
+    auth = ActionAuth.byApplication(teamId, appId)
 ) {
     override fun execute(core: Core) = core
         .features.list(appId, core.config.pageSize)
         .asSuccess()
 }
 
-class GetFeature(val appId: AppId, val featureKey: FeatureKey): ServiceAction<Feature>(
-    auth = ActionAuth.byApplication(appId),
+class GetFeature(val teamId: TeamId, val appId: AppId, val featureKey: FeatureKey): ServiceAction<Feature>(
+    auth = ActionAuth.byApplication(teamId, appId),
 ) {
     override fun execute(core: Core) = core
         .features.getOrFail(appId, featureKey)
 }
 
-class CreateFeature(val appId: AppId, val data: FeatureCreateData): ServiceAction<Feature>(
-    auth = ActionAuth.byApplication(appId, UserRole.Developer) { getRequirements(data) }
+class CreateFeature(val teamId: TeamId, val appId: AppId, val data: FeatureCreateData): ServiceAction<Feature>(
+    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer) { getRequirements(data) }
 ) {
     override fun execute(core: Core) = begin
         .failIfExists(
@@ -41,11 +42,12 @@ class CreateFeature(val appId: AppId, val data: FeatureCreateData): ServiceActio
 }
 
 class UpdateFeature(
+    val teamId: TeamId,
     val appId: AppId,
     val featureKey: FeatureKey,
     val data: FeatureUpdateData
 ): ServiceAction<Feature>(
-    auth = ActionAuth.byApplication(appId) { getRequirements(data) }
+    auth = ActionAuth.byApplication(teamId, appId) { getRequirements(data) }
 ) {
     override fun execute(core: Core) = core
         .features.getOrFail(appId, featureKey)
@@ -53,8 +55,8 @@ class UpdateFeature(
         .peek(core.features::plusAssign)
 }
 
-class DeleteFeature(val appId: AppId, val featureKey: FeatureKey): ServiceAction<Feature>(
-    auth = ActionAuth.byApplication(appId, UserRole.Developer)
+class DeleteFeature(val teamId: TeamId, val appId: AppId, val featureKey: FeatureKey): ServiceAction<Feature>(
+    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = core
         .features.getOrFail(appId, featureKey)

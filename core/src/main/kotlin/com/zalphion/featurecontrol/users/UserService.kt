@@ -19,7 +19,7 @@ class UserService(private val core: Core) {
         .failIf(
             cond = { core.users[data.emailAddress] != null },
             f = { userAlreadyExists(data.emailAddress) }
-        ).map { data.toUser(core.random) }
+        ).map { data.toUser() }
         .map { user ->
             val team = Team(
                 teamId = TeamId.random(core.random),

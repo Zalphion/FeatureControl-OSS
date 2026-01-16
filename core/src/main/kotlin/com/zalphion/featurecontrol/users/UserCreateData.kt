@@ -1,7 +1,6 @@
 package com.zalphion.featurecontrol.users
 
 import java.net.URI
-import kotlin.random.Random
 
 data class UserCreateData(
     val emailAddress: EmailAddress,
@@ -9,9 +8,8 @@ data class UserCreateData(
     val photoUrl: URI?,
 )
 
-fun UserCreateData.toUser(random: Random) = User(
-    userId = UserId.random(random),
-    emailAddress = emailAddress,
+fun UserCreateData.toUser() = User(
+    userId = emailAddress.toUserId(),
     userName = userName,
     photoUrl = photoUrl
 )

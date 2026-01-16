@@ -17,6 +17,7 @@ import com.zalphion.featurecontrol.web.toIndex
 import com.zalphion.featurecontrol.web.flash.withMessage
 import com.zalphion.featurecontrol.configs.UpdateConfigEnvironment
 import com.zalphion.featurecontrol.web.configUri
+import com.zalphion.featurecontrol.web.teamIdLens
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.recover
 import org.http4k.core.HttpHandler
@@ -27,9 +28,10 @@ import org.http4k.lens.location
 
 internal fun Core.httpGetConfigSpec(): HttpHandler = fn@{ request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
 
-    ApplicationsPage.forConfigSpec(this, principal, appId)
+    ApplicationsPage.forConfigSpec(this, principal, teamId, appId)
         .map { model ->
             model.render(
                 core = this,
@@ -45,10 +47,11 @@ internal fun Core.httpGetConfigSpec(): HttpHandler = fn@{ request ->
 
 internal fun Core.httpPostConfigSpec(): HttpHandler = { request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val data = createConfigSpecDataLens()(request)
 
-    val result = UpdateConfigSpec(appId, data)
+    val result = UpdateConfigSpec(teamId, appId, data)
         .invoke(principal, this)
         .map { FlashMessageDto(FlashMessageDto.Type.Success, "Config Properties Updated") }
         .recover { it.toFlashMessage() }
@@ -60,10 +63,11 @@ internal fun Core.httpPostConfigSpec(): HttpHandler = { request ->
 
 internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val environmentName = environmentNameLens(request)
 
-    ApplicationsPage.forConfigEnvironment(this, principal, appId, environmentName)
+    ApplicationsPage.forConfigEnvironment(this, principal, teamId, appId, environmentName)
         .map { model ->
             model.render(
                 core = this,
@@ -79,11 +83,12 @@ internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
 
 internal fun Core.httpPostConfigEnvironment(): HttpHandler = { request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val environmentName = environmentNameLens(request)
     val data = createConfigEnvironmentDataLens()(request)
 
-    UpdateConfigEnvironment(appId, environmentName, data)
+    UpdateConfigEnvironment(teamId, appId, environmentName, data)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER)
             .location(configUri(it.appId, it.environmentName))

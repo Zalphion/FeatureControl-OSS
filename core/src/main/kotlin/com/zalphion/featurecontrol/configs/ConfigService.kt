@@ -13,6 +13,7 @@ import com.zalphion.featurecontrol.ServiceAction
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.applications.environmentExistsOrFail
 import com.zalphion.featurecontrol.applications.environmentNames
+import com.zalphion.featurecontrol.teams.TeamId
 import dev.andrewohara.utils.result.failIf
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asSuccess
@@ -21,19 +22,23 @@ import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.peek
 
-class GetConfigSpec(val appId: AppId): ServiceAction<ConfigSpec>(
-    auth = ActionAuth.byApplication(appId, UserRole.Developer)
+class GetConfigSpec(val teamId: TeamId, val appId: AppId): ServiceAction<ConfigSpec>(
+    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(appId)
+        .apps.getOrFail(teamId, appId)
         .map { core.configs.getOrEmpty(appId) }
 }
 
-class UpdateConfigSpec(val appId: AppId, val properties: Map<PropertyKey, Property>): ServiceAction<ConfigSpec>(
-    auth = ActionAuth.byApplication(appId, UserRole.Developer)
+class UpdateConfigSpec(
+    val teamId: TeamId,
+    val appId: AppId,
+    val properties: Map<PropertyKey, Property>
+): ServiceAction<ConfigSpec>(
+    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(appId)
+        .apps.getOrFail(teamId, appId)
         .map { core.configs.getOrEmpty(appId) }
         .map { config -> config.copy(properties = properties) }
         .peek(core.configs::plusAssign)
@@ -42,21 +47,26 @@ class UpdateConfigSpec(val appId: AppId, val properties: Map<PropertyKey, Proper
 /**
  * Secret values will not be decoded
  */
-class GetConfigEnvironment(val appId: AppId, val environmentName: EnvironmentName): ServiceAction<ConfigEnvironment>(
-    auth = ActionAuth.byApplication(appId, UserRole.Developer)
+class GetConfigEnvironment(
+    val teamId: TeamId,
+    val appId: AppId,
+    val environmentName: EnvironmentName
+): ServiceAction<ConfigEnvironment>(
+    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(appId)
+        .apps.getOrFail(teamId, appId)
         .failIf({ environmentName !in it.environmentNames }, { environmentNotFound(appId, environmentName)})
         .map { core.configs.getOrEmpty(appId, environmentName) }
 }
 
 class UpdateConfigEnvironment(
+    val teamId: TeamId,
     val appId: AppId,
     val environmentName: EnvironmentName,
     val data: Map<PropertyKey, String>
 ): ServiceAction<ConfigEnvironment>(
-    auth = ActionAuth.byApplication(appId, UserRole.Developer)
+    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = this
         .processValues(core)
@@ -65,7 +75,7 @@ class UpdateConfigEnvironment(
 
     fun processValues(core: Core): Result4k<Pair<Application, ConfigEnvironment>, AppError> {
         val application = core.apps
-            .getOrFail(appId)
+            .getOrFail(teamId, appId)
             .flatMap { it.environmentExistsOrFail(environmentName) }
             .onFailure { return it }
 

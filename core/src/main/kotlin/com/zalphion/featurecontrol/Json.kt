@@ -21,6 +21,7 @@ import com.zalphion.featurecontrol.teams.TeamName
 import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.users.UserId
 import org.http4k.format.AutoMappingConfiguration
+import org.http4k.format.AutoMarshalling
 import org.http4k.format.ConfigurableMoshi
 import org.http4k.format.ListAdapter
 import org.http4k.format.MapAdapter
@@ -33,7 +34,7 @@ import java.math.BigDecimal
 @KotshiJsonAdapterFactory
 private object CoreJsonAdapterFactory : JsonAdapter.Factory by KotshiCoreJsonAdapterFactory
 
-internal fun buildJson(plugins: List<JsonExport>) = plugins
+internal fun buildJson(plugins: List<JsonExport>): AutoMarshalling = plugins
     .fold(Moshi.Builder()) { builder, plugin -> plugin.moshi(builder) }
     .add(CoreJsonAdapterFactory)
     .add(BigDecimalAdapter)

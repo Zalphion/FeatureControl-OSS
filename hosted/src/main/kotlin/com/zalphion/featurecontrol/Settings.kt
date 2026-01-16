@@ -4,8 +4,10 @@ import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.users.EmailAddress
 import org.http4k.config.EnvironmentKey
 import org.http4k.config.Port
+import org.http4k.core.Credentials
 import org.http4k.lens.authority
 import org.http4k.lens.boolean
+import org.http4k.lens.composite
 import org.http4k.lens.duration
 import org.http4k.lens.int
 import org.http4k.lens.port
@@ -26,9 +28,14 @@ object Settings {
     val csrfTtl = EnvironmentKey.duration().defaulted("CSRF_TTL", Duration.ofHours(8))
 
     // postgres
-    val postgresDatabaseHost = EnvironmentKey.authority().required("POSTGRES_HOST")
-    val postgresDatabaseUsername = EnvironmentKey.string().required("POSTGRES_USERNAME")
+    val postgresDatabaseUri = EnvironmentKey.uri().required("POSTGRES_URI")
+    val postgresDatabaseUsername = EnvironmentKey.string().optional("POSTGRES_USERNAME")
     val postgresDatabasePassword = EnvironmentKey.secret().required("POSTGRES_PASSWORD")
+    val postgresDatabaseCredentials = EnvironmentKey.composite { env ->
+        env[postgresDatabaseUsername]?.let { username ->
+            Credentials(username, env[postgresDatabasePassword].use { it })
+        }
+    }
 
     // smtp
     val smtpAuthority = EnvironmentKey.authority().required("SMTP_AUTHORITY")

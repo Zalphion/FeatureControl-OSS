@@ -8,8 +8,9 @@ import com.zalphion.featurecontrol.features.SubjectId
 import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.features.Weight
 import com.zalphion.featurecontrol.lib.Update
+import com.zalphion.featurecontrol.lib.asBiDiMapping
 import org.http4k.core.Body
-import org.http4k.format.ConfigurableMoshi
+import org.http4k.format.AutoMarshalling
 import org.http4k.lens.BodyLens
 import org.http4k.lens.FormField
 import org.http4k.lens.Validator
@@ -27,12 +28,12 @@ object FeatureForm {
     val defaultVariant = FormField.value(Variant).required("defaultVariant")
     val description = FormField.string().defaulted("description", "")
 
-    fun variants(json: ConfigurableMoshi) = FormField.map(json.asBiDiMapping<Array<VariantDto>>())
+    fun variants(json: AutoMarshalling) = FormField.map(json.asBiDiMapping<Array<VariantDto>>())
         .map { it.associate { variant -> variant.name to variant.description } }
         .required("variants")
 }
 
-internal fun createCoreFeatureCreateDataLens(json: ConfigurableMoshi): BodyLens<FeatureCreateData> {
+internal fun createCoreFeatureCreateDataLens(json: AutoMarshalling): BodyLens<FeatureCreateData> {
     val variants =  FeatureForm.variants(json)
     return Body
         .webForm(Validator.Strict, FeatureForm.featureKey, variants, FeatureForm.defaultVariant, FeatureForm.description)
@@ -48,7 +49,7 @@ internal fun createCoreFeatureCreateDataLens(json: ConfigurableMoshi): BodyLens<
         }.toLens()
 }
 
-internal fun createCoreFeatureUpdateDataLens(json: ConfigurableMoshi): BodyLens<FeatureUpdateData> {
+internal fun createCoreFeatureUpdateDataLens(json: AutoMarshalling): BodyLens<FeatureUpdateData> {
     val variants = FeatureForm.variants(json)
     return Body
         .webForm(Validator.Strict, variants, FeatureForm.defaultVariant, FeatureForm.description)
@@ -66,12 +67,12 @@ internal fun createCoreFeatureUpdateDataLens(json: ConfigurableMoshi): BodyLens<
 
 
 object FeatureEnvironmentForm {
-    fun weights(json: ConfigurableMoshi) = FormField
+    fun weights(json: AutoMarshalling) = FormField
         .map { json.asA<Map<String, Int>>(it) }
         .map { it.mapKeys { (k, _) -> Variant.parse(k) } }
         .map { it.mapValues { (_, v) -> Weight.of(v) } }
         .required("weights")
-    fun overrides(json: ConfigurableMoshi) = FormField
+    fun overrides(json: AutoMarshalling) = FormField
         .map { json.asA<Map<String, List<String>>>(it) }
         .map { it.mapKeys { (k, _) -> Variant.parse(k) } }
         .map { it.mapValues { (_, v) -> v.map(SubjectId::parse) } }
@@ -79,7 +80,7 @@ object FeatureEnvironmentForm {
         .required("overrides")
 }
 
-internal fun createCoreFeatureEnvironmentLens(json: ConfigurableMoshi): BodyLens<FeatureEnvironment> {
+internal fun createCoreFeatureEnvironmentLens(json: AutoMarshalling): BodyLens<FeatureEnvironment> {
     val weights = FeatureEnvironmentForm.weights(json)
     val overrides = FeatureEnvironmentForm.overrides(json)
     return Body

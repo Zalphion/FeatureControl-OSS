@@ -42,11 +42,12 @@ fun interface ActionAuth: (Core, User) -> Result4k<Unit, AppError> {
         }
 
         fun byApplication(
+            teamId: TeamId,
             appId: AppId,
             minimumRole: UserRole = UserRole.Tester,
             getRequirements: Core.() -> Entitlements = { emptySet() }
         ) = ActionAuth { core, user ->
-            core.apps.getOrFail(appId)
+            core.apps.getOrFail(teamId, appId)
                 .map { byTeam(it.teamId, minimumRole, getRequirements) }
                 .flatMap { it(core, user) }
         }

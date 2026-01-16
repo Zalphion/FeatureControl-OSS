@@ -87,13 +87,13 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forConfigSpec(
-            core: Core, principal: User, appId: AppId
+            core: Core, principal: User, teamId: TeamId, appId: AppId
         ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment?>, AppError> {
-            val application = GetApplication(appId)
+            val application = GetApplication(teamId, appId)
                 .invoke(principal, core)
                 .onFailure { return it }
 
-            val features = ListFeatures(appId)
+            val features = ListFeatures(teamId, appId)
                 .invoke(principal, core)
                 .onFailure { return it }
                 .toList()
@@ -103,7 +103,7 @@ data class ApplicationsPage<A, I, E>(
                 .onFailure { return it }
                 .toList()
 
-            val configSpec = GetConfigSpec(appId)
+            val configSpec = GetConfigSpec(teamId, appId)
                 .invoke(principal, core)
                 .onFailure { return it }
 
@@ -122,10 +122,14 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forConfigEnvironment(
-            core: Core, principal: User, appId: AppId, environmentName: EnvironmentName
+            core: Core,
+            principal: User,
+            teamId: TeamId,
+            appId: AppId,
+            environmentName: EnvironmentName
         ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment>, AppError> {
-            val model = forConfigSpec(core, principal, appId).onFailure { return it }
-            val environment = GetConfigEnvironment(appId, environmentName)
+            val model = forConfigSpec(core, principal, teamId, appId).onFailure { return it }
+            val environment = GetConfigEnvironment(teamId, appId, environmentName)
                 .invoke(principal, core)
                 .onFailure { return it }
 
@@ -140,9 +144,9 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forFeature(
-            core: Core, principal: User, appId: AppId, featureKey: FeatureKey
+            core: Core, principal: User, teamId: TeamId, appId: AppId, featureKey: FeatureKey
         ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment?>, AppError> {
-            val model = forConfigSpec(core, principal, appId).onFailure { return it }
+            val model = forConfigSpec(core, principal, teamId, appId).onFailure { return it }
 
             val feature = model.features.find { it.key == featureKey } ?: return featureNotFound(appId, featureKey).asFailure()
 
@@ -157,9 +161,9 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forFeatureEnvironment(
-            core: Core, principal: User, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName
+            core: Core, principal: User, teamId: TeamId, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName
         ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment>, AppError> {
-            val model = forFeature(core, principal, appId, featureKey).onFailure { return it }
+            val model = forFeature(core, principal, teamId, appId, featureKey).onFailure { return it }
             val environment = if (environmentName !in model.selectedApplication.environmentNames) {
                 return environmentNotFound(appId, environmentName).asFailure()
             } else model.selectedItem[environmentName]

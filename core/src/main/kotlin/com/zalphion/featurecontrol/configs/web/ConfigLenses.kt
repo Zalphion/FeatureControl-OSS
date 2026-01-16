@@ -2,8 +2,9 @@ package com.zalphion.featurecontrol.configs.web
 
 import com.zalphion.featurecontrol.configs.Property
 import com.zalphion.featurecontrol.configs.PropertyKey
+import com.zalphion.featurecontrol.lib.asBiDiMapping
 import org.http4k.core.Body
-import org.http4k.format.ConfigurableMoshi
+import org.http4k.format.AutoMarshalling
 import org.http4k.lens.BodyLens
 import org.http4k.lens.FormField
 import org.http4k.lens.Validator
@@ -11,17 +12,17 @@ import org.http4k.lens.map
 import org.http4k.lens.webForm
 
 private object ConfigLenses {
-    fun properties(json: ConfigurableMoshi) = FormField
+    fun properties(json: AutoMarshalling) = FormField
         .map(json.asBiDiMapping<Map<String, Property>>())
         .map { it.mapKeys { (k, _) -> PropertyKey.parse(k) } }
         .required("properties")
 
-    fun values(json: ConfigurableMoshi) = FormField.map(json.asBiDiMapping<Map<String, String>>())
+    fun values(json: AutoMarshalling) = FormField.map(json.asBiDiMapping<Map<String, String>>())
         .map { it.mapKeys { (k, _) -> PropertyKey.parse(k) } }
         .required("values")
 }
 
-internal fun createCoreConfigSpecDataLens(json: ConfigurableMoshi): BodyLens<Map<PropertyKey, Property>> {
+internal fun createCoreConfigSpecDataLens(json: AutoMarshalling): BodyLens<Map<PropertyKey, Property>> {
     val properties = ConfigLenses.properties(json)
     return Body
         .webForm(Validator.Strict, properties)
@@ -29,7 +30,7 @@ internal fun createCoreConfigSpecDataLens(json: ConfigurableMoshi): BodyLens<Map
         .toLens()
 }
 
-internal fun createCoreConfigEnvironmentDataLens(json: ConfigurableMoshi): BodyLens<Map<PropertyKey, String>> {
+internal fun createCoreConfigEnvironmentDataLens(json: AutoMarshalling): BodyLens<Map<PropertyKey, String>> {
     val values = ConfigLenses.values(json)
     return Body
         .webForm(Validator.Strict, values)

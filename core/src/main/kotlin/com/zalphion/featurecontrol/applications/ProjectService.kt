@@ -33,29 +33,29 @@ class CreateApplication(
         .asSuccess()
 }
 
-class GetApplication(val appId: AppId): ServiceAction<Application>(
-    auth = ActionAuth.byApplication(appId, UserRole.Tester)
+class GetApplication(val teamId: TeamId, val appId: AppId): ServiceAction<Application>(
+    auth = ActionAuth.byApplication(teamId, appId, UserRole.Tester)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(appId)
+        .apps.getOrFail(teamId, appId)
 }
 
-class UpdateApplication(val appId: AppId, val data: ApplicationUpdateData): ServiceAction<Application>(
-    auth = ActionAuth.byApplication(appId, UserRole.Developer) {
+class UpdateApplication(val teamId: TeamId, val appId: AppId, val data: ApplicationUpdateData): ServiceAction<Application>(
+    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer) {
         data.environments.flatMap(::getRequirements).toSet()
     }
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(appId)
+        .apps.getOrFail(teamId, appId)
         .map { it.update(data) }
         .peek(core.apps::plusAssign)
 }
 
-class DeleteApplication(val appId: AppId): ServiceAction<Application>(
-    auth = ActionAuth.byApplication(appId, UserRole.Developer)
+class DeleteApplication(val teamId: TeamId, val appId: AppId): ServiceAction<Application>(
+    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(appId)
+        .apps.getOrFail(teamId, appId)
         .failIf(
             cond = { core.features.list(it.appId, core.config.pageSize).any() },
             f= { applicationNotEmpty(it.appId) }

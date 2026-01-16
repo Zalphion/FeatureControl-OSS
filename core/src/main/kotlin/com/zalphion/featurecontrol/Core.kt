@@ -1,6 +1,8 @@
 package com.zalphion.featurecontrol
 
+import com.zalphion.featurecontrol.apikeys.ApiKeyStorage
 import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.applications.ApplicationStorage
 import com.zalphion.featurecontrol.applications.Environment
 import com.zalphion.featurecontrol.applications.web.coreConfigCard
 import com.zalphion.featurecontrol.applications.web.coreFeatureCard
@@ -20,6 +22,7 @@ import com.zalphion.featurecontrol.auth.web.google
 import com.zalphion.featurecontrol.auth.web.hMacJwt
 import com.zalphion.featurecontrol.configs.ConfigEnvironment
 import com.zalphion.featurecontrol.configs.ConfigSpec
+import com.zalphion.featurecontrol.configs.ConfigStorage
 import com.zalphion.featurecontrol.configs.Property
 import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.configs.web.coreConfigEnvironment
@@ -38,6 +41,7 @@ import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.FeatureCreateData
 import com.zalphion.featurecontrol.features.FeatureEnvironment
+import com.zalphion.featurecontrol.features.FeatureStorage
 import com.zalphion.featurecontrol.features.FeatureUpdateData
 import com.zalphion.featurecontrol.features.web.coreFeature
 import com.zalphion.featurecontrol.features.web.coreFeatureEnvironment
@@ -52,6 +56,7 @@ import com.zalphion.featurecontrol.features.web.httpPostFeature
 import com.zalphion.featurecontrol.features.web.httpPostFeatureEnvironment
 import com.zalphion.featurecontrol.features.web.httpPutFeature
 import com.zalphion.featurecontrol.members.ListMembersForUser
+import com.zalphion.featurecontrol.members.MemberStorage
 import com.zalphion.featurecontrol.members.web.acceptInvitation
 import com.zalphion.featurecontrol.members.web.deleteMember
 import com.zalphion.featurecontrol.members.web.resendInvitation
@@ -60,10 +65,13 @@ import com.zalphion.featurecontrol.members.web.showMembers
 import com.zalphion.featurecontrol.members.web.updateMember
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
+import com.zalphion.featurecontrol.storage.Storage
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.teams.TeamId
+import com.zalphion.featurecontrol.teams.TeamStorage
 import com.zalphion.featurecontrol.teams.web.createTeam
 import com.zalphion.featurecontrol.teams.web.updateTeam
+import com.zalphion.featurecontrol.users.UserStorage
 import com.zalphion.featurecontrol.users.web.showUserSettings
 import com.zalphion.featurecontrol.web.INDEX_PATH
 import com.zalphion.featurecontrol.web.LOGIN_PATH
@@ -100,7 +108,7 @@ import org.http4k.filter.ResponseFilters
 import org.http4k.filter.ServerFilters
 import org.http4k.filter.flash
 import org.http4k.filter.withFlash
-import org.http4k.format.ConfigurableMoshi
+import org.http4k.format.AutoMarshalling
 import org.http4k.lens.BodyLens
 import org.http4k.lens.location
 import org.http4k.routing.ResourceLoader.Companion.Classpath
@@ -121,7 +129,7 @@ class CoreBuilder(
     staticUri: Uri,
     appSecret: AppSecret,
     plugins: List<PluginFactory<*>> = emptyList(),
-    private val storageFn: (ConfigurableMoshi) -> CoreStorage,
+    private val storage: Storage,
     private val eventBusFn: (List<Plugin>) -> EventBus
 ) {
     var plugins = plugins.toMutableList()
@@ -129,14 +137,13 @@ class CoreBuilder(
 
     fun build(fn: CoreBuilder.() -> Unit = {}): Core {
         fn()
-        val json = buildJson(plugins.mapNotNull { it.jsonExport })
         return Core(
             clock = clock,
             random = random,
-            json = json,
+            json = buildJson(plugins.mapNotNull { it.jsonExport }),
             config = config,
             plugins = plugins,
-            storage = storageFn(json),
+            storage = storage,
             eventBusFn = eventBusFn,
             sessions = Sessions.hMacJwt(
                 clock = clock,
@@ -152,9 +159,9 @@ class CoreBuilder(
 class Core internal constructor(
     val clock: Clock,
     val random: Random,
-    val json: ConfigurableMoshi,
+    val json: AutoMarshalling,
     val config: CoreConfig,
-    private val storage: CoreStorage,
+    val storage: Storage,
     val sessions: Sessions,
     plugins: List<PluginFactory<*>>,
     eventBusFn: (List<Plugin>) -> EventBus
@@ -162,13 +169,13 @@ class Core internal constructor(
     private val plugins = plugins.map { it.create(this) }
 
     // storage
-    val teams get() = storage.teams
-    val features get() = storage.features
-    val apps get() = storage.applications
-    val apiKeys get() = storage.apiKeys
-    val users get() = storage.users
-    val members get() = storage.members
-    val configs get() = storage.configs
+    val teams = TeamStorage.create(storage, json)
+    val features = FeatureStorage.create(storage, json)
+    val apps = ApplicationStorage.create(storage, json)
+    val apiKeys = ApiKeyStorage.create(storage, json)
+    val users = UserStorage.create(storage, json)
+    val members = MemberStorage.create(storage, json)
+    val configs = ConfigStorage.create(storage, json)
 
     fun getEntitlements(teamId: TeamId) = plugins
         .flatMap { it.getEntitlements(teamId) }

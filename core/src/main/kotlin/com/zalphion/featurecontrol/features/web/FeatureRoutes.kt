@@ -20,6 +20,7 @@ import com.zalphion.featurecontrol.web.principalLens
 import com.zalphion.featurecontrol.web.samePageError
 import com.zalphion.featurecontrol.web.toIndex
 import com.zalphion.featurecontrol.web.flash.withMessage
+import com.zalphion.featurecontrol.web.teamIdLens
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.recover
@@ -30,11 +31,12 @@ import org.http4k.core.with
 import org.http4k.lens.location
 
 internal fun Core.httpPostFeature(): HttpHandler = { request ->
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val principal = principalLens(request)
     val data = createFeatureCreateDataLens()(request)
 
-    CreateFeature(appId, data)
+    CreateFeature(teamId, appId, data)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER).location(featureUri(it.appId, it.key)) }
         .recover { request.toIndex().withMessage(it) }
@@ -42,10 +44,11 @@ internal fun Core.httpPostFeature(): HttpHandler = { request ->
 
 internal fun Core.httpGetFeature(): HttpHandler = fn@{ request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
 
-    ApplicationsPage.forFeature(this, principal, appId, featureKey)
+    ApplicationsPage.forFeature(this, principal, teamId, appId, featureKey)
         .map { model -> model.render(
             core = this,
             messages = request.messages(),
@@ -61,10 +64,11 @@ internal fun Core.httpGetFeature(): HttpHandler = fn@{ request ->
 
 internal fun Core.httpDeleteFeature(): HttpHandler = { request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
 
-    DeleteFeature(appId, featureKey)
+    DeleteFeature(teamId, appId, featureKey)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER).location(applicationUri(appId)) }
         .recover { request.toIndex().withMessage(it) }
@@ -72,11 +76,12 @@ internal fun Core.httpDeleteFeature(): HttpHandler = { request ->
 
 internal fun Core.httpPutFeature(): HttpHandler = { request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
     val data = createFeatureUpdateDataLens()(request)
 
-    UpdateFeature(appId, featureKey, data)
+    UpdateFeature(teamId, appId, featureKey, data)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER)
             .location(featureUri(it.appId, it.key))
@@ -87,11 +92,12 @@ internal fun Core.httpPutFeature(): HttpHandler = { request ->
 
 internal fun Core.httpGetFeatureEnvironment(): HttpHandler = fn@{ request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
     val environmentName = environmentNameLens(request)
 
-    val pageModel = ApplicationsPage.forFeatureEnvironment(this, principal, appId, featureKey, environmentName)
+    val pageModel = ApplicationsPage.forFeatureEnvironment(this, principal, teamId, appId, featureKey, environmentName)
         .onFailure { return@fn request.samePageError(it.reason) }
 
     val page = pageModel.render(
@@ -109,6 +115,7 @@ internal fun Core.httpGetFeatureEnvironment(): HttpHandler = fn@{ request ->
 
 internal fun Core.httpPostFeatureEnvironment(): HttpHandler = fn@{ request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
     val environmentName = environmentNameLens(request)
@@ -118,7 +125,7 @@ internal fun Core.httpPostFeatureEnvironment(): HttpHandler = fn@{ request ->
         environmentsToUpdate = Update(mapOf(environmentName to environment))
     )
 
-    UpdateFeature(appId, featureKey, data)
+    UpdateFeature(teamId, appId, featureKey, data)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER)
             .location(featureUri(it.appId, it.key, environmentName))

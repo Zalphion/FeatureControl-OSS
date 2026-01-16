@@ -57,9 +57,10 @@ fun Core.createApplication(): HttpHandler = { request ->
 
 internal fun Core.deleteApplication(): HttpHandler = { request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val applicationId = appIdLens(request)
 
-    DeleteApplication(applicationId)
+    DeleteApplication(teamId, applicationId)
         .invoke(principal, this)
         .map { request.samePage(FlashMessageDto(FlashMessageDto.Type.Success, "Deleted ${it.appName}")) }
         .onFailure { error(it.reason) }
@@ -67,10 +68,11 @@ internal fun Core.deleteApplication(): HttpHandler = { request ->
 
 internal fun Core.updateApplication(): HttpHandler = { request ->
     val principal = principalLens(request)
+    val teamId = teamIdLens(request)
     val applicationId = appIdLens(request)
     val data = this@updateApplication.createApplicationUpdateDataLens()(request)
 
-    UpdateApplication(applicationId, data)
+    UpdateApplication(teamId, applicationId, data)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER).location(applicationUri(it.appId)) }
         .onFailure { error(it.reason) }
