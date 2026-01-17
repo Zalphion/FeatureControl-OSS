@@ -21,7 +21,7 @@ import kotlin.random.Random
 abstract class CoreTestDriver(
     pageSize: Int = 2,
     plugins: List<PluginFactory<*>> = emptyList(),
-    storage: Storage = Storage.memory(), // TODO this isn't a great implementation for test coverage, since it doesn't use json
+    storage: Storage = Storage.memory(),
     appSecret: AppSecret = AppSecret.of("secret")
 ): Plugin {
     var time: Instant = Instant.parse("2025-07-29T12:00:00Z")

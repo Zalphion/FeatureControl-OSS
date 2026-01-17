@@ -7,14 +7,15 @@ import org.flywaydb.core.api.migration.Context
 import org.flywaydb.core.api.migration.JavaMigration
 
 internal fun HikariDataSource.migrate(): HikariDataSource {
-    Flyway
-        .configure()
-        .dataSource(this)
-        .schemas(this.schema)
-        .createSchemas(true)
-        .javaMigrations(V1CreateMonoTable())
-        .load()
-        .migrate()
+    Flyway.configure().also {
+        it.dataSource(this@migrate)
+        it.javaMigrations(V1CreateMonoTable())
+        if (schema != null) {
+            it.schemas(schema)
+            it.createSchemas(true)
+        }
+    }.load().migrate()
+
     return this
 }
 

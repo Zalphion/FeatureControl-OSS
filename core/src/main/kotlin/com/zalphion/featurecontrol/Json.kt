@@ -8,6 +8,7 @@ import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.AppName
+import com.zalphion.featurecontrol.auth.EnginePrincipal
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.SubjectId
 import com.zalphion.featurecontrol.features.Weight
@@ -36,11 +37,10 @@ private object CoreJsonAdapterFactory : JsonAdapter.Factory by KotshiCoreJsonAda
 
 internal fun buildJson(plugins: List<JsonExport>): AutoMarshalling = plugins
     .fold(Moshi.Builder()) { builder, plugin -> plugin.moshi(builder) }
-    .add(CoreJsonAdapterFactory)
     .add(BigDecimalAdapter)
     .add(ListAdapter)
     .add(MapAdapter)
-    .asConfigurable()
+    .asConfigurable(CoreJsonAdapterFactory)
     .withStandardMappings()
     .value(TeamId)
     .value(AppId)
@@ -56,10 +56,12 @@ internal fun buildJson(plugins: List<JsonExport>): AutoMarshalling = plugins
     .value(TeamName)
     .value(PropertyKey)
     .value(Colour)
+    .value(EnginePrincipal)
     .let { plugins.fold(it) { builder, plugin -> plugin.mapping(builder)} }
     .done()
     .let { ConfigurableMoshi(it) }
 
+// TODO see if this can be done without reflective annotations
 private object BigDecimalAdapter {
     @Suppress("Unused") @FromJson fun fromJson(value: String) = BigDecimal(value)
     @Suppress("Unused") @ToJson fun toJson(value: BigDecimal?) = value?.toPlainString()

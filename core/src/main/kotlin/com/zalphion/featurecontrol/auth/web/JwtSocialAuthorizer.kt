@@ -11,6 +11,7 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.users.UserCreateData
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.http4k.core.Uri
 import java.net.URI
 import java.time.Clock
 import java.util.Date
@@ -48,7 +49,7 @@ fun SocialAuthorizer.Companion.jwt(
         UserCreateData(
             userName = claims.getStringClaim("name") ?: claims.getStringClaim("email"),
             emailAddress = EmailAddress.parse(claims.getStringClaim("email")), // TODO gracefully handle null,
-            photoUrl = claims.getStringClaim("picture")?.let(URI::create)
+            photoUrl = claims.getStringClaim("picture")?.let(Uri::of)
         )
     }
 }

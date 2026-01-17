@@ -7,7 +7,9 @@ import com.zalphion.featurecontrol.auth.EnginePrincipal
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.lib.toBiDiMapping
 import org.http4k.format.AutoMarshalling
+import se.ansman.kotshi.JsonSerializable
 
+@JsonSerializable
 data class StoredApiKey(
     val enginePrincipal: EnginePrincipal,
     val encryptedApiKey: Base64String,
@@ -37,7 +39,7 @@ class ApiKeyStorage private constructor(private val repository: Repository<Store
             name = "api_keys",
             groupIdMapper = EnginePrincipal.toBiDiMapping(),
             itemIdMapper = Base64String.toBiDiMapping(),
-            documentMapper = json.asBiDiMapping<StoredApiKey>() // TODO DTO
+            documentMapper = json.asBiDiMapping()
         ))
     }
 }

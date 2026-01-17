@@ -4,9 +4,9 @@ import kotlinx.html.FlowContent
 import kotlinx.html.SPAN
 import kotlinx.html.img
 import kotlinx.html.span
-import java.net.URI
+import org.http4k.core.Uri
 
-internal fun FlowContent.avatarView(photoUrl: URI?, size: Int, fn: SPAN.() -> Unit = {}) = span {
+internal fun FlowContent.avatarView(photoUrl: Uri?, size: Int, fn: SPAN.() -> Unit = {}) = span {
     fn()
     if (photoUrl != null) {
         img(classes = "uk-border-circle") {

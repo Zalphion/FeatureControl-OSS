@@ -1,11 +1,11 @@
 package com.zalphion.featurecontrol.users
 
-import java.net.URI
+import org.http4k.core.Uri
 
 data class UserCreateData(
     val emailAddress: EmailAddress,
     val userName: String?,
-    val photoUrl: URI?,
+    val photoUrl: Uri?,
 )
 
 fun UserCreateData.toUser() = User(

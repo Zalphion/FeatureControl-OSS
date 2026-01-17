@@ -9,7 +9,6 @@ import dev.andrewohara.utils.pagination.Page
 import dev.andrewohara.utils.pagination.Paginator
 import org.http4k.core.Uri
 import org.http4k.lens.BiDiMapping
-import java.util.UUID
 import javax.sql.DataSource
 import kotlin.collections.take
 
@@ -19,14 +18,10 @@ internal const val GROUP_ID_COLUMN = "group_id"
 internal const val ITEM_ID_COLUMN = "item_id"
 internal const val DOC_COLUMN = "document"
 
-fun Storage.Companion.postgres(
-    uri: Uri,
-    credentials: Http4kCredentials?
-) = object: Storage {
+fun Storage.Companion.postgres(uri: Uri, credentials: Http4kCredentials?) = object: Storage {
     private val dataSource = HikariDataSource(HikariConfig().apply {
         this.jdbcUrl = uri.toString()
         this.credentials = credentials?.let { Credentials(it.user, it.password) }
-        this.schema = UUID.randomUUID().toString()
     }).migrate()
 
     override fun <Doc : Any, GroupId : Any, ItemId : Any> create(

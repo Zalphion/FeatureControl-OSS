@@ -4,13 +4,13 @@ import dev.forkhandles.values.Base64StringValueFactory
 import dev.forkhandles.values.ComparableValue
 import dev.forkhandles.values.StringValue
 import dev.forkhandles.values.StringValueFactory
-import java.net.URI
+import org.http4k.core.Uri
 import java.util.Base64
 
 data class User(
     val userId: UserId,
     val userName: String?,
-    val photoUrl: URI?
+    val photoUrl: Uri?
 ) {
     val emailAddress = userId.toEmailAddress()
 

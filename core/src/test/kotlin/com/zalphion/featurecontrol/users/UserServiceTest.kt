@@ -12,8 +12,8 @@ import com.zalphion.featurecontrol.teams.TeamName
 import dev.forkhandles.result4k.kotest.shouldBeFailure
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import org.http4k.core.Uri
 import org.junit.jupiter.api.Test
-import java.net.URI
 
 class UserServiceTest: CoreTestDriver() {
 
@@ -30,7 +30,7 @@ class UserServiceTest: CoreTestDriver() {
             user = User(
                 userId = idp1Email1.toUserId(),
                 userName = "User One",
-                photoUrl = URI.create("http://photo.url"),
+                photoUrl = Uri.of("http://photo.url"),
             ),
             team = Team(
                 teamId = TeamId.of("ds3rjam1"),
@@ -43,7 +43,7 @@ class UserServiceTest: CoreTestDriver() {
             UserCreateData(
                 emailAddress = idp1Email1,
                 userName = "User One",
-                photoUrl = URI.create("http://photo.url"),
+                photoUrl = Uri.of("http://photo.url"),
             )
         ) shouldBeSuccess expected
 

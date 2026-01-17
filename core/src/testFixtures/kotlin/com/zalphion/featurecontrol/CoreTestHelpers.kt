@@ -24,7 +24,7 @@ import com.zalphion.featurecontrol.users.UserCreateData
 import com.zalphion.featurecontrol.users.UserService
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.nulls.shouldNotBeNull
-import java.net.URI
+import org.http4k.core.Uri
 
 fun FeatureUpdateData.toCreate(featureKey: FeatureKey) = FeatureCreateData(
     featureKey = featureKey,
@@ -77,7 +77,7 @@ fun CoreTestDriver.createFeature(
 fun UserService.create(
     emailAddress: EmailAddress,
     userName: String = emailAddress.value,
-    photoUrl: URI? = null,
+    photoUrl: Uri? = null,
 ) = create(UserCreateData(
     emailAddress = emailAddress,
     userName = userName,
