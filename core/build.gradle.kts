@@ -16,11 +16,12 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-html-jvm:_")
     api("com.nimbusds:nimbus-jose-jwt:_")
 
-    runtimeOnly("org.tinylog:slf4j-tinylog:_")
-    runtimeOnly("org.tinylog:tinylog-impl:_")
-
     ksp("se.ansman.kotshi:compiler:_")
+
 
     testFixturesApi("dev.forkhandles:result4k-kotest")
     testFixturesApi("org.http4k:http4k-testing-playwright")
+
+    testFixturesRuntimeOnly("org.tinylog:slf4j-tinylog:_")
+    testFixturesRuntimeOnly("org.tinylog:tinylog-impl:_")
 }

@@ -14,6 +14,8 @@ dependencies {
 
     runtimeOnly("org.webjars.npm:alpinejs:_")
     runtimeOnly("org.webjars.npm:dayjs:_")
+    runtimeOnly("org.tinylog:slf4j-tinylog:_")
+    runtimeOnly("org.tinylog:tinylog-impl:_")
 
     ksp("se.ansman.kotshi:compiler:_")
 }

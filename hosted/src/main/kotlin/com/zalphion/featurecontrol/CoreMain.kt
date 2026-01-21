@@ -34,7 +34,7 @@ fun hostedCoreMain(additionalPlugins: List<PluginFactory<*>>) {
         random = SecureRandom().asKotlinRandom(),
         appSecret = env[Settings.appSecret],
         storage = Storage.postgres(
-            uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgres"),
+            uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
             credentials = env[Settings.postgresDatabaseCredentials],
         ),
         staticUri = Uri.of("/"), // vendored in jar
