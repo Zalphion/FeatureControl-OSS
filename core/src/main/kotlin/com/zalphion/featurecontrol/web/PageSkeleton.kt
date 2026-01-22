@@ -22,8 +22,7 @@ fun Core.pageSkeleton(
     messages: List<FlashMessageDto>,
     subTitle: String? = null,
     content: (FlowContent.(Core) -> Unit),
-
-    ) = createHTML().html {
+) = createHTML().html {
     head {
         if (subTitle != null) {
             title("$subTitle - $APP_NAME")
@@ -31,19 +30,20 @@ fun Core.pageSkeleton(
             title(APP_NAME)
         }
 
+
         // UI Kit
         link(config.staticUri.path("/uikit-3.23.11/css/uikit.min.css").toString(), "stylesheet", "text/css")
         script(src = config.staticUri.path("/uikit-3.23.11/js/uikit.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
         script(src = config.staticUri.path("/uikit-3.23.11/js/uikit-icons.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
 
         // alpine.js
-        script(src = config.staticUri.path("/alpinejs/3.15.3/dist/cdn.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {
+        script(src = config.staticUri.path("/alpinejs/${WebAssetVersions.ALPINE_JS}/dist/cdn.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {
             defer = true
         }
 
         // Day.js
-        script(src = config.staticUri.path("/dayjs/1.11.19/dayjs.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
-        script(src = config.staticUri.path("/dayjs/1.11.19/plugin/utc.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        script(src = config.staticUri.path("/dayjs/${WebAssetVersions.DAY_JS}/dayjs.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        script(src = config.staticUri.path("/dayjs/${WebAssetVersions.DAY_JS}/plugin/utc.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
     }
 
     body {
