@@ -11,6 +11,7 @@ flyway = "11.20.2"
 # webjars
 alpinejs = "3.15.4"
 dayjs = "1.11.19"
+uikit = "3.23.11"
 
 [plugins]
 
@@ -46,6 +47,7 @@ kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", 
 # webjars
 webjars-alpinejs = { module = "org.webjars.npm:alpinejs", version.ref = "alpinejs" }
 webjars-dayjs = { module = "org.webjars.npm:dayjs", version.ref = "dayjs" }
+webjars-uikit = { module = "org.webjars.npm:uikit", version.ref = "uikit" }
 
 # tinylog
 tinylog-slf4j = { module = "org.tinylog:slf4j-tinylog", version.ref = "tinylog" }

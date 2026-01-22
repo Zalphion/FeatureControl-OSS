@@ -30,11 +30,10 @@ fun Core.pageSkeleton(
             title(APP_NAME)
         }
 
-
         // UI Kit
-        link(config.staticUri.path("/uikit-3.23.11/css/uikit.min.css").toString(), "stylesheet", "text/css")
-        script(src = config.staticUri.path("/uikit-3.23.11/js/uikit.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
-        script(src = config.staticUri.path("/uikit-3.23.11/js/uikit-icons.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        link(config.staticUri.path("/uikit/3.23.11/dist/css/uikit.min.css").toString(), "stylesheet", "text/css")
+        script(src = config.staticUri.path("/uikit/3.23.11/dist/js/uikit.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        script(src = config.staticUri.path("/uikit/3.23.11/dist/js/uikit-icons.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
 
         // alpine.js
         script(src = config.staticUri.path("/alpinejs/${WebAssetVersions.ALPINE_JS}/dist/cdn.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {

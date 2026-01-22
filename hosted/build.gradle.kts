@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":storage:postgres"))
     implementation(libs.jakarta.mail)
 
+    runtimeOnly(libs.webjars.uikit)
     runtimeOnly(libs.webjars.alpinejs)
     runtimeOnly(libs.webjars.dayjs)
     runtimeOnly(libs.tinylog.impl)
