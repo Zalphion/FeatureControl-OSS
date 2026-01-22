@@ -1,7 +1,7 @@
 [versions]
 
 junit = "6.0.2"
-kotest = "6.0.7"
+kotest = "6.1.0"
 forkhandles = "2.25.0.0"
 http4k = "6.26.0.0"
 kotshi = "4.0.0"
