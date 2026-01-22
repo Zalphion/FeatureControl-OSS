@@ -31,9 +31,9 @@ fun Core.pageSkeleton(
         }
 
         // UI Kit
-        link(config.staticUri.path("/uikit/3.23.11/dist/css/uikit.min.css").toString(), "stylesheet", "text/css")
-        script(src = config.staticUri.path("/uikit/3.23.11/dist/js/uikit.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
-        script(src = config.staticUri.path("/uikit/3.23.11/dist/js/uikit-icons.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        link(config.staticUri.path("/uikit/${WebAssetVersions.UI_KIT}/dist/css/uikit.min.css").toString(), "stylesheet", "text/css")
+        script(src = config.staticUri.path("/uikit/${WebAssetVersions.UI_KIT}/dist/js/uikit.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        script(src = config.staticUri.path("/uikit/${WebAssetVersions.UI_KIT}/dist/js/uikit-icons.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
 
         // alpine.js
         script(src = config.staticUri.path("/alpinejs/${WebAssetVersions.ALPINE_JS}/dist/cdn.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {
