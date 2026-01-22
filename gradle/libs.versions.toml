@@ -58,7 +58,7 @@ postgresql = { module = "org.postgresql:postgresql", version = "42.7.9" }
 
 # testcontainers
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version = "2.0.3" }
-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version = "1.21.2" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version = "1.21.4" }
 
 # other
 jakarta-mail = { module = "com.sun.mail:jakarta.mail", version = "2.0.2"}
