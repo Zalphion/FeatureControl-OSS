@@ -1,27 +1,32 @@
 plugins {
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.ksp)
 }
 
 dependencies {
-    api("org.http4k:http4k-core")
-    api("org.http4k:http4k-format-core")
-    implementation("org.http4k:http4k-format-moshi") {
+    api(libs.http4k.core)
+    api(libs.http4k.format.core)
+    implementation(libs.http4k.format.moshi) {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
     }
-    api("dev.andrewohara:service-utils:_")
-    api("io.github.oshai:kotlin-logging-jvm:_")
-    api("dev.forkhandles:values4k")
-    api("dev.forkhandles:result4k")
-    api("se.ansman.kotshi:api:_")
-    api("org.jetbrains.kotlinx:kotlinx-html-jvm:_")
-    api("com.nimbusds:nimbus-jose-jwt:_")
+    api(libs.service.utils)
+    api(libs.kotlin.logging.jvm)
+    api(libs.forkhandles.values4k)
+    api(libs.forkhandles.result4k)
+    api(libs.kotshi.api)
+    api(libs.kotlinx.html)
+    api(libs.nimbus.jose.jwt)
 
-    ksp("se.ansman.kotshi:compiler:_")
+    ksp(libs.kotshi.compiler)
 
 
-    testFixturesApi("dev.forkhandles:result4k-kotest")
-    testFixturesApi("org.http4k:http4k-testing-playwright")
+    testFixturesApi(libs.junit.jupiter.api)
+    testFixturesApi(libs.forkhandles.result4k.kotest)
+    testFixturesApi(libs.http4k.testing.playwright)
+    testFixturesApi(libs.kotest.assertions.core.jvm)
 
-    testFixturesRuntimeOnly("org.tinylog:slf4j-tinylog:_")
-    testFixturesRuntimeOnly("org.tinylog:tinylog-impl:_")
+    testFixturesImplementation(libs.junit.jupiter)
+
+    testFixturesRuntimeOnly(libs.tinylog.slf4j)
+    testFixturesRuntimeOnly(libs.tinylog.impl)
+    testFixturesRuntimeOnly(libs.junit.platform.launcher)
 }

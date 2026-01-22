@@ -1,0 +1,69 @@
+[versions]
+
+junit = "6.0.2"
+kotest = "6.0.7"
+forkhandles = "2.25.0.0"
+http4k = "6.26.0.0"
+kotshi = "4.0.0"
+tinylog = "2.7.0"
+flyway = "11.20.2"
+
+[plugins]
+
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.0" }
+ksp = { id = "com.google.devtools.ksp", version = "2.3.4" }
+license-report = { id = "com.github.jk1.dependency-license-report", version = "3.0.1" }
+shadow = { id = "com.gradleup.shadow", version = "9.3.1" }
+
+[libraries]
+
+# http4k
+http4k-bom = { module = "org.http4k:http4k-bom", version.ref = "http4k" }
+http4k-core = { module = "org.http4k:http4k-core", version.ref = "http4k" }
+http4k-format-core = { module = "org.http4k:http4k-format-core", version.ref = "http4k" }
+http4k-format-moshi = { module = "org.http4k:http4k-format-moshi", version.ref = "http4k" }
+http4k-config = { module = "org.http4k:http4k-config", version.ref = "http4k" }
+http4k-server-undertow = { module = "org.http4k:http4k-server-undertow", version.ref = "http4k" }
+http4k-testing-playwright = { module = "org.http4k:http4k-testing-playwright", version.ref = "http4k" }
+
+# junit
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
+
+# forkhandles
+forkhandles-values4k = { module = "dev.forkhandles:values4k", version.ref = "forkhandles" }
+forkhandles-result4k = { module = "dev.forkhandles:result4k", version.ref = "forkhandles" }
+forkhandles-result4k-kotest = { module = "dev.forkhandles:result4k-kotest", version.ref = "forkhandles" }
+
+# kotest
+kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
+
+# webjars
+webjars-alpinejs = { module = "org.webjars.npm:alpinejs", version = "3.15.3" }
+webjars-dayjs = { module = "org.webjars.npm:dayjs", version = "1.11.19" }
+
+# tinylog
+tinylog-slf4j = { module = "org.tinylog:slf4j-tinylog", version.ref = "tinylog" }
+tinylog-impl = { module = "org.tinylog:tinylog-impl", version.ref = "tinylog" }
+
+# kotshi
+kotshi-compiler = { module = "se.ansman.kotshi:compiler", version.ref = "kotshi" }
+kotshi-api = { module = "se.ansman.kotshi:api", version.ref = "kotshi" }
+
+# flyway
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.9" }
+
+# testcontainers
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version = "2.0.3" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version = "1.21.2" }
+
+# other
+jakarta-mail = { module = "com.sun.mail:jakarta.mail", version = "2.0.2"}
+service-utils = { module = "dev.andrewohara:service-utils", version = "1.26.0" }
+kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version = "7.0.14" }
+kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html-jvm", version = "0.12.0" }
+nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.6" }
+hikari-cp = { module = "com.zaxxer:HikariCP", version = "7.0.2" }

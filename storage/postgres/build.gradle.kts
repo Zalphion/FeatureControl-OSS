@@ -1,13 +1,13 @@
 dependencies {
     api(project(":core"))
 
-    implementation("com.zaxxer:HikariCP:_")
-    implementation("org.flywaydb:flyway-core:_")
+    implementation(libs.hikari.cp)
+    implementation(libs.flyway.core)
 
-    runtimeOnly("org.flywaydb:flyway-database-postgresql:_")
-    runtimeOnly("org.postgresql:postgresql:_")
+    runtimeOnly(libs.flyway.postgresql)
+    runtimeOnly(libs.postgresql)
 
-    testImplementation("org.testcontainers:testcontainers-postgresql")
-    testImplementation("org.testcontainers:junit-jupiter:_")
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation(testFixtures(project(":core")))
 }

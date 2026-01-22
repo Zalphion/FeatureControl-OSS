@@ -1,23 +1,24 @@
 plugins {
-    id("com.gradleup.shadow")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.ksp)
     application
 }
 
 dependencies {
     api(project(":emails"))
+    api(libs.http4k.core)
+    api(libs.http4k.config)
+    api(libs.http4k.server.undertow)
+
     implementation(project(":storage:postgres"))
-    api("org.http4k:http4k-config")
-    api("org.http4k:http4k-server-undertow")
+    implementation(libs.jakarta.mail)
 
-    implementation("com.sun.mail:jakarta.mail:_")
+    runtimeOnly(libs.webjars.alpinejs)
+    runtimeOnly(libs.webjars.dayjs)
+    runtimeOnly(libs.tinylog.impl)
+    runtimeOnly(libs.tinylog.slf4j)
 
-    runtimeOnly("org.webjars.npm:alpinejs:_")
-    runtimeOnly("org.webjars.npm:dayjs:_")
-    runtimeOnly("org.tinylog:slf4j-tinylog:_")
-    runtimeOnly("org.tinylog:tinylog-impl:_")
-
-    ksp("se.ansman.kotshi:compiler:_")
+    ksp(libs.kotshi.compiler)
 }
 
 application {
