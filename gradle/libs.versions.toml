@@ -8,6 +8,10 @@ kotshi = "4.0.0"
 tinylog = "2.7.0"
 flyway = "11.20.2"
 
+# webjars
+alpinejs = "3.15.4"
+dayjs = "1.11.19"
+
 [plugins]
 
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.0" }
@@ -40,8 +44,8 @@ forkhandles-result4k-kotest = { module = "dev.forkhandles:result4k-kotest", vers
 kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
 
 # webjars
-webjars-alpinejs = { module = "org.webjars.npm:alpinejs", version = "3.15.4" }
-webjars-dayjs = { module = "org.webjars.npm:dayjs", version = "1.11.19" }
+webjars-alpinejs = { module = "org.webjars.npm:alpinejs", version.ref = "alpinejs" }
+webjars-dayjs = { module = "org.webjars.npm:dayjs", version.ref = "dayjs" }
 
 # tinylog
 tinylog-slf4j = { module = "org.tinylog:slf4j-tinylog", version.ref = "tinylog" }
