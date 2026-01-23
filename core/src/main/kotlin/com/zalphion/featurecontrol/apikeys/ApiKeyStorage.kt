@@ -1,7 +1,7 @@
 package com.zalphion.featurecontrol.apikeys
 
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.crypto.Base64String
 import com.zalphion.featurecontrol.auth.EnginePrincipal
 import com.zalphion.featurecontrol.lib.asBiDiMapping
@@ -35,7 +35,7 @@ class ApiKeyStorage private constructor(private val repository: Repository<Store
     )
 
     companion object {
-        fun create(storage: Storage, json: AutoMarshalling) = ApiKeyStorage(storage.create(
+        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = ApiKeyStorage(storageDriver.create(
             name = "api_keys",
             groupIdMapper = EnginePrincipal.toBiDiMapping(),
             itemIdMapper = Base64String.toBiDiMapping(),

@@ -3,6 +3,7 @@ package com.zalphion.featurecontrol.configs.web
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.web.configUri
+import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.a
 import kotlinx.html.classes
@@ -47,14 +48,14 @@ fun FlowContent.coreConfigNavBar(
     ul("uk-subnav uk-subnav-pill uk-margin-remove-top") {
         li {
             if (selected == null) classes + "uk-active"
-            a(configUri(application.appId).toString()) {
+            a(application.uri().toString()) {
                 +"Properties"
             }
         }
         for (environment in application.environments) {
             li {
                 if (selected == environment.name) classes + "uk-active"
-                a(configUri(application.appId, environment.name).toString()) {
+                a(configUri(application.teamId, application.appId, environment.name).toString()) {
                     +environment.name.value
                 }
             }

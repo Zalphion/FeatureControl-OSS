@@ -3,12 +3,14 @@ package com.zalphion.featurecontrol.features
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.keyValidation
 import com.zalphion.featurecontrol.plugins.Extensions
+import com.zalphion.featurecontrol.teams.TeamId
 import dev.forkhandles.values.ComparableValue
 import dev.forkhandles.values.NonEmptyStringValueFactory
 import dev.forkhandles.values.StringValue
 import dev.forkhandles.values.StringValueFactory
 
 data class Feature(
+    val teamId: TeamId,
     val appId: AppId,
     val key: FeatureKey,
     val variants: Map<Variant, String>,

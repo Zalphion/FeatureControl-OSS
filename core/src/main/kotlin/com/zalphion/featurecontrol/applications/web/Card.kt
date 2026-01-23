@@ -3,10 +3,9 @@ package com.zalphion.featurecontrol.applications.web
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.web.PageSpec
-import com.zalphion.featurecontrol.web.applicationUri
 import com.zalphion.featurecontrol.web.configUri
 import com.zalphion.featurecontrol.web.cssStyle
-import com.zalphion.featurecontrol.web.featureUri
+import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.a
 import kotlinx.html.classes
@@ -73,7 +72,7 @@ fun coreFeatureCard(
     badge: FlowContent.() -> Unit = {}
 ) = Card(
     name = feature.key.value,
-    link = featureUri(feature.appId, feature.key),
+    link = feature.uri(),
     type = "Feature",
     icon = PageSpec.features.icon,
     badge = badge
@@ -84,7 +83,7 @@ fun coreConfigCard(
     badge: FlowContent.() -> Unit = {}
 ) = Card(
     name = "Config",
-    link = configUri(application.appId),
+    link = configUri(application.teamId, application.appId),
     type = "Config",
     icon = PageSpec.config.icon,
     badge = badge
@@ -95,7 +94,7 @@ fun applicationCard(
     badge: FlowContent.() -> Unit = {}
 ) = Card(
     name = application.appName.value,
-    link = applicationUri(application.appId),
+    link = application.uri(),
     type = "Application",
     icon = "icon: album",
     badge = badge

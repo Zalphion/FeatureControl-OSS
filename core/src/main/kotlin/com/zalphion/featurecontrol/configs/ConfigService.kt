@@ -27,7 +27,7 @@ class GetConfigSpec(val teamId: TeamId, val appId: AppId): ServiceAction<ConfigS
 ) {
     override fun execute(core: Core) = core
         .apps.getOrFail(teamId, appId)
-        .map { core.configs.getOrEmpty(appId) }
+        .map { core.configs.getOrEmpty(teamId, appId) }
 }
 
 class UpdateConfigSpec(
@@ -39,7 +39,7 @@ class UpdateConfigSpec(
 ) {
     override fun execute(core: Core) = core
         .apps.getOrFail(teamId, appId)
-        .map { core.configs.getOrEmpty(appId) }
+        .map { core.configs.getOrEmpty(teamId, appId) }
         .map { config -> config.copy(properties = properties) }
         .peek(core.configs::plusAssign)
 }
@@ -57,7 +57,7 @@ class GetConfigEnvironment(
     override fun execute(core: Core) = core
         .apps.getOrFail(teamId, appId)
         .failIf({ environmentName !in it.environmentNames }, { environmentNotFound(appId, environmentName)})
-        .map { core.configs.getOrEmpty(appId, environmentName) }
+        .map { core.configs.getOrEmpty(teamId, appId, environmentName) }
 }
 
 class UpdateConfigEnvironment(
@@ -79,7 +79,7 @@ class UpdateConfigEnvironment(
             .flatMap { it.environmentExistsOrFail(environmentName) }
             .onFailure { return it }
 
-        val config = core.configs.getOrEmpty(appId)
+        val config = core.configs.getOrEmpty(teamId, appId)
         val encryption = core.encryption(appId, environmentName)
 
         val newValues = data.mapNotNull { (key, value) ->
@@ -91,7 +91,7 @@ class UpdateConfigEnvironment(
             if (processedValue.isNotBlank()) key to property.toValue(processedValue) else null
         }.toMap()
 
-        return (application to ConfigEnvironment(appId, environmentName, newValues)).asSuccess()
+        return (application to ConfigEnvironment(teamId, appId, environmentName, newValues)).asSuccess()
     }
 }
 

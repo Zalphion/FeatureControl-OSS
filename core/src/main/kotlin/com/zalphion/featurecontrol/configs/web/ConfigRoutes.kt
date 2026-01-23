@@ -16,8 +16,8 @@ import com.zalphion.featurecontrol.web.flash.toFlashMessage
 import com.zalphion.featurecontrol.web.toIndex
 import com.zalphion.featurecontrol.web.flash.withMessage
 import com.zalphion.featurecontrol.configs.UpdateConfigEnvironment
-import com.zalphion.featurecontrol.web.configUri
 import com.zalphion.featurecontrol.web.teamIdLens
+import com.zalphion.featurecontrol.web.uri
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.recover
 import org.http4k.core.HttpHandler
@@ -91,7 +91,7 @@ internal fun Core.httpPostConfigEnvironment(): HttpHandler = { request ->
     UpdateConfigEnvironment(teamId, appId, environmentName, data)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER)
-            .location(configUri(it.appId, it.environmentName))
+            .location(it.uri())
             .withMessage("Config Values Updated", FlashMessageDto.Type.Success)
         }
         .recover { request.samePageError(it) }

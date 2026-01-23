@@ -2,14 +2,13 @@ package com.zalphion.featurecontrol.users
 
 import com.zalphion.featurecontrol.storage.EmptyKey
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.lib.toBiDiMapping
 import dev.forkhandles.result4k.asResultOr
 import org.http4k.core.Uri
 import org.http4k.format.AutoMarshalling
 import se.ansman.kotshi.JsonSerializable
-import java.net.URI
 
 class UserStorage private constructor(private val repository: Repository<StoredUser, UserId, EmptyKey>) {
     operator fun get(userId: UserId) = repository[userId, EmptyKey.INSTANCE]?.toModel()
@@ -24,7 +23,7 @@ class UserStorage private constructor(private val repository: Repository<StoredU
         get(userId).asResultOr { userNotFound(userId) }
 
     companion object {
-        fun create(storage: Storage, json: AutoMarshalling) = UserStorage(storage.create(
+        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = UserStorage(storageDriver.create(
             name = "users",
             groupIdMapper = UserId.toBiDiMapping(),
             itemIdMapper = EmptyKey.toBiDiMapping(),

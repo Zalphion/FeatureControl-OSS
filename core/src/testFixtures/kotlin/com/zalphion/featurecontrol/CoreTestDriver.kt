@@ -5,7 +5,7 @@ import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.events.localEventBus
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.storage.memory
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.UserService
@@ -21,7 +21,7 @@ import kotlin.random.Random
 abstract class CoreTestDriver(
     pageSize: Int = 2,
     plugins: List<PluginFactory<*>> = emptyList(),
-    storage: Storage = Storage.memory(),
+    storageDriver: StorageDriver = StorageDriver.memory(),
     appSecret: AppSecret = AppSecret.of("secret")
 ): Plugin {
     var time: Instant = Instant.parse("2025-07-29T12:00:00Z")
@@ -35,7 +35,7 @@ abstract class CoreTestDriver(
     override fun getEntitlements(team: TeamId) = entitlements[team].orEmpty()
 
     val core = CoreBuilder(
-        storage = storage,
+        storageDriver = storageDriver,
         clock = clock,
         random = Random(1337),
         staticUri = Uri.of("/"),

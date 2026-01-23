@@ -45,39 +45,43 @@ class ConfigStorageTest: CoreTestDriver() {
 
     @Test
     fun `get properties - missing`() {
-        testObj[application1.appId] shouldBe null
+        testObj[application1.teamId, application1.appId] shouldBe null
     }
 
     @Test
     fun `get properties - found`() {
         val config1 = ConfigSpec(
+            teamId = application1.teamId,
             appId = application1.appId,
             properties = mapOf(strProperty, numberProperty, booleanProperty, secretProperty)
         ).also(testObj::plusAssign)
 
         val config2 = ConfigSpec(
+            teamId = application2.teamId,
             appId = application2.appId,
             properties = mapOf(strProperty)
         ).also(testObj::plusAssign)
 
-        testObj[application1.appId] shouldBe config1
-        testObj[application2.appId] shouldBe config2
+        testObj[application1.teamId, application1.appId] shouldBe config1
+        testObj[application2.teamId, application2.appId] shouldBe config2
     }
 
     @Test
     fun `get properties - found, empty`() {
         val properties = ConfigSpec(
+            teamId = application1.teamId,
             appId = application1.appId,
             properties = emptyMap()
         )
         testObj += properties
 
-        testObj[application1.appId] shouldBe properties
+        testObj[application1.teamId, application1.appId] shouldBe properties
     }
 
     @Test
     fun `update properties`() {
         val properties = ConfigSpec(
+            teamId = application1.teamId,
             appId = application1.appId,
             properties = mapOf(strProperty)
         ).also(testObj::plusAssign)
@@ -86,12 +90,13 @@ class ConfigStorageTest: CoreTestDriver() {
             properties = mapOf(strProperty, numberProperty, booleanProperty, secretProperty),
         ).also(testObj::plusAssign)
 
-        testObj[application1.appId] shouldBe updated
+        testObj[application1.teamId, application1.appId] shouldBe updated
     }
 
     @Test
     fun `get values`() {
         val values = ConfigEnvironment(
+            teamId = application1.teamId,
             appId = application1.appId,
             environmentName = devName,
             values = mapOf(
@@ -114,6 +119,7 @@ class ConfigStorageTest: CoreTestDriver() {
     @Test
     fun `update values`() {
         val original = ConfigEnvironment(
+            teamId = application1.teamId,
             appId = application1.appId,
             environmentName = devName,
             values = mapOf(
@@ -133,17 +139,19 @@ class ConfigStorageTest: CoreTestDriver() {
 
     @Test
     fun `delete properties - not found`() {
-        testObj -= application1.appId
+        testObj.delete(application1.teamId, application1.appId)
     }
 
     @Test
     fun `delete properties - deletes values too`() {
         ConfigSpec(
+            teamId = application1.teamId,
             appId = application1.appId,
             properties = mapOf(strProperty)
         ).also(testObj::plusAssign)
 
         ConfigEnvironment(
+            teamId = application1.teamId,
             appId = application1.appId,
             environmentName = devName,
             values = mapOf(
@@ -151,9 +159,9 @@ class ConfigStorageTest: CoreTestDriver() {
             )
         )
 
-        testObj -= application1.appId
+        testObj.delete(application1.teamId, application1.appId)
 
-        testObj[application1.appId] shouldBe null
+        testObj[application1.teamId, application1.appId] shouldBe null
         testObj[application1.appId, devName] shouldBe null
     }
 
@@ -165,11 +173,13 @@ class ConfigStorageTest: CoreTestDriver() {
     @Test
     fun `delete values - leaves properties intact`() {
         val config = ConfigSpec(
+            teamId = application1.teamId,
             appId = application1.appId,
             properties = mapOf(strProperty)
         ).also(testObj::plusAssign)
 
         ConfigEnvironment(
+            teamId = application1.teamId,
             appId = application1.appId,
             environmentName = devName,
             values = mapOf(
@@ -179,6 +189,6 @@ class ConfigStorageTest: CoreTestDriver() {
 
         testObj.delete(application1.appId, devName)
         testObj[application1.appId, devName] shouldBe null
-        testObj[application1.appId] shouldBe config
+        testObj[application1.teamId, application1.appId] shouldBe config
     }
 }

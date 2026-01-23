@@ -1,7 +1,7 @@
 package com.zalphion.featurecontrol.features
 
 import com.zalphion.featurecontrol.plugins.Extensions
-import com.zalphion.featurecontrol.applications.AppId
+import com.zalphion.featurecontrol.applications.Application
 
 data class FeatureCreateData(
     val featureKey: FeatureKey,
@@ -12,8 +12,9 @@ data class FeatureCreateData(
     val extensions: Extensions
 )
 
-fun FeatureCreateData.toFeature(appId: AppId) = Feature(
-    appId = appId,
+fun FeatureCreateData.toFeature(application: Application) = Feature(
+    teamId = application.teamId,
+    appId = application.appId,
     key = featureKey,
     variants = variants,
     defaultVariant = defaultVariant,

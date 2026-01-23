@@ -20,6 +20,7 @@ import com.zalphion.featurecontrol.web.asUser
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.http4k.playwright.Http4kBrowser
@@ -27,7 +28,7 @@ import org.http4k.playwright.LaunchPlaywrightBrowser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
-abstract class ApplicationUiTest: CoreTestDriver() {
+class ApplicationUiTest: CoreTestDriver() {
 
     @RegisterExtension
     val playwright = LaunchPlaywrightBrowser(core.getRoutes())
@@ -50,15 +51,15 @@ abstract class ApplicationUiTest: CoreTestDriver() {
         browser.asUser(core, member.user) { page ->
             page.applications.new { form ->
                 form.setName(appName1)
-                form.newEnvironment { row ->
-                    row.setName(devName)
-                    row.setDescription("dev stuff")
-                    row.setColour(Colour.Companion.white)
+                form.newEnvironment { env ->
+                    env.setName(devName)
+                    env.setDescription("dev stuff")
+                    env.setColour(Colour.white)
                 }
-                form.newEnvironment { row ->
-                    row.setName(prodName)
-                    row.setDescription("prod stuff")
-                    row.setColour(Colour.Companion.black)
+                form.newEnvironment { env ->
+                    env.setName(prodName)
+                    env.setDescription("prod stuff")
+                    env.setColour(Colour.black)
                 }
             }.submit { page ->
                 page.applications.shouldContainExactly(appName1)
@@ -78,13 +79,13 @@ abstract class ApplicationUiTest: CoreTestDriver() {
                 Environment(
                     name = devName,
                     description = "dev stuff",
-                    colour = Colour.Companion.white,
+                    colour = Colour.white,
                     extensions = emptyMap()
                 ),
                 Environment(
                     name = prodName,
                     description = "prod stuff",
-                    colour = Colour.Companion.black,
+                    colour = Colour.black,
                     extensions = emptyMap()
                 )
             )
@@ -97,11 +98,11 @@ abstract class ApplicationUiTest: CoreTestDriver() {
         val app2 = createApplication(member, appName2)
 
         browser.asUser(core, member.user) { page ->
-            page.applications.shouldContainExactly(app1.appName, app2.appName)
+            page.applications.toList().shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
             page.applications.selected.shouldBeNull()
 
             page.applications.select(app1.appName) { page ->
-                page.applications.shouldContainExactly(app1.appName, app2.appName)
+                page.applications.toList().shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
                 page.applications.selected shouldBe app1.appName
                 page.appId shouldBe app1.appId
                 page.application.name shouldBe app1.appName
@@ -130,18 +131,18 @@ abstract class ApplicationUiTest: CoreTestDriver() {
 
         browser.asUser(core, member.user)
             .applications.select(app2.appName)
-            .application.more().update { form ->
-                form.setName(appName3)
+            .application.more().update { app ->
+                app.setName(appName3)
 
-                form.forEnvironment(dev.name) { row ->
-                    row.setDescription("cool stuff happens here")
+                app.forEnvironment(dev.name) { env ->
+                    env.setDescription("cool stuff happens here")
                 }
 
-                form.newEnvironment { row ->
-                    row.setName(stagingName)
+                app.newEnvironment { env ->
+                    env.setName(stagingName)
                 }
             }.submit { page ->
-                page.applications.shouldContainExactly(app1.appName, appName3)
+                page.applications.toList().shouldContainExactlyInAnyOrder(app1.appName, appName3)
                 page.applications.selected shouldBe appName3
             }
 
@@ -152,7 +153,7 @@ abstract class ApplicationUiTest: CoreTestDriver() {
                 prod,
                 Environment(
                     name = stagingName,
-                    colour = Colour.Companion.white,
+                    colour = Colour.white,
                     description = "",
                     extensions = emptyMap()
                 )

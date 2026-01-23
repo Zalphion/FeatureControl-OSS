@@ -15,13 +15,14 @@ import com.zalphion.featurecontrol.web.asUser
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.http4k.playwright.Http4kBrowser
 import org.http4k.playwright.LaunchPlaywrightBrowser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
-abstract class FeaturesUiTest: CoreTestDriver() {
+class FeaturesUiTest: CoreTestDriver() {
 
     @RegisterExtension
     val playwright = LaunchPlaywrightBrowser(core.getRoutes())
@@ -60,6 +61,7 @@ abstract class FeaturesUiTest: CoreTestDriver() {
             }
 
         core.features[app.appId, featureKey1] shouldBe Feature(
+            teamId = member.team.teamId,
             appId = app.appId,
             key = featureKey1,
             description = "cool stuff",
@@ -142,7 +144,10 @@ abstract class FeaturesUiTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(feature2.key)
-
-        // TODO finish
+            .more().delete().confirm { page ->
+                page.application.name shouldBe app.appName
+                page.applications.shouldContainExactly(feature1.key)
+                page.applications.selected.shouldBeNull()
+            }
     }
 }

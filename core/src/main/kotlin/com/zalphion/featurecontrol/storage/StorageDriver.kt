@@ -2,7 +2,7 @@ package com.zalphion.featurecontrol.storage
 
 import org.http4k.lens.BiDiMapping
 
-interface Storage {
+interface StorageDriver {
     fun <Doc: Any, GroupId: Any, ItemId: Any> create(
         name: String,
         groupIdMapper: BiDiMapping<String, GroupId>,

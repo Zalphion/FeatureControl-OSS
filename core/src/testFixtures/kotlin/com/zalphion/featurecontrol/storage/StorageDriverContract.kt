@@ -70,9 +70,9 @@ data class TestDocument(
     }
 }
 
-abstract class StorageContract(storage: Storage) {
+abstract class StorageDriverContract(storageDriver: StorageDriver) {
 
-    private val repo = storage.create(
+    private val repo = storageDriver.create(
         name = "test",
         groupIdMapper = TestGroupId.toBiDiMapping(),
         itemIdMapper = TestItemId.toBiDiMapping(),

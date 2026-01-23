@@ -1,7 +1,7 @@
 package com.zalphion.featurecontrol.applications
 
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.applicationNotFound
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.lib.Colour
@@ -25,7 +25,7 @@ class ApplicationStorage private constructor(private val repository: Repository<
         get(teamId, appId).asResultOr { applicationNotFound(appId) }
 
     companion object {
-        fun create(storage: Storage, json: AutoMarshalling) = ApplicationStorage(storage.create(
+        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = ApplicationStorage(storageDriver.create(
             name = "applications",
             groupIdMapper = TeamId.toBiDiMapping(),
             itemIdMapper = AppId.toBiDiMapping(),

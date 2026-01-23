@@ -8,7 +8,7 @@ import com.zalphion.featurecontrol.emails.smtp
 import com.zalphion.featurecontrol.events.localEventBus
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.storage.postgres
 import org.http4k.config.Environment
 import org.http4k.core.Credentials
@@ -33,7 +33,7 @@ fun hostedCoreMain(additionalPlugins: List<PluginFactory<*>>) {
         clock = Clock.systemUTC(),
         random = SecureRandom().asKotlinRandom(),
         appSecret = env[Settings.appSecret],
-        storage = Storage.postgres(
+        storageDriver = StorageDriver.postgres(
             uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
             credentials = env[Settings.postgresDatabaseCredentials],
         ),

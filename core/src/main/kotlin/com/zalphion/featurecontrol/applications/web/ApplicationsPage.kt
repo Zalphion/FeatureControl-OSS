@@ -9,7 +9,6 @@ import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.User
 import com.zalphion.featurecontrol.web.NavBar
 import com.zalphion.featurecontrol.web.PageSpec
-import com.zalphion.featurecontrol.web.applicationUri
 import com.zalphion.featurecontrol.web.deleteModal
 import com.zalphion.featurecontrol.web.modalIconButton
 import com.zalphion.featurecontrol.web.modalButton
@@ -32,6 +31,7 @@ import com.zalphion.featurecontrol.features.FeatureEnvironment
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.ListFeatures
 import com.zalphion.featurecontrol.teams.Team
+import com.zalphion.featurecontrol.web.uri
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asFailure
 import dev.forkhandles.result4k.asSuccess
@@ -315,7 +315,7 @@ private fun FlowContent.applicationNavBar(
                                 dropdownToCloseId = dropdownId)
                         }
                         li {
-                            val deleteModalId = deleteModal(application.appName.value, applicationUri(application.appId))
+                            val deleteModalId = deleteModal(application.appName.value, application.uri())
                             modalButton(
                                 label = "Delete Application",
                                 icon = "icon: trash",

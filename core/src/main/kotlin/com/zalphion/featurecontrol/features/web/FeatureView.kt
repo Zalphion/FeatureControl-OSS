@@ -11,7 +11,7 @@ import com.zalphion.featurecontrol.web.tr
 import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.web.withRichMethod
 import com.zalphion.featurecontrol.Core
-import com.zalphion.featurecontrol.web.featureUri
+import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
@@ -47,7 +47,7 @@ fun FlowContent.coreFeatureModal(
         div("uk-modal-dialog") {
             form(
                 method = FormMethod.post,
-                action = featuresUri(application.appId).toString(),
+                action = application.featuresUri().toString(),
                 classes = "uk-form-stacked"
             ) {
                 div("uk-modal-header") {
@@ -109,7 +109,7 @@ fun FlowContent.coreFeature(core: Core, feature: Feature, extraControls: FlowCon
             )
 
             div("uk-margin-top") {
-                updateResetButtons("Update", featureUri(feature.appId, feature.key))
+                updateResetButtons("Update", feature.uri())
             }
         }
     }

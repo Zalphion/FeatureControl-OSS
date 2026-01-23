@@ -6,7 +6,7 @@ import com.zalphion.featurecontrol.web.template
 import com.zalphion.featurecontrol.web.tr
 import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.Core
-import com.zalphion.featurecontrol.web.configUri
+import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -25,7 +25,7 @@ import kotlinx.html.thead
 import kotlinx.html.tr
 
 fun FlowContent.renderConfigSpec(core: Core, config: ConfigSpec) = form(
-    action = configUri(config.appId).toString(),
+    action = config.uri().toString(),
     method = FormMethod.post,
 ) {
     attributes["x-data"] = """{
@@ -114,7 +114,7 @@ fun FlowContent.renderConfigSpec(core: Core, config: ConfigSpec) = form(
         }
     }
 
-    updateResetButtons("Update", configUri(config.appId))
+    updateResetButtons("Update", config.uri())
 }
 
 private fun TD.valueInput() {

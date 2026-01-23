@@ -17,6 +17,7 @@ data class FeatureUpdateData(
 }
 
 fun Feature.update(data: FeatureUpdateData) = Feature(
+    teamId = teamId,
     appId = appId,
     key = key,
     variants = data.variants.effective(variants),

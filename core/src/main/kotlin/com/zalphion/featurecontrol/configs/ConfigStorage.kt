@@ -1,38 +1,37 @@
 package com.zalphion.featurecontrol.configs
 
-import com.zalphion.featurecontrol.storage.EmptyKey
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.lib.toBiDiMapping
-import com.zalphion.featurecontrol.web.appIdLens
+import com.zalphion.featurecontrol.teams.TeamId
 import org.http4k.format.AutoMarshalling
 import se.ansman.kotshi.JsonSerializable
 
 class ConfigStorage private constructor(
-    private val specs: Repository<StoredConfigSpec, AppId, EmptyKey>,
+    private val specs: Repository<StoredConfigSpec, TeamId, AppId>,
     private val environments: Repository<StoredConfigEnvironment, AppId, EnvironmentName>
 ) {
-    operator fun get(appId: AppId): ConfigSpec? = specs[appId, EmptyKey.INSTANCE]?.toModel()
+    operator fun get(teamId: TeamId, appId: AppId): ConfigSpec? = specs[teamId, appId]?.toModel()
     operator fun get(appId: AppId, environmentName: EnvironmentName): ConfigEnvironment? = environments[appId, environmentName]?.toModel()
 
-    operator fun plusAssign(config: ConfigSpec) = specs.save(config.appId, EmptyKey.INSTANCE,config.toStored())
+    operator fun plusAssign(config: ConfigSpec) = specs.save(config.teamId, config.appId, config.toStored())
     operator fun plusAssign(environment: ConfigEnvironment) = environments.save(environment.appId, environment.environmentName, environment.toStored())
 
-    operator fun minusAssign(appId: AppId) = specs.delete(appId, EmptyKey.INSTANCE)
+    fun delete(teamId: TeamId, appId: AppId) = specs.delete(teamId, appId)
     fun delete(appId: AppId, environmentName: EnvironmentName) = environments.delete(appId, environmentName)
 
     companion object {
-        fun create(storage: Storage, json: AutoMarshalling) = ConfigStorage(
-            specs = storage.create(
+        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = ConfigStorage(
+            specs = storageDriver.create(
                 name = "configs",
-                groupIdMapper = AppId.toBiDiMapping(),
-                itemIdMapper = EmptyKey.toBiDiMapping(),
+                groupIdMapper = TeamId.toBiDiMapping(),
+                itemIdMapper = AppId.toBiDiMapping(),
                 documentMapper = json.asBiDiMapping()
             ),
-            environments = storage.create(
+            environments = storageDriver.create(
                 name = "environments",
                 groupIdMapper = AppId.toBiDiMapping(),
                 itemIdMapper = EnvironmentName.toBiDiMapping(),
@@ -42,14 +41,17 @@ class ConfigStorage private constructor(
     }
 }
 
-fun ConfigStorage.getOrEmpty( appId: AppId) =
-    get(appId) ?: ConfigSpec(appId, emptyMap())
+fun ConfigStorage.getOrEmpty(teamId: TeamId, appId: AppId) =
+    get(teamId, appId) ?: ConfigSpec(teamId, appId, emptyMap())
 
-fun ConfigStorage.getOrEmpty(appId: AppId, environmentName: EnvironmentName) =
-    get(appId, environmentName) ?: ConfigEnvironment(appId, environmentName, emptyMap())
+fun ConfigStorage.getOrEmpty(teamId: TeamId, appId: AppId, environmentName: EnvironmentName) =
+    get(appId, environmentName)
+    ?.takeIf { it.teamId == teamId }
+    ?: ConfigEnvironment(teamId, appId, environmentName, emptyMap())
 
 @JsonSerializable
 data class StoredConfigSpec(
+    val teamId: TeamId,
     val appId: AppId,
     val properties: Map<PropertyKey, StoredProperty>
 )
@@ -66,6 +68,7 @@ enum class StoredPropertyType { Boolean, Number, String, Secret }
 
 @JsonSerializable
 data class StoredConfigEnvironment(
+    val teamId: TeamId,
     val appId: AppId,
     val environmentName: EnvironmentName,
     val values: Map<PropertyKey, StoredPropertyValue>
@@ -78,6 +81,7 @@ data class StoredPropertyValue(
 )
 
 private fun ConfigSpec.toStored() = StoredConfigSpec(
+    teamId = teamId,
     appId = appId,
     properties = properties.mapValues { (_, value) ->
         StoredProperty(
@@ -89,6 +93,7 @@ private fun ConfigSpec.toStored() = StoredConfigSpec(
 )
 
 private fun StoredConfigSpec.toModel() = ConfigSpec(
+    teamId = teamId,
     appId = appId,
     properties = properties.mapValues { (_, value) ->
         Property(
@@ -100,6 +105,7 @@ private fun StoredConfigSpec.toModel() = ConfigSpec(
 )
 
 private fun ConfigEnvironment.toStored() = StoredConfigEnvironment(
+    teamId = teamId,
     appId = appId,
     environmentName = environmentName,
     values = values.mapValues { (_, value) ->
@@ -111,6 +117,7 @@ private fun ConfigEnvironment.toStored() = StoredConfigEnvironment(
 )
 
 private fun StoredConfigEnvironment.toModel() = ConfigEnvironment(
+    teamId = teamId,
     appId = appId,
     environmentName = environmentName,
     values = values.mapValues { (_, value) ->

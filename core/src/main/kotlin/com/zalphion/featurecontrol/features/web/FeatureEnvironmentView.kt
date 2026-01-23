@@ -7,7 +7,7 @@ import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.web.tagBuilder
 import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.Core
-import com.zalphion.featurecontrol.web.featureUri
+import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -101,7 +101,7 @@ fun FlowContent.coreFeatureEnvironment(
         }
 
         div("uk-margin-top") {
-            updateResetButtons("Update", featureUri(feature.appId, feature.key, environmentName))
+            updateResetButtons("Update", feature.uri(environmentName))
         }
     }
 }

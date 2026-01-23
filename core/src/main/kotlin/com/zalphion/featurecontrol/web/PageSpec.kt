@@ -3,6 +3,10 @@ package com.zalphion.featurecontrol.web
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.applications.AppId
+import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.configs.ConfigEnvironment
+import com.zalphion.featurecontrol.configs.ConfigSpec
+import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.UserId
 import org.http4k.core.Uri
@@ -30,13 +34,19 @@ fun membersUri(teamId: TeamId, userId: UserId) = membersUri(teamId).appendToPath
 fun invitationsUri(teamId: TeamId) = teamUri(teamId).appendToPath("invitations")
 fun invitationsUri(teamId: TeamId, userId: UserId) = invitationsUri(teamId).appendToPath(userId.value)
 fun applicationsUri(teamId: TeamId) = teamUri(teamId).appendToPath("applications")
-fun applicationUri(appId: AppId) = Uri.of("/applications/$appId")
+fun applicationUri(teamId: TeamId, appId: AppId) = teamUri(teamId).appendToPath("/applications/$appId")
 
-fun featuresUri(appId: AppId) = applicationUri(appId).appendToPath("features")
-fun featureUri(appId: AppId, featureKey: FeatureKey) = featuresUri(appId).appendToPath(featureKey.value)
-fun featureUri(appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName) =
-    featureUri(appId, featureKey).appendToPath("environments/$environmentName")
+fun featuresUri(teamId: TeamId, appId: AppId) = applicationUri(teamId, appId).appendToPath("features")
+fun featureUri(teamId: TeamId, appId: AppId, featureKey: FeatureKey) = featuresUri(teamId, appId).appendToPath(featureKey.value)
+fun featureUri(teamId: TeamId, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName) =
+    featureUri(teamId, appId, featureKey).appendToPath("environments/$environmentName")
 
-fun configUri(appId: AppId) = applicationUri(appId).appendToPath("config")
-fun configUri(appId: AppId, environmentName: EnvironmentName) = configUri(appId).appendToPath(environmentName.value)
+fun configUri(teamId: TeamId, appId: AppId) = applicationUri(teamId, appId).appendToPath("config")
+fun configUri(teamId: TeamId, appId: AppId, environmentName: EnvironmentName) = configUri(teamId, appId).appendToPath(environmentName.value)
 
+fun Application.uri() = applicationUri(teamId, appId)
+fun Application.featuresUri() = featuresUri(teamId, appId)
+fun Feature.uri() = featureUri(teamId, appId, key)
+fun Feature.uri(environmentName: EnvironmentName) = featureUri(teamId, appId, key, environmentName)
+fun ConfigSpec.uri() = configUri(teamId, appId)
+fun ConfigEnvironment.uri() = configUri(teamId, appId, environmentName)

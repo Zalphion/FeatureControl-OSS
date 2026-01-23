@@ -10,7 +10,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 import java.util.UUID
 
 @Testcontainers
-class PostgresStorageTest: StorageContract(Storage.postgres(
+class PostgresStorageDriverTest: StorageDriverContract(StorageDriver.postgres(
     uri = Uri.of(postgres.jdbcUrl)
         .query("currentSchema", UUID.randomUUID().toString()),
     credentials = Credentials(postgres.username, postgres.password)

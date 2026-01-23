@@ -6,7 +6,6 @@ import com.zalphion.featurecontrol.applications.CreateApplication
 import com.zalphion.featurecontrol.applications.DeleteApplication
 import com.zalphion.featurecontrol.web.appIdLens
 import com.zalphion.featurecontrol.applications.UpdateApplication
-import com.zalphion.featurecontrol.web.applicationUri
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.flash.messages
 import com.zalphion.featurecontrol.web.principalLens
@@ -15,6 +14,7 @@ import com.zalphion.featurecontrol.web.teamIdLens
 import com.zalphion.featurecontrol.web.toIndex
 import com.zalphion.featurecontrol.web.flash.withMessage
 import com.zalphion.featurecontrol.web.flash.withSuccess
+import com.zalphion.featurecontrol.web.uri
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.recover
@@ -49,7 +49,7 @@ fun Core.createApplication(): HttpHandler = { request ->
         .invoke(principal, this)
         .map {
             Response(Status.SEE_OTHER)
-                .location(applicationUri(it.appId))
+                .location(it.uri())
                 .withSuccess("Created ${it.appName}")
         }
         .recover { request.toIndex().withMessage(it) }
@@ -74,6 +74,6 @@ internal fun Core.updateApplication(): HttpHandler = { request ->
 
     UpdateApplication(teamId, applicationId, data)
         .invoke(principal, this)
-        .map { Response(Status.SEE_OTHER).location(applicationUri(it.appId)) }
+        .map { Response(Status.SEE_OTHER).location(it.uri()) }
         .onFailure { error(it.reason) }
 }

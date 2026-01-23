@@ -10,7 +10,7 @@ dependencies {
     api(libs.http4k.config)
     api(libs.http4k.server.undertow)
 
-    implementation(project(":storage:postgres"))
+    implementation(project(":storage-postgres"))
     implementation(libs.jakarta.mail)
 
     runtimeOnly(libs.webjars.uikit)

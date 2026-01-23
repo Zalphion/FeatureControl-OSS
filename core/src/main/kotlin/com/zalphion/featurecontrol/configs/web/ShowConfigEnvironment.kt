@@ -6,7 +6,7 @@ import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.configs.PropertyType
 import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.Core
-import com.zalphion.featurecontrol.web.configUri
+import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.INPUT
@@ -30,7 +30,7 @@ fun FlowContent.coreConfigEnvironment(
     environment: ConfigEnvironment,
     extraContent: FlowContent.() -> Unit = {}
 ): Unit = form(
-    action = configUri(environment.appId, environment.environmentName).toString(),
+    action = environment.uri().toString(),
     method = FormMethod.post
 ) {
     // need to use the keys from the spec, because the environment may not have all the keys filled
@@ -72,7 +72,7 @@ fun FlowContent.coreConfigEnvironment(
     extraContent()
 
     div("uk-padding-small") {
-        updateResetButtons("Update", configUri(environment.appId, environment.environmentName))
+        updateResetButtons("Update", environment.uri())
     }
 }
 

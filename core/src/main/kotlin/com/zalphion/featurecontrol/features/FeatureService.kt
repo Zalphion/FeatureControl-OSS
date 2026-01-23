@@ -32,12 +32,13 @@ class GetFeature(val teamId: TeamId, val appId: AppId, val featureKey: FeatureKe
 class CreateFeature(val teamId: TeamId, val appId: AppId, val data: FeatureCreateData): ServiceAction<Feature>(
     auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer) { getRequirements(data) }
 ) {
-    override fun execute(core: Core) = begin
+    override fun execute(core: Core) = core.apps
+        .getOrFail(teamId, appId)
         .failIfExists(
             test = { core.features[appId, data.featureKey] },
             toFail = { _, feature -> featureAlreadyExists(appId, feature.key) }
         )
-        .map { data.toFeature(appId) }
+        .map { data.toFeature(it) }
         .peek(core.features::plusAssign)
 }
 

@@ -1,13 +1,14 @@
 package com.zalphion.featurecontrol.features
 
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.featureNotFound
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.lib.mapItem
 import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.plugins.Extensions
+import com.zalphion.featurecontrol.teams.TeamId
 import dev.forkhandles.result4k.asResultOr
 import org.http4k.format.AutoMarshalling
 import se.ansman.kotshi.JsonSerializable
@@ -22,7 +23,7 @@ class FeatureStorage private constructor(private val repository: Repository<Stor
         get(appId, featureKey).asResultOr { featureNotFound(appId, featureKey) }
 
     companion object {
-        fun create(storage: Storage, json: AutoMarshalling) = FeatureStorage(storage.create(
+        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = FeatureStorage(storageDriver.create(
             name = "features",
             groupIdMapper = AppId.toBiDiMapping(),
             itemIdMapper = FeatureKey.toBiDiMapping(),
@@ -33,6 +34,7 @@ class FeatureStorage private constructor(private val repository: Repository<Stor
 
 @JsonSerializable
 data class StoredFeature(
+    val teamId: TeamId,
     val appId: AppId,
     val key: FeatureKey,
     val variants: Map<Variant, String>,
@@ -50,6 +52,7 @@ data class StoredFeatureEnvironment(
 )
 
 private fun StoredFeature.toModel() = Feature(
+    teamId = teamId,
     appId = appId,
     key = key,
     variants = variants,
@@ -66,6 +69,7 @@ private fun StoredFeatureEnvironment.toModel() = FeatureEnvironment(
 )
 
 private fun Feature.toStored() = StoredFeature(
+    teamId = teamId,
     appId = appId,
     key = key,
     variants = variants,

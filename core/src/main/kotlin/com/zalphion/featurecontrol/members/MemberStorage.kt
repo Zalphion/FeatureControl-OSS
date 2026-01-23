@@ -1,7 +1,7 @@
 package com.zalphion.featurecontrol.members
 
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.lib.mapItem
 import com.zalphion.featurecontrol.lib.toBiDiMapping
@@ -24,7 +24,7 @@ class MemberStorage private constructor(private val repository: Repository<Store
     fun getOrFail(teamId: TeamId, userId: UserId) = get(teamId, userId).asResultOr { memberNotFound(teamId, userId) }
 
     companion object {
-        fun create(storage: Storage, json: AutoMarshalling) = MemberStorage(storage.create(
+        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = MemberStorage(storageDriver.create(
             name = "members",
             groupIdMapper = TeamId.toBiDiMapping(),
             itemIdMapper = UserId.toBiDiMapping(),

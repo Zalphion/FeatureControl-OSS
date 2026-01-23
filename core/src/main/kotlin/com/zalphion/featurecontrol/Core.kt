@@ -65,7 +65,7 @@ import com.zalphion.featurecontrol.members.web.showMembers
 import com.zalphion.featurecontrol.members.web.updateMember
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.teams.TeamStorage
@@ -129,7 +129,7 @@ class CoreBuilder(
     staticUri: Uri,
     appSecret: AppSecret,
     plugins: List<PluginFactory<*>> = emptyList(),
-    private val storage: Storage,
+    private val storageDriver: StorageDriver,
     private val eventBusFn: (List<Plugin>) -> EventBus
 ) {
     var plugins = plugins.toMutableList()
@@ -143,7 +143,7 @@ class CoreBuilder(
             json = buildJson(plugins.mapNotNull { it.jsonExport }),
             config = config,
             plugins = plugins,
-            storage = storage,
+            storageDriver = storageDriver,
             eventBusFn = eventBusFn,
             sessions = Sessions.hMacJwt(
                 clock = clock,
@@ -161,7 +161,7 @@ class Core internal constructor(
     val random: Random,
     val json: AutoMarshalling,
     val config: CoreConfig,
-    val storage: Storage,
+    val storageDriver: StorageDriver,
     val sessions: Sessions,
     plugins: List<PluginFactory<*>>,
     eventBusFn: (List<Plugin>) -> EventBus
@@ -169,13 +169,13 @@ class Core internal constructor(
     private val plugins = plugins.map { it.create(this) }
 
     // storage
-    val teams = TeamStorage.create(storage, json)
-    val features = FeatureStorage.create(storage, json)
-    val apps = ApplicationStorage.create(storage, json)
-    val apiKeys = ApiKeyStorage.create(storage, json)
-    val users = UserStorage.create(storage, json)
-    val members = MemberStorage.create(storage, json)
-    val configs = ConfigStorage.create(storage, json)
+    val teams = TeamStorage.create(storageDriver, json)
+    val features = FeatureStorage.create(storageDriver, json)
+    val apps = ApplicationStorage.create(storageDriver, json)
+    val apiKeys = ApiKeyStorage.create(storageDriver, json)
+    val users = UserStorage.create(storageDriver, json)
+    val members = MemberStorage.create(storageDriver, json)
+    val configs = ConfigStorage.create(storageDriver, json)
 
     fun getEntitlements(teamId: TeamId) = plugins
         .flatMap { it.getEntitlements(teamId) }
@@ -313,56 +313,57 @@ class Core internal constructor(
             "/teams" bind routes(
                 Method.POST bind createTeam(),
                 "$teamIdLens" bind routes(listOf(
-                    Method.GET bind { Response(Status.FOUND).location(membersUri(
-                        teamIdLens(
-                            it
-                        )
-                    )) },
                     Method.POST bind updateTeam(),
-                    "applications" bind routes(listOf(
+                    Method.GET bind {
+                        val teamId = teamIdLens(it)
+                        Response(Status.FOUND).location(membersUri(teamId))
+                    },
+                    "/applications" bind routes(
                         Method.GET bind showApplications(),
                         Method.POST bind createApplication(),
-                    )),
-                    "members" bind routes(listOf(
-                        Method.GET bind showMembers(),
-                        isRichDelete bind deleteMember(),
-                        isRichPut bind updateMember(),
-                        Method.POST bind acceptInvitation()
-                    )),
-                    "invitations" bind routes(listOf(
-                        Method.GET bind showInvitations(),
-                        "$userIdLens" bind Method.POST to resendInvitation()
-                    ))
-                ))
-            ),
-            "/applications/$appIdLens" bind routes(listOf(
-                Method.GET bind { request ->
-                    val appId = appIdLens(request)
-                    Response(Status.FOUND).location(configUri(appId))
-                },
-                isRichDelete bind deleteApplication(),
-                Method.POST bind updateApplication(),
-                "config" bind routes(listOf(
-                    Method.GET bind httpGetConfigSpec(),
-                    Method.POST bind httpPostConfigSpec(),
-                    "$environmentNameLens" bind routes(listOf(
-                        Method.GET bind httpGetConfigEnvironment(),
-                        Method.POST bind httpPostConfigEnvironment()
-                    ))
-                )),
-                "features" bind routes(listOf(
-                    Method.POST bind httpPostFeature(),
-                    "$featureKeyLens" bind routes(listOf(
-                        Method.GET bind httpGetFeature(),
-                        isRichDelete bind httpDeleteFeature(),
-                        isRichPut bind httpPutFeature(),
-                        "environments/$environmentNameLens" bind routes(listOf(
-                            Method.GET bind httpGetFeatureEnvironment(),
-                            Method.POST bind httpPostFeatureEnvironment()
+                        "/$appIdLens" bind routes(listOf(
+                            Method.GET bind { request ->
+                                val teamId = teamIdLens(request)
+                                val appId = appIdLens(request)
+                                Response(Status.FOUND).location(configUri(teamId, appId))
+                            },
+                            isRichDelete bind deleteApplication(),
+                            Method.POST bind updateApplication(),
+
+                            "config" bind routes(listOf(
+                                Method.GET bind httpGetConfigSpec(),
+                                Method.POST bind httpPostConfigSpec(),
+                                "$environmentNameLens" bind routes(listOf(
+                                    Method.GET bind httpGetConfigEnvironment(),
+                                    Method.POST bind httpPostConfigEnvironment()
+                                ))
+                            )),
+                            "features" bind routes(listOf(
+                                Method.POST bind httpPostFeature(),
+                                "$featureKeyLens" bind routes(listOf(
+                                    Method.GET bind httpGetFeature(),
+                                    isRichDelete bind httpDeleteFeature(),
+                                    isRichPut bind httpPutFeature(),
+                                    "environments/$environmentNameLens" bind routes(listOf(
+                                        Method.GET bind httpGetFeatureEnvironment(),
+                                        Method.POST bind httpPostFeatureEnvironment()
+                                    ))
+                                ))
+                            ))
                         ))
-                    ))
+                    )
+                )),
+                "members" bind routes(listOf(
+                    Method.GET bind showMembers(),
+                    isRichDelete bind deleteMember(),
+                    isRichPut bind updateMember(),
+                    Method.POST bind acceptInvitation()
+                )),
+                "invitations" bind routes(listOf(
+                    Method.GET bind showInvitations(),
+                    "$userIdLens" bind Method.POST to resendInvitation()
                 ))
-            ))
+            )
         ))
 
         return routes(listOf(

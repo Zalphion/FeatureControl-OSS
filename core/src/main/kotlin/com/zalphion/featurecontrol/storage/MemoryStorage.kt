@@ -4,7 +4,7 @@ import dev.andrewohara.utils.pagination.Page
 import dev.andrewohara.utils.pagination.Paginator
 import org.http4k.lens.BiDiMapping
 
-fun Storage.Companion.memory() = object: Storage {
+fun StorageDriver.Companion.memory() = object: StorageDriver {
 
     private val files = mutableMapOf<String, MutableMap<Pair<String, String>, String>>()
 

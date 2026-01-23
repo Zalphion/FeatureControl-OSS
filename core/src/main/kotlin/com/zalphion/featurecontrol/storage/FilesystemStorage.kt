@@ -7,7 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.nameWithoutExtension
 
-fun Storage.Companion.filesystem(root: Path) = object: Storage {
+fun StorageDriver.Companion.filesystem(root: Path) = object: StorageDriver {
 
     init {
         Files.createDirectories(root)

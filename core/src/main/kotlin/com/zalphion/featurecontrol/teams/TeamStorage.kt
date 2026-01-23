@@ -2,7 +2,7 @@ package com.zalphion.featurecontrol.teams
 
 import com.zalphion.featurecontrol.storage.EmptyKey
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.Storage
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.teamNotFound
@@ -19,7 +19,7 @@ class TeamStorage private constructor(private val repository: Repository<StoredT
     fun getOrFail(teamId: TeamId) = get(teamId).asResultOr { teamNotFound(teamId) }
 
     companion object {
-        fun create(storage: Storage, json: AutoMarshalling) = TeamStorage(storage.create(
+        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = TeamStorage(storageDriver.create(
             name = "teams",
             groupIdMapper = TeamId.toBiDiMapping(),
             itemIdMapper = EmptyKey.toBiDiMapping(),

@@ -5,11 +5,11 @@ import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.TableElementSchema
 import com.zalphion.featurecontrol.web.confirmCancelButtons
-import com.zalphion.featurecontrol.web.applicationUri
 import com.zalphion.featurecontrol.web.applicationsUri
 import com.zalphion.featurecontrol.web.tableForm
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.lib.asBiDiMapping
+import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.*
 import org.http4k.core.Uri
 
@@ -30,7 +30,7 @@ internal fun FlowContent.coreUpdateAppModal(core: Core, application: Application
     modalId = "update-application-modal-${application.appId}",
     title = "Update ${application.appName}",
     appName = application.appName,
-    formAction = applicationUri(application.appId),
+    formAction = application.uri(),
     environmentsTable = {
         environmentsTable(core, application.environments.map { it.toDto() })
     },

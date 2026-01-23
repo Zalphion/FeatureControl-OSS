@@ -18,7 +18,7 @@ internal const val GROUP_ID_COLUMN = "group_id"
 internal const val ITEM_ID_COLUMN = "item_id"
 internal const val DOC_COLUMN = "document"
 
-fun Storage.Companion.postgres(uri: Uri, credentials: Http4kCredentials?) = object: Storage {
+fun StorageDriver.Companion.postgres(uri: Uri, credentials: Http4kCredentials?) = object: StorageDriver {
     private val dataSource = HikariDataSource(HikariConfig().apply {
         this.jdbcUrl = uri.toString()
         this.credentials = credentials?.let { Credentials(it.user, it.password) }

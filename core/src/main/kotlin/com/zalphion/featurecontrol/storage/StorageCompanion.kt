@@ -10,7 +10,7 @@ abstract class StorageCompanion<Doc: Any, GroupId: Any, ItemId: Any>(
     private val itemIdMapping: BiDiMapping<String, ItemId>,
     private val documentType: KClass<Doc>
 ) {
-    fun create(name: String, storage: Storage, json: AutoMarshalling) = storage.create(
+    fun create(name: String, storageDriver: StorageDriver, json: AutoMarshalling) = storageDriver.create(
         name = name,
         groupIdMapper = groupIdMapping,
         itemIdMapper = itemIdMapping,

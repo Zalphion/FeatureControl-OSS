@@ -10,14 +10,14 @@ import org.junit.jupiter.api.Test
 
 class MemberStorageTest: CoreTestDriver() {
 
-    private val team1 = TeamId.Companion.of("team0001")
-    private val team2 = TeamId.Companion.of("team0002")
-    private val team3 = TeamId.Companion.of("team0003")
+    private val team1 = TeamId.of("team0001")
+    private val team2 = TeamId.of("team0002")
+    private val team3 = TeamId.of("team0003")
 
-    private val user1 = UserId.Companion.of("user0001")
-    private val user2 = UserId.Companion.of("user0002")
-    private val user3 = UserId.Companion.of("user0003")
-    private val user4 = UserId.Companion.of("user0004")
+    private val user1 = UserId.of("user0001")
+    private val user2 = UserId.of("user0002")
+    private val user3 = UserId.of("user0003")
+    private val user4 = UserId.of("user0004")
 
     private val testObj = core.members
 

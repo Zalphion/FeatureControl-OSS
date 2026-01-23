@@ -1,2 +1,11 @@
 rootProject.name = "oss"
-include("core", "emails", "hosted", "storage:postgres")
+
+fun String.includeModule(name: String) {
+    val projectName = "$this-$name"
+    include(":$projectName")
+    project(":$projectName").projectDir = File("$this/${name.replace(':','/')}")
+}
+
+include("core", "emails", "hosted")
+
+"storage".includeModule("postgres")

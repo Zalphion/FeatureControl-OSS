@@ -24,10 +24,14 @@ dependencies {
     testFixturesApi(libs.http4k.testing.playwright)
     testFixturesApi(libs.kotest.assertions.core.jvm)
 
-    testFixturesImplementation(libs.junit.jupiter)
+    // include webjars for ui tests
+    testFixturesRuntimeOnly(libs.webjars.uikit)
+    testFixturesRuntimeOnly(libs.webjars.alpinejs)
+    testFixturesRuntimeOnly(libs.webjars.dayjs)
 
     testFixturesRuntimeOnly(libs.tinylog.slf4j)
     testFixturesRuntimeOnly(libs.tinylog.impl)
+    testFixturesRuntimeOnly(libs.junit.jupiter)
     testFixturesRuntimeOnly(libs.junit.platform.launcher)
 }
 

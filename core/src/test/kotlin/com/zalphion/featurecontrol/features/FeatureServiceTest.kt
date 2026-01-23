@@ -60,6 +60,7 @@ class FeatureServiceTest: CoreTestDriver() {
     @Test
     fun `create feature - success`() {
         val expected = Feature(
+            teamId = application1.teamId,
             appId = application1.appId,
             key = featureKey1,
             variants = mapOf(off to "off", on to "on"),

@@ -63,6 +63,7 @@ class ConfigServiceTest: CoreTestDriver() {
             .invoke(user2.user, core)
             .shouldBeSuccess(
                 ConfigSpec(
+                    teamId = app2.teamId,
                     appId = app2.appId,
                     properties = emptyMap()
                 )
@@ -72,6 +73,7 @@ class ConfigServiceTest: CoreTestDriver() {
     @Test
     fun `get config - not empty`() {
         val expected = ConfigSpec(
+            teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
         ).also(core.configs::plusAssign)
@@ -100,6 +102,7 @@ class ConfigServiceTest: CoreTestDriver() {
     @Test
     fun `update config properties - success`() {
         val expected = ConfigSpec(
+            teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
         )
@@ -108,7 +111,7 @@ class ConfigServiceTest: CoreTestDriver() {
             .invoke(user1.user, core)
             .shouldBeSuccess(expected)
 
-        core.configs[app1.appId] shouldBe expected
+        core.configs[app1.teamId, app1.appId] shouldBe expected
     }
 
     @Test
@@ -161,6 +164,7 @@ class ConfigServiceTest: CoreTestDriver() {
     @Test
     fun `update config values - success`() {
         core.configs += ConfigSpec(
+            teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
         )
@@ -177,6 +181,7 @@ class ConfigServiceTest: CoreTestDriver() {
             .invoke(user1.user, core)
             .shouldBeSuccess(
                 ConfigEnvironment(
+                    teamId = app1.teamId,
                     appId = app1.appId,
                     environmentName = devName,
                     values = mapOf(
@@ -187,6 +192,7 @@ class ConfigServiceTest: CoreTestDriver() {
             )
 
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
+            teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             values = mapOf(
@@ -199,11 +205,13 @@ class ConfigServiceTest: CoreTestDriver() {
     @Test
     fun `update config values - replaces omitted values`() {
         core.configs += ConfigSpec(
+            teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
         )
 
         core.configs += ConfigEnvironment(
+            teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             values = mapOf(
@@ -223,6 +231,7 @@ class ConfigServiceTest: CoreTestDriver() {
             .invoke(user1.user, core)
             .shouldBeSuccess(
                 ConfigEnvironment(
+                    teamId = app1.teamId,
                     appId = app1.appId,
                     environmentName = devName,
                     values = mapOf(
@@ -232,6 +241,7 @@ class ConfigServiceTest: CoreTestDriver() {
             )
 
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
+            teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             values = mapOf(
@@ -243,6 +253,7 @@ class ConfigServiceTest: CoreTestDriver() {
     @Test
     fun `update config values - blank values omitted`() {
         core.configs += ConfigSpec(
+            teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty)
         )
@@ -255,6 +266,7 @@ class ConfigServiceTest: CoreTestDriver() {
         ).invoke(user1.user, core).shouldBeSuccess()
 
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
+            teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             values = emptyMap()
@@ -264,6 +276,7 @@ class ConfigServiceTest: CoreTestDriver() {
     @Test
     fun `update config values - values trimmed`() {
         core.configs += ConfigSpec(
+            teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty)
         )
@@ -276,6 +289,7 @@ class ConfigServiceTest: CoreTestDriver() {
         ).invoke(user1.user, core).shouldBeSuccess()
 
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
+            teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             values = mapOf(
@@ -287,6 +301,7 @@ class ConfigServiceTest: CoreTestDriver() {
     @Test
     fun `update config values - secrets encrypted`() {
         core.configs += ConfigSpec(
+            teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(secretProperty)
         )
@@ -299,6 +314,7 @@ class ConfigServiceTest: CoreTestDriver() {
         ).invoke(user1.user, core).shouldBeSuccess()
 
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
+            teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             values = mapOf(

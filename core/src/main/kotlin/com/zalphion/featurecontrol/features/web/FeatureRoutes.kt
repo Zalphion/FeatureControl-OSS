@@ -15,12 +15,12 @@ import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.flash.messages
 import com.zalphion.featurecontrol.web.appIdLens
 import com.zalphion.featurecontrol.web.applicationUri
-import com.zalphion.featurecontrol.web.featureUri
 import com.zalphion.featurecontrol.web.principalLens
 import com.zalphion.featurecontrol.web.samePageError
 import com.zalphion.featurecontrol.web.toIndex
 import com.zalphion.featurecontrol.web.flash.withMessage
 import com.zalphion.featurecontrol.web.teamIdLens
+import com.zalphion.featurecontrol.web.uri
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.recover
@@ -38,7 +38,7 @@ internal fun Core.httpPostFeature(): HttpHandler = { request ->
 
     CreateFeature(teamId, appId, data)
         .invoke(principal, this)
-        .map { Response(Status.SEE_OTHER).location(featureUri(it.appId, it.key)) }
+        .map { Response(Status.SEE_OTHER).location(it.uri()) }
         .recover { request.toIndex().withMessage(it) }
 }
 
@@ -70,7 +70,7 @@ internal fun Core.httpDeleteFeature(): HttpHandler = { request ->
 
     DeleteFeature(teamId, appId, featureKey)
         .invoke(principal, this)
-        .map { Response(Status.SEE_OTHER).location(applicationUri(appId)) }
+        .map { Response(Status.SEE_OTHER).location(applicationUri(teamId, appId)) }
         .recover { request.toIndex().withMessage(it) }
 }
 
@@ -84,7 +84,7 @@ internal fun Core.httpPutFeature(): HttpHandler = { request ->
     UpdateFeature(teamId, appId, featureKey, data)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER)
-            .location(featureUri(it.appId, it.key))
+            .location(it.uri())
             .withMessage("Feature updated", FlashMessageDto.Type.Success)
         }
         .recover { request.toIndex().withMessage(it) }
@@ -128,7 +128,7 @@ internal fun Core.httpPostFeatureEnvironment(): HttpHandler = fn@{ request ->
     UpdateFeature(teamId, appId, featureKey, data)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER)
-            .location(featureUri(it.appId, it.key, environmentName))
+            .location(it.uri(environmentName))
             .withMessage("Environment updated", FlashMessageDto.Type.Success)
         }
         .recover { request.toIndex().withMessage(it) }
