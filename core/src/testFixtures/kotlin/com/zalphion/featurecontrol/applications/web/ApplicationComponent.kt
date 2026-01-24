@@ -11,6 +11,7 @@ import com.zalphion.featurecontrol.features.web.FeatureCreateUI
 import com.zalphion.featurecontrol.features.web.FeaturePageUi
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.getModal
+import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 
 class ApplicationComponent(private val section: Locator) {
@@ -32,7 +33,7 @@ class ApplicationComponent(private val section: Locator) {
         section
             .getByRole(AriaRole.LINK)
             .filter(Locator.FilterOptions().setHasText("Feature"))
-            .all()
+            .waitForAll()
             .map { it.getByRole(AriaRole.HEADING) }
             .find { it.textContent().trim() == featureKey.value }
             .shouldNotBeNull()
@@ -54,7 +55,7 @@ class ApplicationComponent(private val section: Locator) {
     val features get() = section
         .getByRole(AriaRole.LINK)
         .filter(Locator.FilterOptions().setHasText("Feature"))
-        .all()
+        .waitForAll()
         .map { it.getByRole(AriaRole.HEADING) }
         .map { FeatureKey.parse(it.textContent().trim()) }
 

@@ -7,6 +7,7 @@ import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.web.application
 import com.zalphion.featurecontrol.applications.web.applicationsList
 import com.zalphion.featurecontrol.web.getElement
+import com.zalphion.featurecontrol.web.waitForAll
 
 private val urlRegex = ".*/applications/([^/]+)/config.*".toRegex()
 
@@ -23,7 +24,8 @@ class ConfigSpecPageUi(private val page: Page) {
 
     val properties get() = page
         .getByRole(AriaRole.MAIN)
-        .locator("tbody tr").all()
+        .locator("tbody tr")
+        .waitForAll()
         .map { ConfigPropertyUi(it) }
 
     fun newProperty(block: (ConfigPropertyUi) -> Unit): ConfigPropertyUi {

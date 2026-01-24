@@ -8,6 +8,7 @@ import com.zalphion.featurecontrol.web.getElement
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.zalphion.featurecontrol.config.web.ConfigSpecPageUi
 import com.zalphion.featurecontrol.web.getModal
+import com.zalphion.featurecontrol.web.waitForAll
 
 open class ApplicationsListComponent(private val section: Locator) {
 
@@ -29,7 +30,8 @@ open class ApplicationsListComponent(private val section: Locator) {
     }
 
     val list get() = section
-        .getByRole(AriaRole.LINK).all()
+        .getByRole(AriaRole.LINK)
+        .waitForAll()
         .map { it.getByRole(AriaRole.HEADING).textContent() }
         .map { AppName.parse(it.trim()) }
 

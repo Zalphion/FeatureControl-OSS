@@ -5,6 +5,7 @@ import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.AriaRole
 import com.microsoft.playwright.options.Cookie
+import com.microsoft.playwright.options.LoadState
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.applications.web.ApplicationsPageUi
@@ -60,3 +61,12 @@ fun CoreTestDriver.playwright() = LaunchPlaywrightBrowser(
     http = core.getRoutes(),
     launchOptions = BrowserType.LaunchOptions().setHeadless(ci)
 )
+
+/**
+ * all() returns without waiting, which can introduce a race condition
+ */
+fun Locator.waitForAll(): List<Locator> {
+    page().waitForLoadState(LoadState.NETWORKIDLE)
+    page().waitForSelector("body:not([x-cloak])") // Wait for Alpine to finish any initial DOM mutations.
+    return all()
+}

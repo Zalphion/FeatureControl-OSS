@@ -8,6 +8,7 @@ import com.zalphion.featurecontrol.lib.Colour
 import com.zalphion.featurecontrol.web.getElement
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.zalphion.featurecontrol.config.web.ConfigSpecPageUi
+import com.zalphion.featurecontrol.web.waitForAll
 
 class ApplicationCreateUpdateUi private constructor(
     private val modal: Locator,
@@ -28,7 +29,8 @@ class ApplicationCreateUpdateUi private constructor(
     }
 
     fun forEnvironment(name: EnvironmentName, block: (ProjectEnvironmentUi) -> Unit = {}): ProjectEnvironmentUi {
-        val row = modal.locator("tbody tr").all()
+        val row = modal.locator("tbody tr")
+            .waitForAll()
             // can't use a locator by value because alpine.js doesn't populate the DOM with a value
             .find { it.locator("input[aria-label='Environment']").inputValue() == name.value }
             ?: error("Environment $name not found")

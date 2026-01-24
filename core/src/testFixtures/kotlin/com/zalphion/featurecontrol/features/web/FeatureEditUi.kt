@@ -7,6 +7,7 @@ import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.web.toCheckboxProperty
 import com.zalphion.featurecontrol.web.toInputProperty
+import com.zalphion.featurecontrol.web.waitForAll
 import org.http4k.lens.StringBiDiMappings
 
 class FeatureEditUi(private val section: Locator) {
@@ -21,7 +22,8 @@ class FeatureEditUi(private val section: Locator) {
         .toInputProperty()
 
     val variants get() = section
-        .locator("tbody tr").all()
+        .locator("tbody tr")
+        .waitForAll()
         .map { VariantUi(it) }
 
     fun newVariant(block: (VariantUi) -> Unit = {}): VariantUi {

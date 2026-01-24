@@ -30,6 +30,10 @@ fun Core.pageSkeleton(
             title(APP_NAME)
         }
 
+        unsafe { // required for x-cloak to work
+            raw("<style>[x-cloak] { display: none !important; }</style>")
+        }
+
         // UI Kit
         link(config.staticUri.path("/uikit/${WebAssetVersions.UI_KIT}/dist/css/uikit.min.css").toString(), "stylesheet", "text/css")
         script(src = config.staticUri.path("/uikit/${WebAssetVersions.UI_KIT}/dist/js/uikit.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
@@ -46,6 +50,8 @@ fun Core.pageSkeleton(
     }
 
     body {
+        attributes["x-data"] = "" // required for x-cloak to work
+        attributes["x-cloak"] = ""  // signal for automated testing readiness; alpine.js will remove this when it's complete
         content(this@pageSkeleton)
 
         val messagesScript = messages.joinToString("\n") { message ->
