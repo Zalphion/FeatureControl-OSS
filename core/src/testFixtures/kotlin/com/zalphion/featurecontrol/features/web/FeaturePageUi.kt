@@ -5,7 +5,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppId
-import com.zalphion.featurecontrol.applications.web.ApplicationUi
+import com.zalphion.featurecontrol.config.web.ConfigSpecPageUi
 import com.zalphion.featurecontrol.applications.web.application
 import com.zalphion.featurecontrol.applications.web.applicationsList
 import com.zalphion.featurecontrol.features.FeatureKey
@@ -15,7 +15,7 @@ import com.zalphion.featurecontrol.web.getModal
 
 private val urlRegex = ".*applications/([^/]+)/features/([^/]+).*".toRegex()
 
-class FeatureUi(private val page: Page) {
+class FeaturePageUi(private val page: Page) {
 
     init {
         PlaywrightAssertions.assertThat(page).hasURL(urlRegex.toPattern())
@@ -31,11 +31,11 @@ class FeatureUi(private val page: Page) {
     val application = page.application()
 
     // TODO navbar
-    val featureEdit = FeatureEditComponent(main)
+    val featureEdit = FeatureEditUi(main)
 
-    fun update(block: (FeatureUi) -> Unit = {}): FeatureUi {
+    fun update(block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
         main.getElement(AriaRole.BUTTON, "Update").click()
-        return FeatureUi(page).also(block)
+        return FeaturePageUi(page).also(block)
     }
 
     fun more(block: (FeatureMenuUi) -> Unit = {}): FeatureMenuUi {
@@ -46,11 +46,11 @@ class FeatureUi(private val page: Page) {
 
 class FeatureMenuUi(private val section: Locator, private val key: FeatureKey) {
     fun delete(
-        block: (DeleteModalUi<FeatureKey, ApplicationUi>) -> Unit = {}
-    ): DeleteModalUi<FeatureKey, ApplicationUi> {
+        block: (DeleteModalUi<FeatureKey, ConfigSpecPageUi>) -> Unit = {}
+    ): DeleteModalUi<FeatureKey, ConfigSpecPageUi> {
         section.getElement(AriaRole.BUTTON, "Delete Feature").click()
 
         val deleteModal = section.page().getModal("Delete $key")
-        return DeleteModalUi(deleteModal, FeatureKey, ::ApplicationUi).also(block)
+        return DeleteModalUi(deleteModal, FeatureKey, ::ConfigSpecPageUi).also(block)
     }
 }

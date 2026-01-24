@@ -102,22 +102,25 @@ private fun FlowContent.environmentsTable(
 }
 
 val EnvironmentDto.Companion.tableSchema get() = listOf(
-    TableElementSchema(
-        name = "Environment",
+    TableElementSchema.Input(
+        label = "Environment",
         key = "name",
+        type = InputType.text,
         placeholder = "dev, staging, prod, etc.",
         headerClasses = "uk-width-medium"
     ),
-    TableElementSchema(
-        name = "Description",
+    TableElementSchema.Input(
+        label = "Description",
         key = "description",
+        type = InputType.text,
         placeholder = "Description",
         headerClasses = "uk-width-large",
         required = false
     ),
-    TableElementSchema(
-        name = "Colour",
+    TableElementSchema.Input(
+        label = "Colour",
         key = "colour",
+        type = InputType.text,
         placeholder = "#000000",
         headerClasses = "uk-width-small",
         required = false

@@ -2,11 +2,15 @@ package com.zalphion.featurecontrol.web
 
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
+import kotlinx.html.HTMLTag
 import kotlinx.html.InputType
 import kotlinx.html.button
+import kotlinx.html.classes
 import kotlinx.html.div
 import kotlinx.html.input
+import kotlinx.html.option
 import kotlinx.html.p
+import kotlinx.html.select
 import kotlinx.html.table
 import kotlinx.html.tbody
 import kotlinx.html.td
@@ -16,14 +20,94 @@ import kotlinx.html.thead
 import kotlinx.html.tr
 import org.http4k.lens.BiDiMapping
 
-class TableElementSchema(
-    val name: String,
-    val key: String? = null,
-    val type: InputType = InputType.text,
-    val required: Boolean = true,
-    val placeholder: String? = null,
-    val headerClasses: String? = null
-)
+interface TableElementSchema {
+    val label: String
+    val key: String?
+    val required: Boolean
+    val default: String?
+    val headerClasses: String?
+
+    fun render(flow: FlowContent) {
+        renderInternal(flow) { tag ->
+            tag.attributes["x-model"] = if (key == null) "element" else "element.${key}"
+            tag.attributes["aria-label"] = label
+
+            if (required) {
+                tag.attributes["required"] = ""
+            }
+        }
+    }
+
+    fun renderInternal(flow: FlowContent, block: (HTMLTag) -> Unit)
+
+    data class DynamicInput(
+        override val label: String,
+        override val key: String?,
+        val typeExpression: String, // dynamic type for alpine.js (operating on an `element` arg)
+        override val default: String? = null,
+        override val required: Boolean = true,
+        val placeholder: String? = null,
+        override val headerClasses: String? = null,
+    ): TableElementSchema {
+        override fun renderInternal(flow: FlowContent, block: (HTMLTag) -> Unit) = flow.input {
+            attributes[":type"] = typeExpression
+            attributes[":class"] =  $$"['checkbox', 'radio'].includes($el.type) ? 'uk-checkbox' : 'uk-input'"
+            this@DynamicInput.placeholder?.let {
+                attributes["placeholder"] = it
+            }
+            block(this)
+        }
+    }
+
+    data class Input(
+        override val label: String,
+        override val key: String?,
+        val type: InputType,
+        override val default: String? = null,
+        override val required: Boolean = true,
+        val placeholder: String? = null,
+        override val headerClasses: String? = null,
+    ): TableElementSchema {
+        override fun renderInternal(flow: FlowContent, block: (HTMLTag) -> Unit) = flow.input(type) {
+            classes += when (type) {
+                InputType.radio, InputType.checkBox -> "uk-checkbox"
+                else -> "uk-input"
+            }
+            this@Input.placeholder?.let {
+                attributes["placeholder"] = it
+            }
+            block(this)
+        }
+    }
+
+    data class Select(
+        override val label: String,
+        override val key: String?,
+        val options: List<String>,
+        override val default: String? = null,
+        override val required: Boolean = true,
+        override val headerClasses: String? = null
+    ): TableElementSchema {
+        override fun renderInternal(flow: FlowContent, block: (HTMLTag) -> Unit) = flow.select("uk-select") {
+            block(this)
+
+            if (default != null) {
+                option("uk-text-muted") {
+                    disabled = true
+                    selected = true
+                    +"-$default-"
+                }
+            }
+
+            for (option in options) {
+                option {
+                    selected = option == default
+                    +option
+                }
+            }
+        }
+    }
+}
 
 fun <Element: Any> FlowContent.tableForm(
     inputName: String,
@@ -52,7 +136,7 @@ fun <Element: Any> FlowContent.tableForm(
             tr {
                 for (schemaElement in schema) {
                     th(classes = schemaElement.headerClasses) {
-                        +schemaElement.name
+                        +schemaElement.label
                     }
                 }
             }
@@ -66,23 +150,13 @@ fun <Element: Any> FlowContent.tableForm(
                 tr {
                     for (schemaElement in schema) {
                         td {
-                            val clazz = when(schemaElement.type) {
-                                InputType.checkBox -> "uk-checkbox"
-                                InputType.radio -> "uk-radio"
-                                else -> "uk-input"
-                            }
-                            input(schemaElement.type, classes = clazz) {
-                                attributes["x-model"] = if (schemaElement.key == null) "element" else "element.${schemaElement.key}"
-                                attributes["aria-label"] = schemaElement.name
-                                placeholder = schemaElement.placeholder ?: ""
-                                required = schemaElement.required
-                            }
+                            schemaElement.render(this)
                         }
                     }
 
                     td { // remove button
                         button(type = ButtonType.button, classes = "uk-icon-button uk-button-default") {
-                            attributes["aria-label"] = "Remove row"
+                            attributes["aria-label"] = "Remove $rowAriaLabel"
                             attributes["uk-icon"] = "trash"
                             onClick("$inputName.splice(index, 1)")
                         }
@@ -95,10 +169,16 @@ fun <Element: Any> FlowContent.tableForm(
             tr {
                 td { // New Row
                     button(type = ButtonType.button, classes = "uk-icon-button uk-button-default") {
+                        // calculate what to push to new rows, because the defaults in the inputs don't update the alpine state
+                        val initialElement = schema
+                            .filter { it.key != null && it.default != null }
+                            .joinToString(", ") { "${it.key} : '${it.default}'" }
+                            .let { "{$it}" }
+
                         attributes["uk-icon"] = "plus"
                         attributes["uk-tooltip"] = "Add $rowAriaLabel"
                         attributes["aria-label"] = "Add $rowAriaLabel"
-                        onClick("$inputName.push({})")
+                        onClick("$inputName.push($initialElement)")
                     }
                 }
             }

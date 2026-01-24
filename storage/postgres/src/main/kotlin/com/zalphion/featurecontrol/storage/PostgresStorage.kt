@@ -126,10 +126,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> postgresRepository(
 
                 stmt.executeQuery().use { rs ->
                     rs.toSequence()
-                        .map {
-                            println(rs.getString(DOC_COLUMN))
-                            documentMapper(rs.getString(DOC_COLUMN))
-                        }
+                        .map { documentMapper(rs.getString(DOC_COLUMN)) }
                         .toList()
                 }
             }

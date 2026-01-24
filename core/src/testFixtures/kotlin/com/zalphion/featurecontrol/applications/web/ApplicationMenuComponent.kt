@@ -17,11 +17,11 @@ class ApplicationMenuComponent(private val section: Locator, private val appName
     }
 
     fun delete(
-        block: (DeleteModalUi<AppName, ApplicationsUi>) -> Unit = {}
-    ): DeleteModalUi<AppName, ApplicationsUi> {
+        block: (DeleteModalUi<AppName, ApplicationsPageUi>) -> Unit = {}
+    ): DeleteModalUi<AppName, ApplicationsPageUi> {
         section.getElement(AriaRole.BUTTON, "Delete Application").click()
 
         val deleteModal = section.page().getModal("Delete $appName")
-        return DeleteModalUi(deleteModal, AppName, ::ApplicationsUi).also(block)
+        return DeleteModalUi(deleteModal, AppName, ::ApplicationsPageUi).also(block)
     }
 }

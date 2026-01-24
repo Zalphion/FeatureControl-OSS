@@ -133,24 +133,20 @@ val onOffData = FeatureUpdateData(
 
 val strProperty = PropertyKey.parse("str") to Property(
     description = "a required string property",
-    type = PropertyType.String,
-    group = null
+    type = PropertyType.String
 )
 
 val numberProperty = PropertyKey.parse("num") to Property(
     description = "a required number property",
-    type = PropertyType.Number,
-    group = "group1"
+    type = PropertyType.Number
 )
 
 val booleanProperty = PropertyKey.parse("bool") to Property(
     description = "a required boolean property",
-    type = PropertyType.Boolean,
-    group = null
+    type = PropertyType.Boolean
 )
 
 val secretProperty = PropertyKey.parse("secret") to Property(
     description = "a required secret property",
-    type = PropertyType.Secret,
-    group = null
+    type = PropertyType.Secret
 )

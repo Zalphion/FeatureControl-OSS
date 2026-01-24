@@ -67,7 +67,7 @@ fun hostedCoreMain(additionalPlugins: List<PluginFactory<*>>) {
 
     core.getRoutes()
         .withFilter(ServerFilters.GZip())
-        .asServer(Undertow(env[Settings.port].value)) // TODO consider helidon
+        .asServer(Undertow(env[Settings.port].value))
         .start()
         .also { println("Started on http://localhost:${it.port()}") }
         .block()

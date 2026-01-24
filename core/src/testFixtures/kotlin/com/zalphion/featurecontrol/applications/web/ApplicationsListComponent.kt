@@ -6,17 +6,18 @@ import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.web.getElement
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
+import com.zalphion.featurecontrol.config.web.ConfigSpecPageUi
 import com.zalphion.featurecontrol.web.getModal
 
-open class ApplicationsListComponent(private val section: Locator): Iterable<AppName> {
+open class ApplicationsListComponent(private val section: Locator) {
 
     init {
         assertThat(section.getByRole(AriaRole.HEADING, Locator.GetByRoleOptions().setLevel(2))).isVisible()
     }
 
-    fun select(appName: AppName, block: (ApplicationUi) -> Unit = {}): ApplicationUi {
+    fun select(appName: AppName, block: (ConfigSpecPageUi) -> Unit = {}): ConfigSpecPageUi {
         section.getElement(AriaRole.LINK, appName.value).click()
-        return ApplicationUi(section.page()).also(block)
+        return ConfigSpecPageUi(section.page()).also(block)
     }
 
     fun new(block: (ApplicationCreateUpdateUi) -> Unit): ApplicationCreateUpdateUi {
@@ -27,18 +28,18 @@ open class ApplicationsListComponent(private val section: Locator): Iterable<App
         return ApplicationCreateUpdateUi.create(modal).also(block)
     }
 
-    override fun iterator() = section
+    val list get() = section
         .getByRole(AriaRole.LINK).all()
         .map { it.getByRole(AriaRole.HEADING).textContent() }
         .map { AppName.parse(it.trim()) }
-        .iterator()
 
-    val selected = section
+    val selected get() = section
         .locator("a[aria-current=page]")
         .getByRole(AriaRole.HEADING)
-        .all()
-        .firstOrNull()
-        ?.let { AppName.parse(it.textContent().trim()) }
+        .first()
+        .takeIf { it.count() > 0 }
+        ?.textContent()?.trim()?.takeIf { it.isNotBlank() }
+        ?.let(AppName::parse)
 }
 
 fun Page.applicationsList(): ApplicationsListComponent {

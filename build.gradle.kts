@@ -5,9 +5,23 @@ plugins {
     `java-test-fixtures`
 }
 
+val moshi: MinimalExternalModuleDependency = libs.moshi.get()
+
 allprojects {
     repositories {
         mavenCentral()
+    }
+
+    val moshiVersion = moshi.versionConstraint.let {
+        it.requiredVersion ?: it.preferredVersion ?: it.strictVersion
+    }
+
+    // ksp brings in an old version of moshi which can break intelliJ sometimes
+    configurations.configureEach {
+        resolutionStrategy.dependencySubstitution {
+            substitute(module("${moshi.module.group}:${moshi.module.name}"))
+                .using(module("${moshi.module.group}:${moshi.module.name}:$moshiVersion"))
+        }
     }
 
     apply(plugin = "kotlin")

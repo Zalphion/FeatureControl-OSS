@@ -13,8 +13,8 @@ import org.http4k.lens.webForm
 
 private object ConfigLenses {
     fun properties(json: AutoMarshalling) = FormField
-        .map(json.asBiDiMapping<Map<String, Property>>())
-        .map { it.mapKeys { (k, _) -> PropertyKey.parse(k) } }
+        .map(json.asBiDiMapping<Array<ConfigPropertyDto>>())
+        .map { it.associate { prop -> prop.toModel() } }
         .required("properties")
 
     fun values(json: AutoMarshalling) = FormField.map(json.asBiDiMapping<Map<String, String>>())

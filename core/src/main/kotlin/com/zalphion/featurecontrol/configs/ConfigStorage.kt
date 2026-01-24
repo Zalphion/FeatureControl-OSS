@@ -59,7 +59,6 @@ data class StoredConfigSpec(
 @JsonSerializable
 data class StoredProperty(
     val description: String,
-    val group: String?,
     val type: StoredPropertyType,
 )
 
@@ -86,7 +85,6 @@ private fun ConfigSpec.toStored() = StoredConfigSpec(
     properties = properties.mapValues { (_, value) ->
         StoredProperty(
             description = value.description,
-            group = value.group,
             type = value.type.toStored()
         )
     }
@@ -98,7 +96,6 @@ private fun StoredConfigSpec.toModel() = ConfigSpec(
     properties = properties.mapValues { (_, value) ->
         Property(
             description = value.description,
-            group = value.group,
             type = value.type.toModel()
         )
     }

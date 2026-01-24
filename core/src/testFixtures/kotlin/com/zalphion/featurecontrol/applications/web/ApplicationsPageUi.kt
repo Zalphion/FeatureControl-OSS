@@ -6,7 +6,7 @@ import com.zalphion.featurecontrol.teams.TeamId
 
 private val applicationsPageRegex = ".*/teams/([^/]+)/applications.*".toRegex()
 
-class ApplicationsUi(private val page: Page) {
+class ApplicationsPageUi(private val page: Page) {
 
     init {
         assertThat(page).hasURL(applicationsPageRegex.toPattern())

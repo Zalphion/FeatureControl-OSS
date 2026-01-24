@@ -17,6 +17,7 @@ import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.prodName
 import com.zalphion.featurecontrol.stagingName
 import com.zalphion.featurecontrol.web.asUser
+import com.zalphion.featurecontrol.web.playwright
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -24,14 +25,13 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.http4k.playwright.Http4kBrowser
-import org.http4k.playwright.LaunchPlaywrightBrowser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 class ApplicationUiTest: CoreTestDriver() {
 
     @RegisterExtension
-    val playwright = LaunchPlaywrightBrowser(core.getRoutes())
+    val playwright = playwright()
 
     private val member = users.create(idp1Email1).shouldBeSuccess()
 
@@ -39,7 +39,7 @@ class ApplicationUiTest: CoreTestDriver() {
     fun `no applications`(browser: Http4kBrowser) {
         browser.asUser(core, member.user) { page ->
             page.teamId shouldBe member.team.teamId
-            page.applications.shouldBeEmpty()
+            page.applications.list.shouldBeEmpty()
             page.applications.selected.shouldBeNull()
         }
     }
@@ -62,7 +62,7 @@ class ApplicationUiTest: CoreTestDriver() {
                     env.setColour(Colour.black)
                 }
             }.submit { page ->
-                page.applications.shouldContainExactly(appName1)
+                page.applications.list.shouldContainExactly(appName1)
                 page.applications.selected shouldBe appName1
 
                 page.application.name shouldBe appName1
@@ -98,11 +98,11 @@ class ApplicationUiTest: CoreTestDriver() {
         val app2 = createApplication(member, appName2)
 
         browser.asUser(core, member.user) { page ->
-            page.applications.toList().shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
+            page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
             page.applications.selected.shouldBeNull()
 
             page.applications.select(app1.appName) { page ->
-                page.applications.toList().shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
+                page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
                 page.applications.selected shouldBe app1.appName
                 page.appId shouldBe app1.appId
                 page.application.name shouldBe app1.appName
@@ -119,7 +119,7 @@ class ApplicationUiTest: CoreTestDriver() {
             .applications.select(app2.appName)
             .application.more()
             .delete().confirm { page ->
-                page.applications.shouldContainExactly(app1.appName)
+                page.applications.list.shouldContainExactly(app1.appName)
                 page.applications.selected.shouldBeNull()
             }
     }
@@ -142,7 +142,7 @@ class ApplicationUiTest: CoreTestDriver() {
                     env.setName(stagingName)
                 }
             }.submit { page ->
-                page.applications.toList().shouldContainExactlyInAnyOrder(app1.appName, appName3)
+                page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, appName3)
                 page.applications.selected shouldBe appName3
             }
 

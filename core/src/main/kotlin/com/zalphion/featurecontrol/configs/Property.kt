@@ -7,7 +7,6 @@ import dev.forkhandles.values.StringValueFactory
 
 data class Property(
     val description: String,
-    val group: String?,
     val type: PropertyType,
 )
 

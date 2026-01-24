@@ -21,6 +21,7 @@ class DeleteModalUi<Name: StringValue, UI: Any>(
         .getByRole(AriaRole.HEADING, Locator.GetByRoleOptions().setLevel(2))
         .textContent()
         .removePrefix("Delete")
+        .removeSuffix("?")
         .trim()
         .let(nameFactory::parse)
 

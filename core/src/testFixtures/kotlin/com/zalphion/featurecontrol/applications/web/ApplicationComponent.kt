@@ -5,14 +5,15 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppName
+import com.zalphion.featurecontrol.config.web.ConfigSpecPageUi
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.web.FeatureCreateUI
-import com.zalphion.featurecontrol.features.web.FeatureUi
+import com.zalphion.featurecontrol.features.web.FeaturePageUi
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.getModal
 import io.kotest.matchers.nulls.shouldNotBeNull
 
-class ApplicationComponent(private val section: Locator): Iterable<FeatureKey> {
+class ApplicationComponent(private val section: Locator) {
 
     init {
         assertThat(section).isVisible()
@@ -27,7 +28,7 @@ class ApplicationComponent(private val section: Locator): Iterable<FeatureKey> {
         return FeatureCreateUI(modal).also(block)
     }
 
-    fun select(featureKey: FeatureKey, block: (FeatureUi) -> Unit = {}): FeatureUi {
+    fun select(featureKey: FeatureKey, block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
         section
             .getByRole(AriaRole.LINK)
             .filter(Locator.FilterOptions().setHasText("Feature"))
@@ -37,16 +38,33 @@ class ApplicationComponent(private val section: Locator): Iterable<FeatureKey> {
             .shouldNotBeNull()
             .click()
 
-        return FeatureUi(section.page()).also(block)
+        return FeaturePageUi(section.page()).also(block)
     }
 
-    override fun iterator() = section
+    fun config(block: (ConfigSpecPageUi) -> Unit = {}): ConfigSpecPageUi {
+        section
+            .getByRole(AriaRole.LINK)
+            .filter(Locator.FilterOptions().setHasText("Config"))
+            .first()
+            .click()
+
+        return ConfigSpecPageUi(section.page()).also(block)
+    }
+
+    val features get() = section
         .getByRole(AriaRole.LINK)
         .filter(Locator.FilterOptions().setHasText("Feature"))
         .all()
         .map { it.getByRole(AriaRole.HEADING) }
         .map { FeatureKey.parse(it.textContent().trim()) }
-        .iterator()
+
+    val selectedFeature get() = section
+        .locator("a[aria-current=page]")
+        .filter(Locator.FilterOptions().setHasText("Feature"))
+        .getByRole(AriaRole.HEADING)
+        .first()
+        .takeIf { it.count() > 0 }
+        ?.let { FeatureKey.parse(it.textContent().trim()) }
 
     fun more(block: (ApplicationMenuComponent) -> Unit = {}): ApplicationMenuComponent {
         section.getElement(AriaRole.BUTTON, "More Options").click()

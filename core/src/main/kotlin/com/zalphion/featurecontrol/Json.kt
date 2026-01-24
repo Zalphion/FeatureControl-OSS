@@ -37,10 +37,11 @@ private object CoreJsonAdapterFactory : JsonAdapter.Factory by KotshiCoreJsonAda
 
 internal fun buildJson(plugins: List<JsonExport>): AutoMarshalling = plugins
     .fold(Moshi.Builder()) { builder, plugin -> plugin.moshi(builder) }
+    .add(CoreJsonAdapterFactory)
     .add(BigDecimalAdapter)
     .add(ListAdapter)
     .add(MapAdapter)
-    .asConfigurable(CoreJsonAdapterFactory)
+    .asConfigurable()
     .withStandardMappings()
     .value(TeamId)
     .value(AppId)
