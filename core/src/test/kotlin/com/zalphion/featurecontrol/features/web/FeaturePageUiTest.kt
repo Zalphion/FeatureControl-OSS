@@ -8,6 +8,7 @@ import com.zalphion.featurecontrol.createFeature
 import com.zalphion.featurecontrol.featureKey1
 import com.zalphion.featurecontrol.featureKey2
 import com.zalphion.featurecontrol.features.Feature
+import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.idp1Email1
 import com.zalphion.featurecontrol.new
 import com.zalphion.featurecontrol.old
@@ -23,7 +24,7 @@ import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
-class FeaturesUiTest: CoreTestDriver() {
+class FeaturePageUiTest: CoreTestDriver() {
 
     @RegisterExtension
     val playwright = playwright()
@@ -150,10 +151,39 @@ class FeaturesUiTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(feature2.key)
-            .more().delete().confirm { page ->
+            .featureNav.more().delete().confirm { page ->
                 page.application.name shouldBe app.appName
                 page.application.selectedFeature.shouldBeNull()
                 page.application.features.shouldContainExactly(feature1.key)
+            }
+    }
+
+    @Test
+    fun `reset feature`(browser: Http4kBrowser) {
+        val feature = createFeature(
+            principal = member,
+            application = app,
+            featureKey = featureKey1,
+            description = "lolcats",
+            variants = mapOf(old to "old", new to "new")
+        )
+
+        browser.asUser(core, member.user)
+            .applications.select(app.appName)
+            .application.select(feature.key) { page ->
+                page.featureEdit.description = "foobar"
+                page.featureEdit.newVariant { variant ->
+                    variant.name = Variant.parse("new-stuff")
+                }
+                page.featureEdit.variants
+                    .find { it.name == old }
+                    .shouldNotBeNull()
+                    .description = "old stuff"
+            }.reset { result ->
+                result.featureEdit.description shouldBe "lolcats"
+                result.featureEdit.variants
+                    .map { it.name to it.description }
+                    .shouldContainExactly(old to "old", new to "new")
             }
     }
 }

@@ -4,6 +4,7 @@ import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.booleanProperty
 import com.zalphion.featurecontrol.configs.ConfigSpec
+import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.create
 import com.zalphion.featurecontrol.createApplication
 import com.zalphion.featurecontrol.idp1Email1
@@ -38,7 +39,7 @@ class ConfigSpecUiTest: CoreTestDriver() {
     @Test
     fun `add properties`(browser: Http4kBrowser) {
         browser.asUser(core, member.user)
-            .applications.select(app.appName).also { page ->
+            .applications.select(app.appName) { page ->
                 page.newProperty { prop ->
                     prop.key = strProperty.first
                     prop.type = PropertyTypeDto.String
@@ -78,7 +79,7 @@ class ConfigSpecUiTest: CoreTestDriver() {
 
         browser
             .asUser(core, member.user).applications
-            .select(app.appName).also { page ->
+            .select(app.appName) { page ->
                 page.properties
                     .find { it.key == secretProperty.first }
                     .shouldNotBeNull()
@@ -101,6 +102,45 @@ class ConfigSpecUiTest: CoreTestDriver() {
                         booleanProperty.second.toDto(booleanProperty.first).copy(description = "")
                     )
                 }
+            }
+    }
+
+    @Test
+    fun `reset properties`(browser: Http4kBrowser) {
+        core.configs += ConfigSpec(
+            teamId = app.teamId,
+            appId = app.appId,
+            properties = mapOf(strProperty, secretProperty, numberProperty, booleanProperty)
+        )
+
+        browser
+            .asUser(core, member.user).applications
+            .select(app.appName) { page ->
+                page.properties
+                    .find { it.key == secretProperty.first }
+                    .shouldNotBeNull()
+                    .type = PropertyTypeDto.String
+
+                page.properties
+                    .find { it.key == numberProperty.first }
+                    .shouldNotBeNull()
+                    .description = "foobar"
+
+                page.properties
+                    .find { it.key == booleanProperty.first }
+                    .shouldNotBeNull()
+                    .remove()
+
+                page.newProperty { prop ->
+                    prop.key = PropertyKey.parse("new-prop")
+                }
+            }.reset { result ->
+                result.properties.map { it.toDto() }.shouldContainExactlyInAnyOrder(
+                    strProperty.second.toDto(strProperty.first),
+                    numberProperty.second.toDto(numberProperty.first),
+                    secretProperty.second.toDto(secretProperty.first),
+                    booleanProperty.second.toDto(booleanProperty.first)
+                )
             }
     }
 }

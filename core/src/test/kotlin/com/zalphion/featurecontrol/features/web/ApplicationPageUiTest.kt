@@ -28,7 +28,7 @@ import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
-class ApplicationUiTest: CoreTestDriver() {
+class ApplicationPageUiTest: CoreTestDriver() {
 
     @RegisterExtension
     val playwright = playwright()

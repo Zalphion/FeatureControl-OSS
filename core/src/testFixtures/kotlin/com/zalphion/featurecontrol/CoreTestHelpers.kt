@@ -22,8 +22,11 @@ import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.users.User
 import com.zalphion.featurecontrol.users.UserCreateData
 import com.zalphion.featurecontrol.users.UserService
+import dev.forkhandles.result4k.Success
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
+import dev.forkhandles.result4k.valueOrNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import org.http4k.core.Uri
 
 fun FeatureUpdateData.toCreate(featureKey: FeatureKey) = FeatureCreateData(

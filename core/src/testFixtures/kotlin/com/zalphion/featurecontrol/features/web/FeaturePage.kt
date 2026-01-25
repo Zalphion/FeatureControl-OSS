@@ -21,7 +21,7 @@ class FeaturePageUi(private val page: Page) {
         PlaywrightAssertions.assertThat(page).hasURL(urlRegex.toPattern())
     }
 
-    private val main = page.getByRole(AriaRole.MAIN)
+    private val main get() = page.getByRole(AriaRole.MAIN)
         .also { PlaywrightAssertions.assertThat(it).isVisible() }
 
     val appId = AppId.parse(urlRegex.find(page.url())!!.groupValues[1])
@@ -30,7 +30,7 @@ class FeaturePageUi(private val page: Page) {
     val applications = page.applicationsList()
     val application = page.application()
 
-    // TODO navbar
+    val featureNav = FeatureNavComponent(main.getByRole(AriaRole.NAVIGATION), featureKey)
     val featureEdit = FeatureEditUi(main)
 
     fun update(block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
@@ -38,9 +38,9 @@ class FeaturePageUi(private val page: Page) {
         return FeaturePageUi(page).also(block)
     }
 
-    fun more(block: (FeatureMenuUi) -> Unit = {}): FeatureMenuUi {
-        main.getElement(AriaRole.BUTTON, "More Options").click()
-        return FeatureMenuUi(main, featureKey).also(block)
+    fun reset(block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
+        main.getElement(AriaRole.BUTTON, "Reset").click()
+        return FeaturePageUi(page).also(block)
     }
 }
 

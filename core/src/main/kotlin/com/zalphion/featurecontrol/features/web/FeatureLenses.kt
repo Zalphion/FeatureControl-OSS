@@ -4,9 +4,7 @@ import com.zalphion.featurecontrol.features.FeatureCreateData
 import com.zalphion.featurecontrol.features.FeatureEnvironment
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.FeatureUpdateData
-import com.zalphion.featurecontrol.features.SubjectId
 import com.zalphion.featurecontrol.features.Variant
-import com.zalphion.featurecontrol.features.Weight
 import com.zalphion.featurecontrol.lib.Update
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import org.http4k.core.Body
@@ -19,8 +17,6 @@ import org.http4k.lens.string
 import org.http4k.lens.value
 import org.http4k.lens.webForm
 import kotlin.collections.associate
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.collections.map
 
 object FeatureForm {
@@ -66,29 +62,22 @@ internal fun createCoreFeatureUpdateDataLens(json: AutoMarshalling): BodyLens<Fe
 }
 
 
-object FeatureEnvironmentForm {
-    fun weights(json: AutoMarshalling) = FormField
-        .map { json.asA<Map<String, Int>>(it) }
-        .map { it.mapKeys { (k, _) -> Variant.parse(k) } }
-        .map { it.mapValues { (_, v) -> Weight.of(v) } }
-        .required("weights")
-    fun overrides(json: AutoMarshalling) = FormField
-        .map { json.asA<Map<String, List<String>>>(it) }
-        .map { it.mapKeys { (k, _) -> Variant.parse(k) } }
-        .map { it.mapValues { (_, v) -> v.map(SubjectId::parse) } }
-        .map { it.flatMap { (variantName, subjectIds) -> subjectIds.map { id -> id to variantName } }.toMap() }
-        .required("overrides")
-}
-
 internal fun createCoreFeatureEnvironmentLens(json: AutoMarshalling): BodyLens<FeatureEnvironment> {
-    val weights = FeatureEnvironmentForm.weights(json)
-    val overrides = FeatureEnvironmentForm.overrides(json)
+    val variants = FormField
+        .map { json.asA<Array<VariantEnvironmentDto>>(it) }
+        .required("variants")
+
     return Body
-        .webForm(Validator.Strict, weights, overrides)
-        .map { form ->
+        .webForm(Validator.Strict, variants)
+        .map(variants)
+        .map { variants ->
             FeatureEnvironment(
-                weights = weights(form),
-                overrides = overrides(form),
+                weights = variants
+                    .filter { it.weight != null }
+                    .associate { it.name to it.weight!! },
+                overrides = variants
+                    .flatMap { variant -> variant.subjectIds.map { it to variant.name } }
+                    .toMap(),
                 extensions = emptyMap()
             )
         }.toLens()

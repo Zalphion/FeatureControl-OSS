@@ -39,4 +39,12 @@ class ConfigSpecPageUi(private val page: Page) {
             .click()
         return ConfigSpecPageUi(page).also(block)
     }
+
+    fun reset(block: (ConfigSpecPageUi) -> Unit = {}): ConfigSpecPageUi {
+        page.getByRole(AriaRole.MAIN)
+            .getElement(AriaRole.BUTTON, "Reset")
+            .click()
+
+        return ConfigSpecPageUi(page).also(block)
+    }
 }

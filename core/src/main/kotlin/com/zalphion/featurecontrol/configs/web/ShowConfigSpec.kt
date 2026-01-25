@@ -17,7 +17,6 @@ fun FlowContent.renderConfigSpec(core: Core, config: ConfigSpec) = form(
     method = FormMethod.post,
 ) {
     tableForm(
-        debug = true,
         inputName = "properties",
         rowAriaLabel = "Property",
         schema = listOf(

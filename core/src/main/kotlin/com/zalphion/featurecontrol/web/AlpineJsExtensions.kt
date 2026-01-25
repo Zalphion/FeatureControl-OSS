@@ -4,6 +4,7 @@ import kotlinx.html.FlowContent
 import kotlinx.html.HTMLTag
 import kotlinx.html.HtmlBlockTag
 import kotlinx.html.HtmlTagMarker
+import kotlinx.html.LI
 import kotlinx.html.OPTION
 import kotlinx.html.TR
 import kotlinx.html.TagConsumer
@@ -58,4 +59,9 @@ inline fun TEMPLATE.option(classes : String? = null, crossinline block : OPTION.
 @HtmlTagMarker
 inline fun TEMPLATE.tr(classes : String? = null, crossinline block : TR.() -> Unit = {}) {
     TR(attributesMapOf("class", classes), consumer).visit(block)
+}
+
+@HtmlTagMarker
+inline fun TEMPLATE.li(classes : String? = null, crossinline block : LI.() -> Unit = {}) {
+    LI(attributesMapOf("class", classes), consumer).visit(block)
 }

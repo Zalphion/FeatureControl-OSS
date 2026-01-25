@@ -23,8 +23,8 @@ fun FlowContent.featureNavbar(
     feature: Feature,
     selected: EnvironmentName?,
     leftNavbarItems: Collection<(FlowContent.() -> Unit)> = emptyList()
-) {
-    nav("uk-navbar-container uk-navbar-transparent") {
+) = nav {
+    div( "uk-navbar-container uk-navbar-transparent") {
         attributes["uk-navbar"] = ""
 
         div("uk-navbar-left") {
