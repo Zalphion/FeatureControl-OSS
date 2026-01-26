@@ -4,6 +4,9 @@
 
 This is the fully FOSS (Free and Open Source Software) core of the Feature Control project.
 
+> [!WARNING]
+> **Work in Progress**: This project is still under active development and is not yet ready for production use.
+
 ## Modules
 
 - **core**: Core business logic, repository interfaces, and HTTP routes (no HTTP server or database included)
