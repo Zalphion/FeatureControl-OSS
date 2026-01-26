@@ -18,12 +18,10 @@ import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.GetApplication
-import com.zalphion.featurecontrol.applications.environmentNames
 import com.zalphion.featurecontrol.configs.ConfigEnvironment
 import com.zalphion.featurecontrol.configs.ConfigSpec
 import com.zalphion.featurecontrol.configs.GetConfigEnvironment
 import com.zalphion.featurecontrol.configs.GetConfigSpec
-import com.zalphion.featurecontrol.environmentNotFound
 import com.zalphion.featurecontrol.featureNotFound
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.Feature
@@ -35,6 +33,7 @@ import com.zalphion.featurecontrol.web.uri
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asFailure
 import dev.forkhandles.result4k.asSuccess
+import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import kotlinx.html.FlowContent
 import kotlinx.html.InputType
@@ -164,9 +163,9 @@ data class ApplicationsPage<A, I, E>(
             core: Core, principal: User, teamId: TeamId, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName
         ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment>, AppError> {
             val model = forFeature(core, principal, teamId, appId, featureKey).onFailure { return it }
-            val environment = if (environmentName !in model.selectedApplication.environmentNames) {
-                return environmentNotFound(appId, environmentName).asFailure()
-            } else model.selectedItem[environmentName]
+            val environment = model.selectedApplication.getOrFail(environmentName)
+                .map { model.selectedItem[environmentName] }
+                .onFailure { return it }
 
             return ApplicationsPage(
                 navBar = model.navBar,

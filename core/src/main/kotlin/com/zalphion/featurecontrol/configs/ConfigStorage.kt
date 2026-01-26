@@ -24,15 +24,15 @@ class ConfigStorage private constructor(
     fun delete(appId: AppId, environmentName: EnvironmentName) = environments.delete(appId, environmentName)
 
     companion object {
-        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = ConfigStorage(
+        fun create(baseStorageName: String, versionsStorageName: String, storageDriver: StorageDriver, json: AutoMarshalling) = ConfigStorage(
             specs = storageDriver.create(
-                name = "configs",
+                name = baseStorageName,
                 groupIdMapper = TeamId.toBiDiMapping(),
                 itemIdMapper = AppId.toBiDiMapping(),
                 documentMapper = json.asBiDiMapping()
             ),
             environments = storageDriver.create(
-                name = "environments",
+                name = versionsStorageName,
                 groupIdMapper = AppId.toBiDiMapping(),
                 itemIdMapper = EnvironmentName.toBiDiMapping(),
                 documentMapper = json.asBiDiMapping()
@@ -101,7 +101,7 @@ private fun StoredConfigSpec.toModel() = ConfigSpec(
     }
 )
 
-private fun ConfigEnvironment.toStored() = StoredConfigEnvironment(
+fun ConfigEnvironment.toStored() = StoredConfigEnvironment(
     teamId = teamId,
     appId = appId,
     environmentName = environmentName,
@@ -113,7 +113,7 @@ private fun ConfigEnvironment.toStored() = StoredConfigEnvironment(
     }
 )
 
-private fun StoredConfigEnvironment.toModel() = ConfigEnvironment(
+fun StoredConfigEnvironment.toModel() = ConfigEnvironment(
     teamId = teamId,
     appId = appId,
     environmentName = environmentName,

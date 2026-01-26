@@ -7,6 +7,9 @@ import com.zalphion.featurecontrol.appName3
 import com.zalphion.featurecontrol.dev
 import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.staging
+import com.zalphion.featurecontrol.storage.PageSize
+import com.zalphion.featurecontrol.storage.StorageDriver
+import com.zalphion.featurecontrol.storage.memory
 import com.zalphion.featurecontrol.teams.TeamId
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -16,9 +19,9 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import kotlin.collections.plus
 
-class ApplicationStorageTest: CoreTestDriver() {
+class ApplicationStorageTest: CoreTestDriver(storageDriver = StorageDriver.memory(PageSize.of(2))) {
 
-    private val applications = core.apps
+    private val applications = core.applications
     private val teamId = TeamId.of("team1234")
 
     private val application1 = Application(
@@ -47,16 +50,16 @@ class ApplicationStorageTest: CoreTestDriver() {
 
     @Test
     fun `list applications - all`() {
-        applications.list(teamId, 100).toList().shouldContainExactlyInAnyOrder(application1, application2, application3)
+        applications.list(teamId).toList().shouldContainExactlyInAnyOrder(application1, application2, application3)
     }
 
     @Test
     fun `list applications - paged`() {
-        val page1 = applications.list(teamId, 2)[null]
+        val page1 = applications.list(teamId)[null]
         page1.items.shouldHaveSize(2)
         page1.next.shouldNotBeNull()
 
-        val page2 = applications.list(teamId,2)[page1.next]
+        val page2 = applications.list(teamId)[page1.next]
         page2.items.shouldHaveSize(1)
         page2.next.shouldBeNull()
 
@@ -77,7 +80,7 @@ class ApplicationStorageTest: CoreTestDriver() {
     fun `delete - success`() {
         applications -= application2
 
-        applications.list(teamId,100)
+        applications.list(teamId)
             .toList()
             .shouldContainExactlyInAnyOrder(application1, application3)
     }
@@ -96,7 +99,7 @@ class ApplicationStorageTest: CoreTestDriver() {
 
         applications += updated
 
-        applications.list(teamId,100).toList().shouldContainExactlyInAnyOrder(updated, application2, application3)
+        applications.list(teamId).toList().shouldContainExactlyInAnyOrder(updated, application2, application3)
     }
 
     @Test

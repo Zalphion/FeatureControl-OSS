@@ -2,8 +2,9 @@ package com.zalphion.featurecontrol.storage
 
 import java.nio.file.Files
 
-class FilesystemStorageDriverTest: StorageDriverContract(
+class FilesystemStorageDriverTest: StorageDriverContract({ pageSize ->
     StorageDriver.filesystem(
-        Files.createTempDirectory("foo").also { it.toFile().deleteOnExit() }
+        root = Files.createTempDirectory("foo").also { it.toFile().deleteOnExit() },
+        pageSize = pageSize
     )
-)
+})

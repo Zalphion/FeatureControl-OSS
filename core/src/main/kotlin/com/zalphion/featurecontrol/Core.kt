@@ -34,7 +34,6 @@ import com.zalphion.featurecontrol.configs.web.httpGetConfigSpec
 import com.zalphion.featurecontrol.configs.web.httpPostConfigEnvironment
 import com.zalphion.featurecontrol.configs.web.httpPostConfigSpec
 import com.zalphion.featurecontrol.configs.web.renderConfigSpec
-import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.events.Event
 import com.zalphion.featurecontrol.events.EventBus
 import com.zalphion.featurecontrol.features.EnvironmentName
@@ -125,26 +124,31 @@ const val APP_NAME = "Feature Control"
 class CoreBuilder(
     val clock: Clock,
     val random: Random,
-    origin: Uri,
-    staticUri: Uri,
-    appSecret: AppSecret,
+    var config: CoreConfig,
     plugins: List<PluginFactory<*>> = emptyList(),
     private val storageDriver: StorageDriver,
     private val eventBusFn: (List<Plugin>) -> EventBus
 ) {
     var plugins = plugins.toMutableList()
-    var config = CoreConfig(origin, staticUri, appSecret)
 
     fun build(fn: CoreBuilder.() -> Unit = {}): Core {
         fn()
+        val json = buildJson(plugins.mapNotNull { it.jsonExport })
         return Core(
             clock = clock,
             random = random,
-            json = buildJson(plugins.mapNotNull { it.jsonExport }),
+            json = json,
             config = config,
             plugins = plugins,
             storageDriver = storageDriver,
             eventBusFn = eventBusFn,
+            teams = TeamStorage.create(config.teamsStorageName, storageDriver, json),
+            users = UserStorage.create(config.usersStorageName, storageDriver, json),
+            members = MemberStorage.create(config.membersStorageName, storageDriver, json),
+            applications = ApplicationStorage.create(config.applicationsStorageName, storageDriver, json),
+            features = FeatureStorage.create(config.featuresStorageName, storageDriver, json),
+            configs = ConfigStorage.create(config.configsStorageName, config.configEnvironmentsTableName, storageDriver, json),
+            apiKeys = ApiKeyStorage.create(config.apiKeysStorageName, storageDriver, json),
             sessions = Sessions.hMacJwt(
                 clock = clock,
                 appSecret = config.appSecret,
@@ -163,19 +167,17 @@ class Core internal constructor(
     val config: CoreConfig,
     val storageDriver: StorageDriver,
     val sessions: Sessions,
+    val teams: TeamStorage,
+    val users: UserStorage,
+    val members: MemberStorage,
+    val applications: ApplicationStorage,
+    val features: FeatureStorage,
+    val configs: ConfigStorage,
+    val apiKeys: ApiKeyStorage,
     plugins: List<PluginFactory<*>>,
     eventBusFn: (List<Plugin>) -> EventBus
 ) {
     private val plugins = plugins.map { it.create(this) }
-
-    // storage
-    val teams = TeamStorage.create(storageDriver, json)
-    val features = FeatureStorage.create(storageDriver, json)
-    val apps = ApplicationStorage.create(storageDriver, json)
-    val apiKeys = ApiKeyStorage.create(storageDriver, json)
-    val users = UserStorage.create(storageDriver, json)
-    val members = MemberStorage.create(storageDriver, json)
-    val configs = ConfigStorage.create(storageDriver, json)
 
     fun getEntitlements(teamId: TeamId) = plugins
         .flatMap { it.getEntitlements(teamId) }

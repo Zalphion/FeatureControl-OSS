@@ -1,20 +1,18 @@
 package com.zalphion.featurecontrol.features
 
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.featureNotFound
-import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.lib.mapItem
 import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.plugins.Extensions
+import com.zalphion.featurecontrol.storage.StorageCompanion
 import com.zalphion.featurecontrol.teams.TeamId
 import dev.forkhandles.result4k.asResultOr
-import org.http4k.format.AutoMarshalling
 import se.ansman.kotshi.JsonSerializable
 
 class FeatureStorage private constructor(private val repository: Repository<StoredFeature, AppId, FeatureKey>) {
-    fun list(appId: AppId, pageSize: Int) = repository.list(appId, pageSize).mapItem { it.toModel() }
+    fun list(appId: AppId) = repository.list(appId).mapItem { it.toModel() }
     operator fun get(appId: AppId, featureKey: FeatureKey) = repository[appId, featureKey]?.toModel()
     operator fun plusAssign(feature: Feature) = repository.save(feature.appId, feature.key, feature.toStored())
     operator fun minusAssign(feature: Feature) = repository.delete(feature.appId, feature.key)
@@ -22,14 +20,12 @@ class FeatureStorage private constructor(private val repository: Repository<Stor
     fun getOrFail(appId: AppId, featureKey: FeatureKey) =
         get(appId, featureKey).asResultOr { featureNotFound(appId, featureKey) }
 
-    companion object {
-        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = FeatureStorage(storageDriver.create(
-            name = "features",
-            groupIdMapper = AppId.toBiDiMapping(),
-            itemIdMapper = FeatureKey.toBiDiMapping(),
-            documentMapper = json.asBiDiMapping()
-        ))
-    }
+    companion object: StorageCompanion<FeatureStorage, StoredFeature, AppId, FeatureKey>(
+        documentType = StoredFeature::class,
+        groupIdMapping = AppId.toBiDiMapping(),
+        itemIdMapping = FeatureKey.toBiDiMapping(),
+        createFn = ::FeatureStorage
+    )
 }
 
 @JsonSerializable

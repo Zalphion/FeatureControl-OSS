@@ -7,7 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.nameWithoutExtension
 
-fun StorageDriver.Companion.filesystem(root: Path) = object: StorageDriver {
+fun StorageDriver.Companion.filesystem(root: Path, pageSize: PageSize) = object: StorageDriver {
 
     init {
         Files.createDirectories(root)
@@ -22,7 +22,8 @@ fun StorageDriver.Companion.filesystem(root: Path) = object: StorageDriver {
         dir = root.resolve(name).also(Files::createDirectory),
         groupIdMapper = groupIdMapper,
         itemIdMapper = itemIdMapper,
-        documentMapper = documentMapper
+        documentMapper = documentMapper,
+        pageSize = pageSize.value
     )
 }
 
@@ -40,7 +41,8 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> filesystemRepository(
     dir: Path,
     groupIdMapper: BiDiMapping<String, GroupId>,
     itemIdMapper: BiDiMapping<String, ItemId>,
-    documentMapper: BiDiMapping<String, Doc>
+    documentMapper: BiDiMapping<String, Doc>,
+    pageSize: Int
 ) = object: Repository<Doc, GroupId, ItemId> {
 
     private fun Path.toMatch(): FileMatch<GroupId, ItemId>? {
@@ -69,7 +71,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> filesystemRepository(
     override fun get(ids: Collection<Pair<GroupId, ItemId>>) = ids
         .mapNotNull { (groupId, itemId) -> get(groupId, itemId) }
 
-    override fun list(group: GroupId, pageSize: Int): Paginator<Doc, ItemId> {
+    override fun list(group: GroupId): Paginator<Doc, ItemId> {
         val matches = Files
             .newDirectoryStream(dir, "${groupIdMapper(group)}.*.json")
             .use { stream -> stream.mapNotNull { it.toMatch() }.sorted().toList() }
@@ -87,7 +89,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> filesystemRepository(
         }
     }
 
-    override fun listInverse(itemId: ItemId, pageSize: Int): Paginator<Doc, GroupId> {
+    override fun listInverse(itemId: ItemId): Paginator<Doc, GroupId> {
         val matches = Files
             .newDirectoryStream(dir, "*.${itemIdMapper(itemId)}.json")
             .use { stream -> stream.mapNotNull { it.toMatch() }.sorted().toList() }

@@ -2,12 +2,10 @@ package com.zalphion.featurecontrol.teams
 
 import com.zalphion.featurecontrol.storage.EmptyKey
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.lib.toBiDiMapping
+import com.zalphion.featurecontrol.storage.StorageCompanion
 import com.zalphion.featurecontrol.teamNotFound
 import dev.forkhandles.result4k.asResultOr
-import org.http4k.format.AutoMarshalling
 import se.ansman.kotshi.JsonSerializable
 
 class TeamStorage private constructor(private val repository: Repository<StoredTeam, TeamId, EmptyKey>) {
@@ -18,14 +16,12 @@ class TeamStorage private constructor(private val repository: Repository<StoredT
     operator fun minusAssign(team: Team) = repository.delete(team.teamId, EmptyKey.INSTANCE)
     fun getOrFail(teamId: TeamId) = get(teamId).asResultOr { teamNotFound(teamId) }
 
-    companion object {
-        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = TeamStorage(storageDriver.create(
-            name = "teams",
-            groupIdMapper = TeamId.toBiDiMapping(),
-            itemIdMapper = EmptyKey.toBiDiMapping(),
-            documentMapper = json.asBiDiMapping()
-        ))
-    }
+    companion object: StorageCompanion<TeamStorage, StoredTeam, TeamId, EmptyKey>(
+        documentType = StoredTeam::class,
+        groupIdMapping = TeamId.toBiDiMapping(),
+        itemIdMapping = EmptyKey.toBiDiMapping(),
+        createFn = ::TeamStorage
+    )
 }
 
 @JsonSerializable

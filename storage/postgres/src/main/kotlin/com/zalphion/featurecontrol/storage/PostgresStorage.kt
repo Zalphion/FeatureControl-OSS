@@ -18,7 +18,11 @@ internal const val GROUP_ID_COLUMN = "group_id"
 internal const val ITEM_ID_COLUMN = "item_id"
 internal const val DOC_COLUMN = "document"
 
-fun StorageDriver.Companion.postgres(uri: Uri, credentials: Http4kCredentials?) = object: StorageDriver {
+fun StorageDriver.Companion.postgres(
+    uri: Uri,
+    credentials: Http4kCredentials?,
+    pageSize: PageSize,
+) = object: StorageDriver {
     private val dataSource = HikariDataSource(HikariConfig().apply {
         this.jdbcUrl = uri.toString()
         this.credentials = credentials?.let { Credentials(it.user, it.password) }
@@ -34,7 +38,8 @@ fun StorageDriver.Companion.postgres(uri: Uri, credentials: Http4kCredentials?) 
         collectionName = name,
         documentMapper = documentMapper,
         groupIdMapper = groupIdMapper,
-        itemIdMapper = itemIdMapper
+        itemIdMapper = itemIdMapper,
+        pageSize = pageSize.value
     )
 }
 
@@ -44,6 +49,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> postgresRepository(
     documentMapper: BiDiMapping<String, Doc>,
     groupIdMapper: BiDiMapping<String, GroupId>,
     itemIdMapper: BiDiMapping<String, ItemId>,
+    pageSize: Int
 ) = object: Repository<Doc, GroupId, ItemId> {
 
     override fun save(groupId: GroupId, itemId: ItemId, doc: Doc) {
@@ -133,7 +139,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> postgresRepository(
         }
     }
 
-    override fun list(group: GroupId, pageSize: Int) = Paginator<Doc, ItemId> { cursor ->
+    override fun list(group: GroupId) = Paginator<Doc, ItemId> { cursor ->
         val result = dataSource.connection.use { conn ->
             conn.prepareStatement(
                 """
@@ -170,7 +176,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> postgresRepository(
         )
     }
 
-    override fun listInverse(itemId: ItemId, pageSize: Int) = Paginator<Doc, GroupId> { cursor ->
+    override fun listInverse(itemId: ItemId) = Paginator<Doc, GroupId> { cursor ->
         val result = dataSource.connection.use { conn ->
             conn.prepareStatement(
                 """

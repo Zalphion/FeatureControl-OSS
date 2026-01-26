@@ -70,7 +70,7 @@ class ApplicationPageUiTest: CoreTestDriver() {
             }
         }
 
-        core.apps[member.team.teamId, createdId] shouldBe Application(
+        core.applications[member.team.teamId, createdId] shouldBe Application(
             teamId = member.team.teamId,
             appId = createdId,
             appName = appName1,
@@ -146,7 +146,7 @@ class ApplicationPageUiTest: CoreTestDriver() {
                 page.applications.selected shouldBe appName3
             }
 
-        core.apps[app2.teamId, app2.appId] shouldBe app2.copy(
+        core.applications[app2.teamId, app2.appId] shouldBe app2.copy(
             appName = appName3,
             environments = listOf(
                 dev.copy(description = "cool stuff happens here"),

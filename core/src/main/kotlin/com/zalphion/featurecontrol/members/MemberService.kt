@@ -53,7 +53,7 @@ class ListMembersForTeam(val teamId: TeamId): ServiceAction<Paginator<MemberDeta
     override fun execute(core: Core): Result4k<Paginator<MemberDetails, UserId>, AppError> {
         val team = core.teams.getOrFail(teamId).onFailure { return it }
         return Paginator<MemberDetails, UserId> { cursor ->
-            val members = core.members.list(teamId, core.config.pageSize)[cursor]
+            val members = core.members.list(teamId)[cursor]
             val relevantUserIds = members.items.map { it.userId }.plus(members.items.mapNotNull { it.invitedBy }).distinct()
             val relevantUsers = core.users[relevantUserIds].associateBy { it.userId }
 
@@ -75,7 +75,7 @@ class ListMembersForUser(val userId: UserId): ServiceAction<Paginator<MemberDeta
     override fun execute(core: Core): Result4k<Paginator<MemberDetails, TeamId>, AppError> {
         val user = core.users.getOrFail(userId).onFailure { return it }
         return Paginator<MemberDetails, TeamId> { cursor ->
-            val members = core.members.list(userId, core.config.pageSize)[cursor]
+            val members = core.members.list(userId)[cursor]
             val teams = core.teams.batchGet(members.items.map { it.teamId }).associateBy { it.teamId }
             val inviters = core.users[members.items.mapNotNull { it.invitedBy }.distinct()].associateBy { it.userId }
             Page(

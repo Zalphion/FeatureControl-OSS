@@ -4,20 +4,16 @@ import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.AppError
 import com.zalphion.featurecontrol.crypto.Encryption
 import com.zalphion.featurecontrol.crypto.aesGcm
-import com.zalphion.featurecontrol.environmentNotFound
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.members.UserRole
 import com.zalphion.featurecontrol.ActionAuth
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.ServiceAction
 import com.zalphion.featurecontrol.applications.Application
-import com.zalphion.featurecontrol.applications.environmentExistsOrFail
-import com.zalphion.featurecontrol.applications.environmentNames
+import com.zalphion.featurecontrol.lib.peekOrFail
 import com.zalphion.featurecontrol.teams.TeamId
-import dev.andrewohara.utils.result.failIf
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asSuccess
-import dev.forkhandles.result4k.flatMap
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.peek
@@ -26,7 +22,7 @@ class GetConfigSpec(val teamId: TeamId, val appId: AppId): ServiceAction<ConfigS
     auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(teamId, appId)
+        .applications.getOrFail(teamId, appId)
         .map { core.configs.getOrEmpty(teamId, appId) }
 }
 
@@ -38,7 +34,7 @@ class UpdateConfigSpec(
     auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(teamId, appId)
+        .applications.getOrFail(teamId, appId)
         .map { core.configs.getOrEmpty(teamId, appId) }
         .map { config -> config.copy(properties = properties) }
         .peek(core.configs::plusAssign)
@@ -55,8 +51,8 @@ class GetConfigEnvironment(
     auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(teamId, appId)
-        .failIf({ environmentName !in it.environmentNames }, { environmentNotFound(appId, environmentName)})
+        .applications.getOrFail(teamId, appId)
+        .peekOrFail { it.getOrFail(environmentName) }
         .map { core.configs.getOrEmpty(teamId, appId, environmentName) }
 }
 
@@ -74,9 +70,9 @@ class UpdateConfigEnvironment(
         .peek(core.configs::plusAssign)
 
     fun processValues(core: Core): Result4k<Pair<Application, ConfigEnvironment>, AppError> {
-        val application = core.apps
+        val application = core.applications
             .getOrFail(teamId, appId)
-            .flatMap { it.environmentExistsOrFail(environmentName) }
+            .peekOrFail { it.getOrFail(environmentName) }
             .onFailure { return it }
 
         val config = core.configs.getOrEmpty(teamId, appId)

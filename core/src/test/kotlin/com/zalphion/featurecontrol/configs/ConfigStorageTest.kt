@@ -31,7 +31,7 @@ class ConfigStorageTest: CoreTestDriver() {
         appName = appName1,
         environments = listOf(dev, prod),
         extensions = emptyMap()
-    ).also(core.apps::plusAssign)
+    ).also(core.applications::plusAssign)
 
     private val application2 = Application(
         teamId = TeamId.random(core.random),
@@ -39,7 +39,7 @@ class ConfigStorageTest: CoreTestDriver() {
         appName = appName2,
         environments = listOf(dev, staging, prod),
         extensions = emptyMap()
-    ).also(core.apps::plusAssign)
+    ).also(core.applications::plusAssign)
 
     private val testObj = core.configs
 

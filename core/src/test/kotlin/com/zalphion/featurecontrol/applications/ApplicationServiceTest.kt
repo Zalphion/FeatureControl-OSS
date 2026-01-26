@@ -40,7 +40,7 @@ class ApplicationServiceTest: CoreTestDriver() {
             data = ApplicationCreateData(appName1, listOf(dev, prod), emptyMap())
         ).invoke(user, core).shouldBeSuccess()
 
-        core.apps.list(team.teamId, 100).toList().shouldContainExactlyInAnyOrder(expected)
+        core.applications.list(team.teamId).toList().shouldContainExactlyInAnyOrder(expected)
     }
 
     @Test
@@ -48,7 +48,7 @@ class ApplicationServiceTest: CoreTestDriver() {
         val app1 = createApplication(principal, appName1)
         val app2 = createApplication(principal, appName1)
 
-        core.apps.list(team.teamId, 100).toList().shouldContainExactlyInAnyOrder(app1, app2)
+        core.applications.list(team.teamId).toList().shouldContainExactlyInAnyOrder(app1, app2)
     }
 
     @Test
@@ -88,7 +88,7 @@ class ApplicationServiceTest: CoreTestDriver() {
 
         DeleteApplication(app1.teamId, app1.appId).invoke(user, core).shouldBeSuccess()
 
-        core.apps.list(team.teamId, 100).toList().shouldContainExactlyInAnyOrder(app2)
+        core.applications.list(team.teamId).toList().shouldContainExactlyInAnyOrder(app2)
     }
 
     @Test
@@ -108,7 +108,7 @@ class ApplicationServiceTest: CoreTestDriver() {
     fun `update application - doesn't delete features`() {
         val app = createApplication(principal, appName1)
         createFeature(principal, app, featureKey1)
-        core.features.list(app.appId, 100).toList().shouldHaveSize(1)
+        core.features.list(app.appId).toList().shouldHaveSize(1)
 
         UpdateApplication(
             teamId = team.teamId,
@@ -123,7 +123,7 @@ class ApplicationServiceTest: CoreTestDriver() {
             environments = listOf(dev, staging, prod)
         )
 
-        core.features.list(app.appId, 100).toList().shouldHaveSize(1)
+        core.features.list(app.appId).toList().shouldHaveSize(1)
     }
 
     @Test

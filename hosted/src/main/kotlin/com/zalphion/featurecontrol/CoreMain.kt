@@ -8,6 +8,7 @@ import com.zalphion.featurecontrol.emails.smtp
 import com.zalphion.featurecontrol.events.localEventBus
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
+import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.storage.postgres
 import org.http4k.config.Environment
@@ -32,13 +33,24 @@ fun hostedCoreMain(additionalPlugins: List<PluginFactory<*>>) {
     val core = CoreBuilder(
         clock = Clock.systemUTC(),
         random = SecureRandom().asKotlinRandom(),
-        appSecret = env[Settings.appSecret],
+        config = CoreConfig(
+            appSecret = env[Settings.appSecret],
+            staticUri = Uri.of("/"), // vendored in jar
+            origin = env[Settings.origin],
+            teamsStorageName = "teams",
+            configEnvironmentsTableName = "config_environments",
+            usersStorageName = "users",
+            membersStorageName = "members",
+            applicationsStorageName = "applications",
+            featuresStorageName = "features",
+            configsStorageName = "configs",
+            apiKeysStorageName = "api_keys"
+        ),
         storageDriver = StorageDriver.postgres(
             uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
             credentials = env[Settings.postgresDatabaseCredentials],
+            pageSize = PageSize.of(100)
         ),
-        staticUri = Uri.of("/"), // vendored in jar
-        origin = env[Settings.origin],
         eventBusFn = ::localEventBus,
         plugins = additionalPlugins
     ).build {
@@ -60,8 +72,7 @@ fun hostedCoreMain(additionalPlugins: List<PluginFactory<*>>) {
             googleClientId = env[Settings.googleClientId],
             csrfTtl = env[Settings.csrfTtl],
             sessionLength = env[Settings.sessionLength],
-            invitationRetention = env[Settings.invitationsRetention],
-            pageSize = env[Settings.pageSize]
+            invitationRetention = env[Settings.invitationsRetention]
         )
     }
 

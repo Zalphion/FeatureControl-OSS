@@ -9,7 +9,6 @@ import org.http4k.lens.authority
 import org.http4k.lens.boolean
 import org.http4k.lens.composite
 import org.http4k.lens.duration
-import org.http4k.lens.int
 import org.http4k.lens.port
 import org.http4k.lens.secret
 import org.http4k.lens.string
@@ -20,7 +19,6 @@ import java.time.Duration
 object Settings {
     val port = EnvironmentKey.port().defaulted("PORT", Port(80))
     val appSecret = EnvironmentKey.value(AppSecret).required("APP_SECRET")
-    val pageSize = EnvironmentKey.int().defaulted("PAGE_SIZE", 100)
     val origin = EnvironmentKey.uri().required("ORIGIN")  // used to build redirect URIs and server binding
     val sessionLength = EnvironmentKey.duration().defaulted("SESSION_LENGTH", Duration.ofDays(7))
     val googleClientId = EnvironmentKey.string().optional("GOOGLE_CLIENT_ID")

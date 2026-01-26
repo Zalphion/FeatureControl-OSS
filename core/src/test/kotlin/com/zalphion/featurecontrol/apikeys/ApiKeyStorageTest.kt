@@ -29,7 +29,7 @@ class ApiKeyStorageTest: CoreTestDriver() {
         appName = appName1,
         environments = listOf(dev, prod),
         extensions = emptyMap()
-    ).also(core.apps::plusAssign)
+    ).also(core.applications::plusAssign)
 
     private val principal1 = EnginePrincipal.of(application.appId, devName)
     private val principal2 = EnginePrincipal.of(application.appId, prodName)

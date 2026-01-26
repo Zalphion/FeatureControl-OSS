@@ -5,6 +5,7 @@ import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.events.localEventBus
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
+import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.storage.memory
 import com.zalphion.featurecontrol.teams.TeamId
@@ -19,9 +20,8 @@ import kotlin.collections.orEmpty
 import kotlin.random.Random
 
 abstract class CoreTestDriver(
-    pageSize: Int = 2,
     plugins: List<PluginFactory<*>> = emptyList(),
-    storageDriver: StorageDriver = StorageDriver.memory(),
+    storageDriver: StorageDriver = StorageDriver.memory(PageSize.of(2)),
     appSecret: AppSecret = AppSecret.of("secret")
 ): Plugin {
     var time: Instant = Instant.parse("2025-07-29T12:00:00Z")
@@ -38,19 +38,26 @@ abstract class CoreTestDriver(
         storageDriver = storageDriver,
         clock = clock,
         random = Random(1337),
-        staticUri = Uri.of("/"),
-        origin = Uri.of("http://fake"),
-        appSecret = appSecret,
+        config = CoreConfig(
+            staticUri = Uri.of("/"),
+            origin = Uri.of("http://fake"),
+            appSecret = appSecret,
+            teamsStorageName = "teams",
+            usersStorageName = "users",
+            membersStorageName = "members",
+            applicationsStorageName = "applications",
+            featuresStorageName = "features",
+            configsStorageName = "configs",
+            configEnvironmentsTableName = "config_environments",
+            apiKeysStorageName = "api_keys",
+            invitationRetention = Duration.ofDays(1),
+        ),
+
         plugins = plugins + object: PluginFactory<CoreTestDriver>() {
             override fun createInternal(core: Core) = this@CoreTestDriver
         },
         eventBusFn = ::localEventBus
-    ).build {
-        config = config.copy(
-            pageSize = pageSize,
-            invitationRetention = Duration.ofDays(1),
-        )
-    }
+    ).build()
 
     val users get() = UserService(core)
 }

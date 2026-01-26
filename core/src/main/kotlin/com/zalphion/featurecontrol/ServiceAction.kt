@@ -47,7 +47,7 @@ fun interface ActionAuth: (Core, User) -> Result4k<Unit, AppError> {
             minimumRole: UserRole = UserRole.Tester,
             getRequirements: Core.() -> Entitlements = { emptySet() }
         ) = ActionAuth { core, user ->
-            core.apps.getOrFail(teamId, appId)
+            core.applications.getOrFail(teamId, appId)
                 .map { byTeam(it.teamId, minimumRole, getRequirements) }
                 .flatMap { it(core, user) }
         }

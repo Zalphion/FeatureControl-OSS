@@ -16,6 +16,9 @@ import com.zalphion.featurecontrol.on
 import com.zalphion.featurecontrol.onOffData
 import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.staging
+import com.zalphion.featurecontrol.storage.PageSize
+import com.zalphion.featurecontrol.storage.StorageDriver
+import com.zalphion.featurecontrol.storage.memory
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.toCreate
 import dev.andrewohara.utils.pagination.Page
@@ -24,7 +27,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class FeatureStorageTest: CoreTestDriver() {
+class FeatureStorageTest: CoreTestDriver(storageDriver = StorageDriver.memory(PageSize.of(2))) {
 
     private val teamId = TeamId.of("team1234")
     private val features = core.features
@@ -35,7 +38,7 @@ class FeatureStorageTest: CoreTestDriver() {
         appName = appName1,
         environments = listOf(dev, prod),
         extensions = emptyMap()
-    ).also(core.apps::plusAssign)
+    ).also(core.applications::plusAssign)
 
     private val app2 = Application(
         teamId = teamId,
@@ -43,7 +46,7 @@ class FeatureStorageTest: CoreTestDriver() {
         appName = appName2,
         environments = listOf(dev, staging, prod),
         extensions = emptyMap()
-    ).also(core.apps::plusAssign)
+    ).also(core.applications::plusAssign)
 
     private val feature1 = oldNewData
         .toCreate(featureKey1)
@@ -73,19 +76,19 @@ class FeatureStorageTest: CoreTestDriver() {
 
     @Test
     fun `list toggles - all`() {
-        features.list(app1.appId, pageSize = 2)
+        features.list(app1.appId)
             .toList()
             .shouldContainExactlyInAnyOrder(feature1, feature2, feature3)
     }
 
     @Test
     fun `list toggles - paged`() {
-        features.list(app1.appId, pageSize = 2)[null] shouldBe Page(
+        features.list(app1.appId)[null] shouldBe Page(
             items = listOf(feature1, feature2),
             next = feature2.key
         )
 
-        features.list(app1.appId, pageSize = 2)[feature2.key] shouldBe Page(
+        features.list(app1.appId)[feature2.key] shouldBe Page(
             items = listOf(feature3),
             next = null
         )
@@ -110,7 +113,7 @@ class FeatureStorageTest: CoreTestDriver() {
     fun `delete toggle - found`() {
         features -= feature1
 
-        features.list(app1.appId, 100)
+        features.list(app1.appId)
             .toList()
             .shouldContainExactlyInAnyOrder(feature2, feature3)
     }

@@ -16,7 +16,7 @@ class ListApplications(val teamId: TeamId): ServiceAction<Paginator<Application,
     auth = ActionAuth.byTeam(teamId)
 ) {
     override fun execute(core: Core) = core
-        .apps.list(teamId, core.config.pageSize).asSuccess()
+        .applications.list(teamId).asSuccess()
 }
 
 class CreateApplication(
@@ -29,7 +29,7 @@ class CreateApplication(
 ) {
     override fun execute(core: Core) = data
         .toModel(teamId, core.random)
-        .also(core.apps::plusAssign)
+        .also(core.applications::plusAssign)
         .asSuccess()
 }
 
@@ -37,7 +37,7 @@ class GetApplication(val teamId: TeamId, val appId: AppId): ServiceAction<Applic
     auth = ActionAuth.byApplication(teamId, appId, UserRole.Tester)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(teamId, appId)
+        .applications.getOrFail(teamId, appId)
 }
 
 class UpdateApplication(val teamId: TeamId, val appId: AppId, val data: ApplicationUpdateData): ServiceAction<Application>(
@@ -46,20 +46,20 @@ class UpdateApplication(val teamId: TeamId, val appId: AppId, val data: Applicat
     }
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(teamId, appId)
+        .applications.getOrFail(teamId, appId)
         .map { it.update(data) }
-        .peek(core.apps::plusAssign)
+        .peek(core.applications::plusAssign)
 }
 
 class DeleteApplication(val teamId: TeamId, val appId: AppId): ServiceAction<Application>(
     auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
 ) {
     override fun execute(core: Core) = core
-        .apps.getOrFail(teamId, appId)
+        .applications.getOrFail(teamId, appId)
         .failIf(
-            cond = { core.features.list(it.appId, core.config.pageSize).any() },
+            cond = { core.features.list(it.appId).any() },
             f= { applicationNotEmpty(it.appId) }
         )
         // TODO delete all api keys
-        .peek(core.apps::minusAssign)
+        .peek(core.applications::minusAssign)
 }

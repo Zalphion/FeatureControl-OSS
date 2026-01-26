@@ -2,12 +2,10 @@ package com.zalphion.featurecontrol.users
 
 import com.zalphion.featurecontrol.storage.EmptyKey
 import com.zalphion.featurecontrol.storage.Repository
-import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.lib.toBiDiMapping
+import com.zalphion.featurecontrol.storage.StorageCompanion
 import dev.forkhandles.result4k.asResultOr
 import org.http4k.core.Uri
-import org.http4k.format.AutoMarshalling
 import se.ansman.kotshi.JsonSerializable
 
 class UserStorage private constructor(private val repository: Repository<StoredUser, UserId, EmptyKey>) {
@@ -22,14 +20,12 @@ class UserStorage private constructor(private val repository: Repository<StoredU
     fun getOrFail(userId: UserId) =
         get(userId).asResultOr { userNotFound(userId) }
 
-    companion object {
-        fun create(storageDriver: StorageDriver, json: AutoMarshalling) = UserStorage(storageDriver.create(
-            name = "users",
-            groupIdMapper = UserId.toBiDiMapping(),
-            itemIdMapper = EmptyKey.toBiDiMapping(),
-            documentMapper = json.asBiDiMapping()
-        ))
-    }
+    companion object: StorageCompanion<UserStorage, StoredUser, UserId, EmptyKey>(
+        documentType = StoredUser::class,
+        groupIdMapping = UserId.toBiDiMapping(),
+        itemIdMapping = EmptyKey.toBiDiMapping(),
+        createFn = ::UserStorage
+    )
 }
 
 @JsonSerializable

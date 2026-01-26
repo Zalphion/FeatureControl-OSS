@@ -10,6 +10,6 @@ interface Repository<Doc: Any, GroupId: Any, ItemId: Any> {
     operator fun get(groupId: GroupId, itemId: ItemId): Doc?
     operator fun get(ids: Collection<Pair<GroupId, ItemId>>): Collection<Doc>
 
-    fun list(group: GroupId, pageSize: Int): Paginator<Doc, ItemId>
-    fun listInverse(itemId: ItemId, pageSize: Int): Paginator<Doc, GroupId>
+    fun list(group: GroupId): Paginator<Doc, ItemId>
+    fun listInverse(itemId: ItemId): Paginator<Doc, GroupId>
 }

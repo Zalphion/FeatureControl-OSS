@@ -73,7 +73,7 @@ class TeamServiceTest: CoreTestDriver() {
                 )
             )
 
-        core.members.list(myTeam.teamId, 100).toList()
+        core.members.list(myTeam.teamId).toList()
             .shouldContainExactlyInAnyOrder(myMember)
     }
 
@@ -99,7 +99,7 @@ class TeamServiceTest: CoreTestDriver() {
             invitedBy = myUser
         )
 
-        core.members.list(myTeam.teamId, 100)
+        core.members.list(myTeam.teamId)
             .shouldContain(memberDetails.member)
     }
 
@@ -179,7 +179,7 @@ class TeamServiceTest: CoreTestDriver() {
             .invoke(myUser, core)
             .shouldBeSuccess(expected)
 
-        core.members.list(myTeam.teamId, 100).toList()
+        core.members.list(myTeam.teamId).toList()
             .shouldContainExactlyInAnyOrder(myMember, expected)
     }
 
@@ -207,7 +207,7 @@ class TeamServiceTest: CoreTestDriver() {
         core.teams[myTeam.teamId] shouldBe myTeam
         core.teams[otherTeam.teamId] shouldBe otherTeam
 
-        core.members.list(myUser.userId, 100)[null] shouldBe Page(
+        core.members.list(myUser.userId)[null] shouldBe Page(
             items = listOf(
                 Member(
                     teamId = otherTeam.teamId,

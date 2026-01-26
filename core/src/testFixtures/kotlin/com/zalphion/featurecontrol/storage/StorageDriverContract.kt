@@ -70,9 +70,9 @@ data class TestDocument(
     }
 }
 
-abstract class StorageDriverContract(storageDriver: StorageDriver) {
+abstract class StorageDriverContract(storageDriverFn: (PageSize) -> StorageDriver) {
 
-    private val repo = storageDriver.create(
+    private val repo = storageDriverFn(PageSize.of(2)).create(
         name = "test",
         groupIdMapper = TestGroupId.toBiDiMapping(),
         itemIdMapper = TestItemId.toBiDiMapping(),
@@ -149,7 +149,7 @@ abstract class StorageDriverContract(storageDriver: StorageDriver) {
         repo.save(group1, item3, doc3)
         repo.save(group2, item4, doc4)
 
-        val paginator = repo.list(group1, 2)
+        val paginator = repo.list(group1)
         paginator[null] shouldBe Page(listOf(doc1, doc2), item2)
         paginator[item2] shouldBe Page(listOf(doc3), null)
     }
@@ -161,7 +161,7 @@ abstract class StorageDriverContract(storageDriver: StorageDriver) {
         repo.save(group3, item1, doc3)
         repo.save(group4, item2, doc4)
 
-        val paginator = repo.listInverse(item1, 2)
+        val paginator = repo.listInverse(item1)
         paginator[null] shouldBe Page(listOf(doc1, doc2), group2)
         paginator[group2] shouldBe Page(listOf(doc3), null)
     }

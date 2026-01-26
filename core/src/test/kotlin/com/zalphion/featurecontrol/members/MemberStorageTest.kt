@@ -1,6 +1,9 @@
 package com.zalphion.featurecontrol.members
 
 import com.zalphion.featurecontrol.CoreTestDriver
+import com.zalphion.featurecontrol.storage.PageSize
+import com.zalphion.featurecontrol.storage.StorageDriver
+import com.zalphion.featurecontrol.storage.memory
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.UserId
 import dev.andrewohara.utils.pagination.Page
@@ -8,7 +11,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class MemberStorageTest: CoreTestDriver() {
+class MemberStorageTest: CoreTestDriver(storageDriver = StorageDriver.memory(PageSize.of(2))) {
 
     private val team1 = TeamId.of("team0001")
     private val team2 = TeamId.of("team0002")
@@ -52,17 +55,17 @@ class MemberStorageTest: CoreTestDriver() {
         val member4 = createMember(team2, user4)
         val member5 = createMember(team2, user1)
 
-        testObj.list(team1, 2)[null] shouldBe Page(
+        testObj.list(team1)[null] shouldBe Page(
             items = listOf(member1, member2),
             next = member2.userId
         )
 
-        testObj.list(team1, 2)[member2.userId] shouldBe Page(
+        testObj.list(team1)[member2.userId] shouldBe Page(
             items = listOf(member3),
             next = null
         )
 
-        testObj.list(team2, 2)[null] shouldBe Page(
+        testObj.list(team2)[null] shouldBe Page(
             items = listOf(member5, member4),
             next = null
         )
@@ -78,27 +81,27 @@ class MemberStorageTest: CoreTestDriver() {
         val member6 = createMember(team2, user2)
         val member7 = createMember(team3, user1)
 
-        testObj.list(user1, 2)[null] shouldBe Page(
+        testObj.list(user1)[null] shouldBe Page(
             items = listOf(member1, member5),
             next = member5.teamId
         )
 
-        testObj.list(user1, 2)[member5.teamId] shouldBe Page(
+        testObj.list(user1)[member5.teamId] shouldBe Page(
             items = listOf(member7),
             next = null
         )
 
-        testObj.list(user2, 2)[null] shouldBe Page(
+        testObj.list(user2)[null] shouldBe Page(
             items = listOf(member2, member6),
             next = null
         )
 
-        testObj.list(user3, 1)[null] shouldBe Page(
+        testObj.list(user3)[null] shouldBe Page(
             items = listOf(member3),
             next = null
         )
 
-        testObj.list(user4, 1)[null] shouldBe Page(
+        testObj.list(user4)[null] shouldBe Page(
             items = listOf(member4),
             next = null
         )
@@ -110,7 +113,7 @@ class MemberStorageTest: CoreTestDriver() {
         val member2 = createMember(team1, user2)
 
         testObj -= member1
-        testObj.list(team1, 2).toList()
+        testObj.list(team1).toList()
             .shouldContainExactlyInAnyOrder(member2)
     }
 
@@ -122,7 +125,7 @@ class MemberStorageTest: CoreTestDriver() {
         testObj -= member1
         testObj -= member1
 
-        testObj.list(team1, 2).toList()
+        testObj.list(team1).toList()
             .shouldContainExactlyInAnyOrder(member2)
     }
 

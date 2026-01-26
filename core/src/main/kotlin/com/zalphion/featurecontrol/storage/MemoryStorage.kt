@@ -4,7 +4,7 @@ import dev.andrewohara.utils.pagination.Page
 import dev.andrewohara.utils.pagination.Paginator
 import org.http4k.lens.BiDiMapping
 
-fun StorageDriver.Companion.memory() = object: StorageDriver {
+fun StorageDriver.Companion.memory(pageSize: PageSize) = object: StorageDriver {
 
     private val files = mutableMapOf<String, MutableMap<Pair<String, String>, String>>()
 
@@ -12,12 +12,13 @@ fun StorageDriver.Companion.memory() = object: StorageDriver {
         name: String,
         groupIdMapper: BiDiMapping<String, GroupId>,
         itemIdMapper: BiDiMapping<String, ItemId>,
-        documentMapper: BiDiMapping<String, Doc>
+        documentMapper: BiDiMapping<String, Doc>,
     ) = memoryRepository(
         files = files.getOrPut(name) { mutableMapOf() },
         groupIdMapper = groupIdMapper,
         itemIdMapper = itemIdMapper,
-        documentMapper = documentMapper
+        documentMapper = documentMapper,
+        pageSize = pageSize.value
     )
 }
 
@@ -26,6 +27,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> memoryRepository(
     groupIdMapper: BiDiMapping<String, GroupId>,
     itemIdMapper: BiDiMapping<String, ItemId>,
     documentMapper: BiDiMapping<String, Doc>,
+    pageSize: Int
 ) = object: Repository<Doc, GroupId, ItemId> {
 
     override fun save(groupId: GroupId, itemId: ItemId, doc: Doc) {
@@ -44,7 +46,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> memoryRepository(
     override fun get(ids: Collection<Pair<GroupId, ItemId>>) = ids
         .mapNotNull { (groupId, itemId) -> get(groupId, itemId) }
 
-    override fun list(group: GroupId, pageSize: Int) = Paginator<Doc, ItemId> { cursor ->
+    override fun list(group: GroupId) = Paginator<Doc, ItemId> { cursor ->
         val results = files
             .filterKeys { it.first == groupIdMapper(group) }
             .entries
@@ -61,7 +63,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> memoryRepository(
         )
     }
 
-    override fun listInverse(itemId: ItemId, pageSize: Int) = Paginator<Doc, GroupId> { cursor ->
+    override fun listInverse(itemId: ItemId) = Paginator<Doc, GroupId> { cursor ->
         val results = files
             .filterKeys { it.second == itemIdMapper(itemId) }
             .entries
