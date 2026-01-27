@@ -6,6 +6,8 @@ import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.configs.PropertyType
 import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
@@ -23,56 +25,70 @@ import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.thead
 import kotlinx.html.tr
+import kotlin.collections.component1
+import kotlin.collections.component2
 
-fun FlowContent.coreConfigEnvironment(
-    core: Core,
-    spec: ConfigSpec,
-    environment: ConfigEnvironment,
-    extraContent: FlowContent.() -> Unit = {}
-): Unit = form(
-    action = environment.uri().toString(),
-    method = FormMethod.post
+class ConfigEnvironmentComponent(
+    val application: Application,
+    val spec: ConfigSpec,
+    val environment: ConfigEnvironment
 ) {
-    // need to use the keys from the spec, because the environment may not have all the keys filled
-    attributes["x-data"] = """{
-        values: ${spec.properties.mapValues { environment.values[it.key]?.value }.let(core.json::asFormatString)}
-    }"""
+    companion object {
+        fun core(
+            core: Core,
+            navbar: FlowContent.(ConfigEnvironmentComponent) -> Unit = {},
+            extraContent: FlowContent.(ConfigEnvironmentComponent) -> Unit = {}
+        ) = Component<ConfigEnvironmentComponent> { flow, data ->
+            val environment = data.environment
+            val spec = data.spec
 
-    input(InputType.hidden, name = "values") {
-        attributes[":value"] = "JSON.stringify(values)"
-    }
+            flow.navbar(data)
 
-    table("uk-table uk-table-middle") {
-        thead {
-            tr {
-                th(classes = "uk-width-medium") { +"Key" }
-                th(classes = "uk-table-expand") { +"Value" }
-            }
-        }
+            // TODO tableForm
+            flow.form(environment.uri().toString(), method = FormMethod.post) {
+                // need to use the keys from the spec, because the environment may not have all the keys filled
+                attributes["x-data"] = """{
+                    values: ${spec.properties.mapValues { environment.values[it.key]?.value }.let(core.json::asFormatString)}
+                }""".trimIndent()
 
-        tbody {
-            for ((key, spec) in spec.properties.entries.sortedBy { it.key }) {
-                tr {
-                    td {
-                        +key.value
-                        if (spec.description.isNotBlank()) {
-                            span("uk-margin-small-left") {
-                                style = "color: #03a9fc"
-                                attributes["uk-icon"] = "icon: info"
-                                attributes["uk-tooltip"] = spec.description
+                input(InputType.hidden, name = "values") {
+                    attributes[":value"] = "JSON.stringify(values)"
+                }
+
+                table("uk-table uk-table-middle") {
+                    thead {
+                        tr {
+                            th(classes = "uk-width-medium") { +"Key" }
+                            th(classes = "uk-table-expand") { +"Value" }
+                        }
+                    }
+
+                    tbody {
+                        for ((key, spec) in spec.properties.entries.sortedBy { it.key }) {
+                            tr {
+                                td {
+                                    +key.value
+                                    if (spec.description.isNotBlank()) {
+                                        span("uk-margin-small-left") {
+                                            style = "color: #03a9fc"
+                                            attributes["uk-icon"] = "icon: info"
+                                            attributes["uk-tooltip"] = spec.description
+                                        }
+                                    }
+                                }
+                                td { valueInput(key, spec.type) }
                             }
                         }
                     }
-                    td { valueInput(key, spec.type) }
+                }
+
+                extraContent(data)
+
+                div("uk-padding-small") {
+                    updateResetButtons("Update", environment.uri())
                 }
             }
         }
-    }
-
-    extraContent()
-
-    div("uk-padding-small") {
-        updateResetButtons("Update", environment.uri())
     }
 }
 

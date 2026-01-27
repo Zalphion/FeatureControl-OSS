@@ -32,7 +32,7 @@ abstract class CoreTestDriver(
     }
 
     var entitlements = mutableMapOf<TeamId, Entitlements>()
-    override fun getRequirements(team: TeamId) = entitlements[team].orEmpty()
+    override fun getEntitlements(team: TeamId) = entitlements[team].orEmpty()
 
     val core = createCore(
         storageDriver = storageDriver,

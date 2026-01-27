@@ -29,6 +29,7 @@ import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.FeatureEnvironment
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.ListFeatures
+import com.zalphion.featurecontrol.features.web.NewFeatureModalComponent
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.uri
 import dev.forkhandles.result4k.Result4k
@@ -194,9 +195,9 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
             style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
 
             applicationsNavBar(
+                core = core,
                 team = navBar.selectedTeam.team,
-                filterModel = filterModel,
-                newAppModal = { core.renderNewApplicationModal(this, it) }
+                filterModel = filterModel
             )
             div {
                 attributes["aria-label"] = "Application List"
@@ -242,9 +243,9 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
 }
 
 private fun FlowContent.applicationsNavBar(
+    core: Core,
     team: Team,
-    filterModel: String,
-    newAppModal: FlowContent.(Team) -> String
+    filterModel: String
 ) {
     nav("uk-navbar-container") {
         attributes["uk-navbar"] = ""
@@ -255,7 +256,8 @@ private fun FlowContent.applicationsNavBar(
             }
         }
 
-        val newAppModalId = newAppModal(team)
+        val newAppModalId = "team_${team.teamId}_new_application_modal"
+        core.render(this, NewApplicationModalComponent(team, newAppModalId))
 
         div("uk-navbar-right") {
             div("uk-navbar-item") {
@@ -301,13 +303,15 @@ private fun FlowContent.applicationNavBar(
         div("uk-navbar-right") {
             ul("uk-iconnav") {
                 li {
-                    val modalId = core.newFeatureModal(this, application)
+                    val modalId = "application_${application.appId}_new_feature"
+                    core.render(this, NewFeatureModalComponent(application, modalId))
                     modalIconButton("New Feature", "icon: plus", modalId)
                 }
                 li {
                     moreMenu(application.appId) { dropdownId ->
                         li {
-                            val updateModalId = core.renderUpdateApplicationModal(this, application)
+                            val updateModalId = "application_update_${application.appId}"
+                            core.render(this, UpdateApplicationModalComponent(application, updateModalId))
                             modalButton(
                                 label = "Update Application",
                                 modalId = updateModalId,

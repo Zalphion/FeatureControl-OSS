@@ -28,7 +28,7 @@ fun FlowContent.teamInvitations(
         attributes["x-data"] = "{ $FILTER_MODEL: ''}"
         attributes["uk-navbar"] = ""
 
-        val modalId = core.components(this, InviteMemberModalComponent(team))
+        val modalId = core.render(this, InviteMemberModalComponent(team))
 
         div("uk-navbar-left") {
             searchBar(FILTER_MODEL, "Search") {
@@ -46,5 +46,5 @@ fun FlowContent.teamInvitations(
         }
     }
 
-    core.components(this, MembersComponent(team, invitations, permissions, FILTER_MODEL))
+    core.render(this, MembersComponent(team, invitations, permissions, FILTER_MODEL))
 }

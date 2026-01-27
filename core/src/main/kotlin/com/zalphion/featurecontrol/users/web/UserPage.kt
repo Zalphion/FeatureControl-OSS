@@ -81,7 +81,7 @@ private fun FlowContent.teams(
         }
     }
 
-    core.components(this, TeamsComponent(teams, permissions))
+    core.render(this, TeamsComponent(teams, permissions))
 }
 
 private fun FlowContent.invitations(

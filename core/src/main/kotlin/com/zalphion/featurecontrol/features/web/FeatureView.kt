@@ -11,6 +11,7 @@ import com.zalphion.featurecontrol.web.tr
 import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.web.withRichMethod
 import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
@@ -35,81 +36,93 @@ import org.http4k.core.Method
 import se.ansman.kotshi.JsonSerializable
 import java.util.UUID
 
-fun FlowContent.coreFeatureModal(
-    core: Core,
-    application: Application,
-    extraControls: FlowContent.() -> Unit = {}
-): String {
-    val modalId = "new-feature-${application.appId}"
-    div("uk-modal uk-modal-container") {
-        id = modalId
+class NewFeatureModalComponent(
+    val application: Application,
+    val modalId: String,
+) {
+    companion object {
+        fun core(
+            core: Core,
+            extraControls: FlowContent.() -> Unit = {}
+        ) = Component<NewFeatureModalComponent> { flow, data ->
+            flow.div("uk-modal uk-modal-container") {
+                id = data.modalId
 
-        div("uk-modal-dialog") {
-            form(
-                method = FormMethod.post,
-                action = application.featuresUri().toString(),
-                classes = "uk-form-stacked"
-            ) {
-                div("uk-modal-header") {
-                    h2("uk-modal-title") { +"New Feature" }
-                }
-
-                div("uk-modal-body") {
-
-                    button(type = ButtonType.button, classes = "uk-modal-close-default") {
-                        attributes["uk-close"] = ""
-                    }
-
-                    // key
-                    div("uk-margin") {
-                        label("uk-form-label") {
-                            htmlFor = "featureKey"
-                            +"Key"
+                div("uk-modal-dialog") {
+                    form(
+                        method = FormMethod.post,
+                        action = data.application.featuresUri().toString(),
+                        classes = "uk-form-stacked"
+                    ) {
+                        div("uk-modal-header") {
+                            h2("uk-modal-title") { +"New Feature" }
                         }
-                        div("uk-form-controls") {
-                            input(InputType.text, name="featureKey", classes = "uk-input") {
-                                id = "featureKey"
-                                placeholder = "newUi, my-new-feature, etc."
-                                required = true
+
+                        div("uk-modal-body") {
+
+                            button(type = ButtonType.button, classes = "uk-modal-close-default") {
+                                attributes["uk-close"] = ""
                             }
+
+                            // key
+                            div("uk-margin") {
+                                label("uk-form-label") {
+                                    htmlFor = "featureKey"
+                                    +"Key"
+                                }
+                                div("uk-form-controls") {
+                                    input(InputType.text, name="featureKey", classes = "uk-input") {
+                                        id = "featureKey"
+                                        placeholder = "newUi, my-new-feature, etc."
+                                        required = true
+                                    }
+                                }
+                            }
+
+                            editControls(
+                                core = core,
+                                idPrefix = "new-feature",
+                                description = "",
+                                variants = emptyMap(),
+                                defaultVariant = null,
+                                extraControls = extraControls
+                            )
+                        }
+
+                        div("uk-modal-footer") {
+                            confirmCancelButtons("Create")
                         }
                     }
-
-                    editControls(
-                        core = core,
-                        idPrefix = "new-feature",
-                        description = "",
-                        variants = emptyMap(),
-                        defaultVariant = null,
-                        extraControls = extraControls
-                    )
-                }
-
-                div("uk-modal-footer") {
-                    confirmCancelButtons("Create")
                 }
             }
         }
     }
-    return modalId
 }
 
-fun FlowContent.coreFeature(core: Core, feature: Feature, extraControls: FlowContent.() -> Unit = {}) {
-    div {
-        attributes["aria-label"] = "Edit Feature"
-        form(method = FormMethod.post) {
-            withRichMethod(Method.PUT)
-            editControls(
-                idPrefix = "feature-${feature.key}",
-                core = core,
-                description = feature.description,
-                variants = feature.variants,
-                defaultVariant = feature.defaultVariant,
-                extraControls = extraControls
-            )
+class FeatureComponent(val application: Application, val feature: Feature) {
+    companion object {
+        fun core(
+            core: Core,
+            extraControls: FlowContent.(FeatureComponent) -> Unit = {}
+        ) = Component<FeatureComponent> { flow, data ->
+            val feature = data.feature
+            flow.div {
+                attributes["aria-label"] = "Edit Feature"
+                form(method = FormMethod.post) {
+                    withRichMethod(Method.PUT)
+                    editControls(
+                        idPrefix = "feature-${feature.key}",
+                        core = core,
+                        description = feature.description,
+                        variants = feature.variants,
+                        defaultVariant = feature.defaultVariant,
+                        extraControls = { extraControls(this, data) }
+                    )
 
-            div("uk-margin-top") {
-                updateResetButtons("Update", feature.uri())
+                    div("uk-margin-top") {
+                        updateResetButtons("Update", feature.uri())
+                    }
+                }
             }
         }
     }

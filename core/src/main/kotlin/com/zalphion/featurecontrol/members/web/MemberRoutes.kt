@@ -104,7 +104,7 @@ internal fun Core.updateMember(): HttpHandler = { request ->
     UpdateMember(
         teamId = teamId,
         userId = userId,
-        data = lenses<MemberUpdateData>(request)
+        data = extract<MemberUpdateData>(request)
     )
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER)
@@ -158,7 +158,7 @@ internal fun Core.createMember(): HttpHandler = { request ->
     val result = CreateMember(
         teamId = teamId,
         sender = permissions.principal.userId,
-        data = lenses<MemberCreateData>(request)
+        data = extract<MemberCreateData>(request)
     )
         .invoke(permissions, this)
         .map { FlashMessageDto(FlashMessageDto.Type.Success, "Invitation sent to ${it.member.userId.toEmailAddress()}") }

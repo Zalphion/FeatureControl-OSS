@@ -2,12 +2,14 @@ package com.zalphion.featurecontrol
 
 import com.zalphion.featurecontrol.apikeys.ApiKeyStorage
 import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.applications.ApplicationCreateData
 import com.zalphion.featurecontrol.applications.ApplicationStorage
+import com.zalphion.featurecontrol.applications.ApplicationUpdateData
 import com.zalphion.featurecontrol.applications.Environment
+import com.zalphion.featurecontrol.applications.web.NewApplicationModalComponent
+import com.zalphion.featurecontrol.applications.web.UpdateApplicationModalComponent
 import com.zalphion.featurecontrol.applications.web.coreConfigCard
 import com.zalphion.featurecontrol.applications.web.coreFeatureCard
-import com.zalphion.featurecontrol.applications.web.coreNewAppModal
-import com.zalphion.featurecontrol.applications.web.coreUpdateAppModal
 import com.zalphion.featurecontrol.applications.web.createApplication
 import com.zalphion.featurecontrol.applications.web.createCoreApplicationCreateDataLens
 import com.zalphion.featurecontrol.applications.web.createCoreApplicationUpdateDataLens
@@ -21,31 +23,27 @@ import com.zalphion.featurecontrol.auth.web.authRoutes
 import com.zalphion.featurecontrol.auth.web.csrfDoubleSubmitFilter
 import com.zalphion.featurecontrol.auth.web.google
 import com.zalphion.featurecontrol.auth.web.hMacJwt
-import com.zalphion.featurecontrol.configs.ConfigEnvironment
-import com.zalphion.featurecontrol.configs.ConfigSpec
 import com.zalphion.featurecontrol.configs.ConfigStorage
-import com.zalphion.featurecontrol.configs.Property
-import com.zalphion.featurecontrol.configs.PropertyKey
-import com.zalphion.featurecontrol.configs.web.coreConfigEnvironment
-import com.zalphion.featurecontrol.configs.web.coreConfigNavBar
-import com.zalphion.featurecontrol.configs.web.createCoreConfigEnvironmentDataLens
-import com.zalphion.featurecontrol.configs.web.createCoreConfigSpecDataLens
+import com.zalphion.featurecontrol.configs.dto.ConfigEnvironmentDataDto
+import com.zalphion.featurecontrol.configs.dto.ConfigSpecDataDto
+import com.zalphion.featurecontrol.configs.dto.createCoreConfigEnvironmentDataLens
+import com.zalphion.featurecontrol.configs.dto.createCoreConfigSpecDataLens
+import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentComponent
+import com.zalphion.featurecontrol.configs.web.ConfigSpecComponent
 import com.zalphion.featurecontrol.configs.web.httpGetConfigEnvironment
 import com.zalphion.featurecontrol.configs.web.httpGetConfigSpec
 import com.zalphion.featurecontrol.configs.web.httpPostConfigEnvironment
 import com.zalphion.featurecontrol.configs.web.httpPostConfigSpec
-import com.zalphion.featurecontrol.configs.web.renderConfigSpec
 import com.zalphion.featurecontrol.events.Event
 import com.zalphion.featurecontrol.events.EventBus
-import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.FeatureCreateData
 import com.zalphion.featurecontrol.features.FeatureEnvironment
 import com.zalphion.featurecontrol.features.FeatureStorage
 import com.zalphion.featurecontrol.features.FeatureUpdateData
-import com.zalphion.featurecontrol.features.web.coreFeature
-import com.zalphion.featurecontrol.features.web.coreFeatureEnvironment
-import com.zalphion.featurecontrol.features.web.coreFeatureModal
+import com.zalphion.featurecontrol.features.web.FeatureComponent
+import com.zalphion.featurecontrol.features.web.FeatureEnvironmentComponent
+import com.zalphion.featurecontrol.features.web.NewFeatureModalComponent
 import com.zalphion.featurecontrol.features.web.createCoreFeatureCreateDataLens
 import com.zalphion.featurecontrol.features.web.createCoreFeatureEnvironmentLens
 import com.zalphion.featurecontrol.features.web.createCoreFeatureUpdateDataLens
@@ -75,7 +73,6 @@ import com.zalphion.featurecontrol.plugins.LensRegistry
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
 import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.teams.TeamStorage
 import com.zalphion.featurecontrol.teams.web.createTeam
@@ -102,7 +99,6 @@ import com.zalphion.featurecontrol.web.userIdLens
 import dev.andrewohara.utils.http4k.logErrors
 import dev.andrewohara.utils.http4k.logSummary
 import dev.forkhandles.result4k.onFailure
-import kotlinx.html.FlowContent
 import org.http4k.core.Filter
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -118,7 +114,6 @@ import org.http4k.filter.ServerFilters
 import org.http4k.filter.flash
 import org.http4k.filter.withFlash
 import org.http4k.format.AutoMarshalling
-import org.http4k.lens.BodyLens
 import org.http4k.lens.location
 import org.http4k.routing.ResourceLoader.Companion.Classpath
 import org.http4k.routing.RoutingHttpHandler
@@ -182,24 +177,38 @@ class Core internal constructor(
     plugins: List<PluginFactory<*>>,
     eventBusFn: (List<Plugin>) -> EventBus
 ) {
-    private val plugins = plugins.map { it.create(this) }
-
     val permissions = plugins
         .firstNotNullOfOrNull { it.permissionsFactoryFn(this) }
         ?: PermissionsFactory.teamMembership(users, members)
 
-    val lenses = LensRegistry().apply {
-        set(MemberCreateData::class, MemberLenses.coreCreate())
+    val extract = LensRegistry().also {
+        it[MemberCreateData::class] = MemberLenses.coreCreate()
+        it[ApplicationCreateData::class] = createCoreApplicationCreateDataLens(json)
+        it[ApplicationUpdateData::class] = createCoreApplicationUpdateDataLens(json)
+        it[FeatureCreateData::class] = createCoreFeatureCreateDataLens(json)
+        it[FeatureUpdateData::class] = createCoreFeatureUpdateDataLens(json)
+        it[FeatureEnvironment::class] = createCoreFeatureEnvironmentLens(json)
+        it[ConfigSpecDataDto::class] = createCoreConfigSpecDataLens(json)
+        it[ConfigEnvironmentDataDto::class] = createCoreConfigEnvironmentDataLens(json)
     }
 
-    val components = ComponentRegistry().apply {
-        set(TeamsComponent::class, TeamsComponent.core())
-        set(MembersComponent::class, MembersComponent.core())
-        set(InviteMemberModalComponent::class, InviteMemberModalComponent.core())
+    val render = ComponentRegistry().also {
+        it[TeamsComponent::class] =  TeamsComponent.core()
+        it[MembersComponent::class] = MembersComponent.core()
+        it[InviteMemberModalComponent::class] = InviteMemberModalComponent.core()
+        it[NewApplicationModalComponent::class] = NewApplicationModalComponent.core(this)
+        it[UpdateApplicationModalComponent::class] = UpdateApplicationModalComponent.core(this)
+        it[NewFeatureModalComponent::class] = NewFeatureModalComponent.core(this)
+        it[FeatureComponent::class] = FeatureComponent.core(this)
+        it[FeatureEnvironmentComponent::class] = FeatureEnvironmentComponent.core(this)
+        it[ConfigSpecComponent::class] = ConfigSpecComponent.core(this)
+        it[ConfigEnvironmentComponent::class] = ConfigEnvironmentComponent.core(this)
     }
+
+    private val plugins = plugins.map { it.create(this) }
 
     fun getEntitlements(teamId: TeamId) = plugins
-        .flatMap { it.getRequirements(teamId) }
+        .flatMap { it.getEntitlements(teamId) }
         .toSet()
 
     fun getRequirements(data: FeatureCreateData) = plugins
@@ -222,39 +231,7 @@ class Core internal constructor(
         .flatMap { it.getRequirements(data) }
         .toSet()
 
-    // applications
-    fun renderNewApplicationModal(flow: FlowContent, team: Team) = plugins
-        .firstNotNullOfOrNull { it.renderNewApplicationModal(flow, team) }
-        ?: with(flow) { coreNewAppModal(this@Core, team) }
-
-    fun renderUpdateApplicationModal(flow: FlowContent, application: Application) = plugins
-        .firstNotNullOfOrNull { it.renderUpdateApplicationModal(flow, application) }
-        ?: with(flow) { coreUpdateAppModal(this@Core, application) }
-
-    fun createApplicationCreateDataLens() = plugins
-        .firstNotNullOfOrNull { it.createApplicationCreateDataLens() }
-        ?: createCoreApplicationCreateDataLens(json)
-
-    fun createApplicationUpdateDataLens() = plugins
-        .firstNotNullOfOrNull { it.createApplicationUpdateDataLens() }
-        ?: createCoreApplicationUpdateDataLens(json)
-
     // features
-    fun newFeatureModal(flow: FlowContent, application: Application): String = plugins
-        .firstNotNullOfOrNull { it.newFeatureModal(flow, application) }
-        ?: with(flow) { coreFeatureModal(this@Core, application) }
-
-    fun createFeatureCreateDataLens() = plugins
-        .firstNotNullOfOrNull { it.createFeatureCreateDataLens() }
-        ?: createCoreFeatureCreateDataLens(json)
-
-    fun createFeatureUpdateDataLens() = plugins
-        .firstNotNullOfOrNull { it.createFeatureUpdateDataLens() }
-        ?: createCoreFeatureUpdateDataLens(json)
-
-    fun createFeatureEnvironmentDataLens() = plugins
-        .firstNotNullOfOrNull { it.createFeatureEnvironmentDataLens() }
-        ?: createCoreFeatureEnvironmentLens(json)
 
     fun createConfigCard(application: Application) = plugins
         .firstNotNullOfOrNull { it.configCard(application) }
@@ -263,38 +240,6 @@ class Core internal constructor(
     fun createFeatureCard(application: Application, feature: Feature) = plugins
         .firstNotNullOfOrNull { it.featureCard(application, feature) }
         ?: coreFeatureCard(feature)
-
-    fun featureContent(flow: FlowContent, application: Application, feature: Feature): Unit = plugins
-        .firstNotNullOfOrNull { it.featureContent(flow, application, feature) }
-        ?: with(flow) { coreFeature(this@Core, feature) }
-
-    fun featureEnvironmentContent(
-        flow: FlowContent, application: Application, feature: Feature,
-        name: EnvironmentName, environment: FeatureEnvironment
-    ): Unit = plugins
-        .firstNotNullOfOrNull { it.featureEnvironmentContent(flow, application, feature, name, environment) }
-        ?: with(flow) { coreFeatureEnvironment(this@Core, feature, environment, name) }
-
-    // configs
-
-    fun createConfigSpecDataLens(): BodyLens<Map<PropertyKey, Property>> = plugins
-        .firstNotNullOfOrNull { it.createConfigSpecDataLens() }
-        ?: createCoreConfigSpecDataLens(json)
-
-    fun createConfigEnvironmentDataLens(): BodyLens<Map<PropertyKey, String>> = plugins
-        .firstNotNullOfOrNull { it.createConfigEnvironmentDataLens() }
-        ?: createCoreConfigEnvironmentDataLens(json)
-
-    fun configSpecContent(flow: FlowContent, application: Application, spec: ConfigSpec): Unit = plugins
-        .firstNotNullOfOrNull { it.configSpecContent(flow, application, spec) }
-        ?: with(flow) {
-            coreConfigNavBar(application, null)
-            renderConfigSpec(this@Core, spec)
-        }
-
-    fun configEnvironmentContent(flow: FlowContent, application: Application, spec: ConfigSpec, values: ConfigEnvironment): Unit = plugins
-        .firstNotNullOfOrNull { it.configEnvironmentContent(flow, application, spec, values) }
-        ?: with(flow) { coreConfigEnvironment(this@Core, spec, values) }
 
     fun getPages(teamId: TeamId) = buildList {
         this += PageLink(PageSpec.applications, applicationsUri(teamId))

@@ -1,7 +1,8 @@
-package com.zalphion.featurecontrol.configs.web
+package com.zalphion.featurecontrol.configs.dto
 
-import com.zalphion.featurecontrol.configs.Property
 import com.zalphion.featurecontrol.configs.PropertyKey
+import com.zalphion.featurecontrol.configs.web.ConfigPropertyDto
+import com.zalphion.featurecontrol.configs.web.toModel
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import org.http4k.core.Body
 import org.http4k.format.AutoMarshalling
@@ -22,18 +23,20 @@ private object ConfigLenses {
         .required("values")
 }
 
-internal fun createCoreConfigSpecDataLens(json: AutoMarshalling): BodyLens<Map<PropertyKey, Property>> {
+internal fun createCoreConfigSpecDataLens(json: AutoMarshalling): BodyLens<ConfigSpecDataDto> {
     val properties = ConfigLenses.properties(json)
     return Body
         .webForm(Validator.Strict, properties)
         .map(properties)
+        .map(::ConfigSpecDataDto)
         .toLens()
 }
 
-internal fun createCoreConfigEnvironmentDataLens(json: AutoMarshalling): BodyLens<Map<PropertyKey, String>> {
+internal fun createCoreConfigEnvironmentDataLens(json: AutoMarshalling): BodyLens<ConfigEnvironmentDataDto> {
     val values = ConfigLenses.values(json)
     return Body
         .webForm(Validator.Strict, values)
         .map(values)
+        .map(::ConfigEnvironmentDataDto)
         .toLens()
 }

@@ -34,7 +34,7 @@ fun FlowContent.membersView(
                 classes + "uk-navbar-item"
             }
             div("uk-navbar-item") {
-                val modalId = core.components(this, InviteMemberModalComponent(team))
+                val modalId = core.render(this, InviteMemberModalComponent(team))
                 button(type = ButtonType.button, classes = "uk-button uk-button-primary") {
                     onClick = "UIkit.modal('#$modalId').show()"
                     span {
@@ -46,5 +46,5 @@ fun FlowContent.membersView(
         }
     }
 
-    core.components(this, MembersComponent(team, members, permissions, FILTER_MODEL))
+    core.render(this, MembersComponent(team, members, permissions, FILTER_MODEL))
 }

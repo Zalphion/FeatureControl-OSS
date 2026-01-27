@@ -41,12 +41,11 @@ fun Core.showApplications(): HttpHandler = { request ->
 }
 
 fun Core.createApplication(): HttpHandler = { request ->
-    val principal = permissionsLens(request)
-    val teamId = teamIdLens(request)
-    val data = createApplicationCreateDataLens()(request)
-
-    CreateApplication(teamId, data)
-        .invoke(principal, this)
+    CreateApplication(
+        teamId = teamIdLens(request),
+        data = extract(request)
+    )
+        .invoke(permissionsLens(request), this)
         .map {
             Response(Status.SEE_OTHER)
                 .location(it.uri())
@@ -67,13 +66,12 @@ internal fun Core.deleteApplication(): HttpHandler = { request ->
 }
 
 internal fun Core.updateApplication(): HttpHandler = { request ->
-    val principal = permissionsLens(request)
-    val teamId = teamIdLens(request)
-    val applicationId = appIdLens(request)
-    val data = this@updateApplication.createApplicationUpdateDataLens()(request)
-
-    UpdateApplication(teamId, applicationId, data)
-        .invoke(principal, this)
+    UpdateApplication(
+        teamId = teamIdLens(request),
+        appId = appIdLens(request),
+        data = extract(request)
+    )
+        .invoke( permissionsLens(request), this)
         .map { Response(Status.SEE_OTHER).location(it.uri()) }
         .onFailure { error(it.reason) }
 }

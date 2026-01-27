@@ -7,6 +7,8 @@ import com.zalphion.featurecontrol.web.environmentNameLens
 import com.zalphion.featurecontrol.web.featureKeyLens
 import com.zalphion.featurecontrol.features.CreateFeature
 import com.zalphion.featurecontrol.features.DeleteFeature
+import com.zalphion.featurecontrol.features.FeatureCreateData
+import com.zalphion.featurecontrol.features.FeatureEnvironment
 import com.zalphion.featurecontrol.features.FeatureUpdateData
 import com.zalphion.featurecontrol.features.UpdateFeature
 import com.zalphion.featurecontrol.lib.Update
@@ -34,7 +36,7 @@ internal fun Core.httpPostFeature(): HttpHandler = { request ->
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val principal = permissionsLens(request)
-    val data = createFeatureCreateDataLens()(request)
+    val data = extract<FeatureCreateData>(request)
 
     CreateFeature(teamId, appId, data)
         .invoke(principal, this)
@@ -55,7 +57,10 @@ internal fun Core.httpGetFeature(): HttpHandler = fn@{ request ->
             selectedFeature = featureKey,
             content = {
                 featureNavbar(model.selectedApplication, model.selectedItem, null)
-                featureContent(this, model.selectedApplication, model.selectedItem)
+                render(this, FeatureComponent(
+                    application = model.selectedApplication,
+                    feature = model.selectedItem
+                ))
             }
         ) }
         .map { Response(Status.OK).with(htmlLens of it) }
@@ -79,7 +84,7 @@ internal fun Core.httpPutFeature(): HttpHandler = { request ->
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
-    val data = createFeatureUpdateDataLens()(request)
+    val data = extract<FeatureUpdateData>(request)
 
     UpdateFeature(teamId, appId, featureKey, data)
         .invoke(principal, this)
@@ -106,7 +111,12 @@ internal fun Core.httpGetFeatureEnvironment(): HttpHandler = fn@{ request ->
         selectedFeature = featureKey,
         content = {
             featureNavbar(pageModel.selectedApplication, pageModel.selectedItem, environmentName)
-            featureEnvironmentContent(this, pageModel.selectedApplication, pageModel.selectedItem, environmentName, pageModel.selectedEnvironment)
+            render(this, FeatureEnvironmentComponent(
+                application = pageModel.selectedApplication,
+                feature = pageModel.selectedItem,
+                environmentName = environmentName,
+                environment = pageModel.selectedEnvironment
+            ))
         }
     )
 
@@ -119,7 +129,7 @@ internal fun Core.httpPostFeatureEnvironment(): HttpHandler = fn@{ request ->
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
     val environmentName = environmentNameLens(request)
-    val environment = createFeatureEnvironmentDataLens()(request)
+    val environment = extract<FeatureEnvironment>(request)
 
     val data = FeatureUpdateData.empty.copy(
         environmentsToUpdate = Update(mapOf(environmentName to environment))

@@ -9,35 +9,50 @@ import com.zalphion.featurecontrol.web.applicationsUri
 import com.zalphion.featurecontrol.web.tableForm
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.lib.asBiDiMapping
+import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.*
 import org.http4k.core.Uri
+import kotlin.collections.map
 
-internal fun FlowContent.coreNewAppModal(core: Core, team: Team) = applicationModal(
-    modalId = "new-application-modal-${team.teamId}",
-    title = "New Application",
-    formAction = applicationsUri(team.teamId),
-    appName = null,
-    environmentsTable = {
-        environmentsTable(core, emptyList())
-    },
-    buttons = {
-        confirmCancelButtons("Create")
+class NewApplicationModalComponent(val team: Team, val modalId: String) {
+    companion object {
+        fun core(core: Core) = Component<NewApplicationModalComponent> { flow, data ->
+            flow.applicationModal(
+                modalId = data.modalId,
+                title = "New Application",
+                formAction = applicationsUri(data.team.teamId),
+                appName = null,
+                environmentsTable = {
+                    environmentsTable(core, emptyList())
+                },
+                buttons = {
+                    confirmCancelButtons("Create")
+                }
+            )
+        }
     }
-)
+}
 
-internal fun FlowContent.coreUpdateAppModal(core: Core, application: Application) = applicationModal(
-    modalId = "update-application-modal-${application.appId}",
-    title = "Update ${application.appName}",
-    appName = application.appName,
-    formAction = application.uri(),
-    environmentsTable = {
-        environmentsTable(core, application.environments.map { it.toDto() })
-    },
-    buttons = {
-        confirmCancelButtons("Update")
+class UpdateApplicationModalComponent(val application: Application, val modalId: String) {
+    companion object {
+        fun core(core: Core) = Component<UpdateApplicationModalComponent> { flow, data ->
+            val application = data.application
+            flow.applicationModal(
+                modalId = data.modalId,
+                title = "Update ${application.appName}",
+                appName = application.appName,
+                formAction = application.uri(),
+                environmentsTable = {
+                    environmentsTable(core, application.environments.map { it.toDto() })
+                },
+                buttons = {
+                    confirmCancelButtons("Update")
+                }
+            )
+        }
     }
-)
+}
 
 fun FlowContent.applicationModal(
     modalId: String,
