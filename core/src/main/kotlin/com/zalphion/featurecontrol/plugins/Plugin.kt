@@ -20,8 +20,10 @@ import org.http4k.routing.RoutingHttpHandler
 interface Plugin {
     fun onEvent(event: Event): Result4k<Unit, AppError> = Unit.asSuccess()
 
-    // entitlements
+    // get the entitlements provided by the team
     fun getEntitlements(team: TeamId): Entitlements = emptySet()
+
+    // extract required entitlements from the data
     fun getRequirements(data: FeatureCreateData): Entitlements = emptySet()
     fun getRequirements(data: FeatureUpdateData): Entitlements = emptySet()
     fun getRequirements(environment: Environment): Entitlements = emptySet()

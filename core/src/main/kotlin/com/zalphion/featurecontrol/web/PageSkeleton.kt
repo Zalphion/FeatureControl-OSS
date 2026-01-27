@@ -16,8 +16,6 @@ import kotlinx.html.stream.createHTML
 import kotlinx.html.title
 import kotlinx.html.unsafe
 
-const val APP_SLUG = "feature-control"
-
 fun Core.pageSkeleton(
     messages: List<FlashMessageDto>,
     subTitle: String? = null,

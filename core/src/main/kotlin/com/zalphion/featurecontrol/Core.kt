@@ -2,9 +2,7 @@ package com.zalphion.featurecontrol
 
 import com.zalphion.featurecontrol.apikeys.ApiKeyStorage
 import com.zalphion.featurecontrol.applications.Application
-import com.zalphion.featurecontrol.applications.ApplicationCreateData
 import com.zalphion.featurecontrol.applications.ApplicationStorage
-import com.zalphion.featurecontrol.applications.ApplicationUpdateData
 import com.zalphion.featurecontrol.applications.Environment
 import com.zalphion.featurecontrol.applications.web.NewApplicationModalComponent
 import com.zalphion.featurecontrol.applications.web.UpdateApplicationModalComponent
@@ -24,8 +22,6 @@ import com.zalphion.featurecontrol.auth.web.csrfDoubleSubmitFilter
 import com.zalphion.featurecontrol.auth.web.google
 import com.zalphion.featurecontrol.auth.web.hMacJwt
 import com.zalphion.featurecontrol.configs.ConfigStorage
-import com.zalphion.featurecontrol.configs.dto.ConfigEnvironmentDataDto
-import com.zalphion.featurecontrol.configs.dto.ConfigSpecDataDto
 import com.zalphion.featurecontrol.configs.dto.createCoreConfigEnvironmentDataLens
 import com.zalphion.featurecontrol.configs.dto.createCoreConfigSpecDataLens
 import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentComponent
@@ -38,7 +34,6 @@ import com.zalphion.featurecontrol.events.Event
 import com.zalphion.featurecontrol.events.EventBus
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.FeatureCreateData
-import com.zalphion.featurecontrol.features.FeatureEnvironment
 import com.zalphion.featurecontrol.features.FeatureStorage
 import com.zalphion.featurecontrol.features.FeatureUpdateData
 import com.zalphion.featurecontrol.features.web.FeatureComponent
@@ -72,6 +67,7 @@ import com.zalphion.featurecontrol.plugins.ComponentRegistry
 import com.zalphion.featurecontrol.plugins.LensRegistry
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
+import com.zalphion.featurecontrol.plugins.toContainer
 import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.teams.TeamStorage
@@ -181,29 +177,29 @@ class Core internal constructor(
         .firstNotNullOfOrNull { it.permissionsFactoryFn(this) }
         ?: PermissionsFactory.teamMembership(users, members)
 
-    val extract = LensRegistry().also {
-        it[MemberCreateData::class] = MemberLenses.coreCreate()
-        it[ApplicationCreateData::class] = createCoreApplicationCreateDataLens(json)
-        it[ApplicationUpdateData::class] = createCoreApplicationUpdateDataLens(json)
-        it[FeatureCreateData::class] = createCoreFeatureCreateDataLens(json)
-        it[FeatureUpdateData::class] = createCoreFeatureUpdateDataLens(json)
-        it[FeatureEnvironment::class] = createCoreFeatureEnvironmentLens(json)
-        it[ConfigSpecDataDto::class] = createCoreConfigSpecDataLens(json)
-        it[ConfigEnvironmentDataDto::class] = createCoreConfigEnvironmentDataLens(json)
-    }
+    val extract = LensRegistry(plugins.flatMap { it.lensExports(this) } + listOf(
+        MemberLenses.coreCreate().toContainer(),
+        createCoreApplicationCreateDataLens(json).toContainer(),
+        createCoreApplicationUpdateDataLens(json).toContainer(),
+        createCoreFeatureCreateDataLens(json).toContainer(),
+        createCoreFeatureUpdateDataLens(json).toContainer(),
+        createCoreFeatureEnvironmentLens(json).toContainer(),
+        createCoreConfigSpecDataLens(json).toContainer(),
+        createCoreConfigEnvironmentDataLens(json).toContainer()
+    ))
 
-    val render = ComponentRegistry().also {
-        it[TeamsComponent::class] =  TeamsComponent.core()
-        it[MembersComponent::class] = MembersComponent.core()
-        it[InviteMemberModalComponent::class] = InviteMemberModalComponent.core()
-        it[NewApplicationModalComponent::class] = NewApplicationModalComponent.core(this)
-        it[UpdateApplicationModalComponent::class] = UpdateApplicationModalComponent.core(this)
-        it[NewFeatureModalComponent::class] = NewFeatureModalComponent.core(this)
-        it[FeatureComponent::class] = FeatureComponent.core(this)
-        it[FeatureEnvironmentComponent::class] = FeatureEnvironmentComponent.core(this)
-        it[ConfigSpecComponent::class] = ConfigSpecComponent.core(this)
-        it[ConfigEnvironmentComponent::class] = ConfigEnvironmentComponent.core(this)
-    }
+    val render = ComponentRegistry(plugins.flatMap { it.componentExports(this) + listOf(
+        TeamsComponent.core().toContainer(),
+        MembersComponent.core().toContainer(),
+        InviteMemberModalComponent.core().toContainer(),
+        NewApplicationModalComponent.core(this).toContainer(),
+        UpdateApplicationModalComponent.core(this).toContainer(),
+        NewFeatureModalComponent.core(this).toContainer(),
+        FeatureComponent.core(this).toContainer(),
+        FeatureEnvironmentComponent.core(this).toContainer(),
+        ConfigSpecComponent.core(this).toContainer(),
+        ConfigEnvironmentComponent.core(this).toContainer()
+    )})
 
     private val plugins = plugins.map { it.create(this) }
 
@@ -230,8 +226,6 @@ class Core internal constructor(
     fun getRequirements(data: MemberUpdateData) = plugins
         .flatMap { it.getRequirements(data) }
         .toSet()
-
-    // features
 
     fun createConfigCard(application: Application) = plugins
         .firstNotNullOfOrNull { it.configCard(application) }

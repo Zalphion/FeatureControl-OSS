@@ -4,14 +4,7 @@ import org.http4k.core.Request
 import org.http4k.lens.BodyLens
 import kotlin.reflect.KClass
 
-class LensRegistry {
-
-    private val lenses = mutableListOf<LensContainer<*>>()
-
-    operator fun <T: Any> set(type: KClass<T>, lens: BodyLens<T>) {
-        // add with higher precedence
-        lenses.addFirst(LensContainer(type, lens))
-    }
+class LensRegistry(private val lenses: List<LensContainer<*>>) {
 
     inline operator fun <reified T: Any> invoke(request: Request) =
         invoke(T::class, request)
@@ -22,7 +15,7 @@ class LensRegistry {
         ?: error("Could not find $type lens")
 }
 
-private class LensContainer<T: Any>(
+class LensContainer<T: Any>(
     private val type: KClass<T>,
     val lens: BodyLens<T>
 ) {
@@ -33,3 +26,5 @@ private class LensContainer<T: Any>(
         } else null
     }
 }
+
+inline fun <reified T: Any> BodyLens<T>.toContainer() = LensContainer(T::class, this)
