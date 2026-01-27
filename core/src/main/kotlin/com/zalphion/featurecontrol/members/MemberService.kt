@@ -5,26 +5,22 @@ import com.zalphion.featurecontrol.AppError
 import com.zalphion.featurecontrol.forbidden
 import com.zalphion.featurecontrol.invitationNotFound
 import com.zalphion.featurecontrol.memberAlreadyExists
-import com.zalphion.featurecontrol.memberNotFound
 import com.zalphion.featurecontrol.ActionAuth
 import com.zalphion.featurecontrol.ServiceAction
 import com.zalphion.featurecontrol.events.EventId
 import com.zalphion.featurecontrol.events.MemberCreatedEvent
+import com.zalphion.featurecontrol.lib.filterItem
 import com.zalphion.featurecontrol.teams.TeamId
-import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.users.UserCreateData
 import com.zalphion.featurecontrol.users.UserId
 import com.zalphion.featurecontrol.users.UserService
 import dev.andrewohara.utils.pagination.Page
 import dev.andrewohara.utils.pagination.Paginator
 import dev.andrewohara.utils.result.failIf
-import dev.andrewohara.utils.result.recoverIf
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asFailure
-import dev.forkhandles.result4k.asResultOr
 import dev.forkhandles.result4k.asSuccess
 import dev.forkhandles.result4k.begin
-import dev.forkhandles.result4k.flatMap
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.peek
@@ -32,23 +28,22 @@ import dev.forkhandles.values.random
 import kotlin.collections.map
 
 // TODO cannot remove last admin of team
-class UpdateMember(val teamId: TeamId, val userId: UserId, val role: UserRole): ServiceAction<Member>(
-    auth = ActionAuth { core, user ->
-        begin
-            .failIf({ userId == user.userId}, { forbidden })
-            .flatMap { core.members.getOrFail(teamId, userId) }
-            .map { ActionAuth.byTeam(teamId, UserRole.Admin) }
-            .flatMap { it(core, user) }
-    }
+class UpdateMember(
+    val teamId: TeamId,
+    val userId: UserId,
+    val data: MemberUpdateData
+): ServiceAction<Member>(
+    preAuth = ActionAuth.byTeam(teamId, {it.memberUpdate(teamId, userId)}) { getRequirements(data)}
 ) {
     override fun execute(core: Core) = core
-        .members[teamId, userId].asResultOr { memberNotFound(teamId, userId) }
-        .map { it.copy(role = role) }
+        .members.getOrFail(teamId, userId)
+        .map { it.update(data) }
         .peek(core.members::plusAssign)
 }
 
 class ListMembersForTeam(val teamId: TeamId): ServiceAction<Paginator<MemberDetails, UserId>>(
-    auth = ActionAuth.byTeam(teamId)
+    preAuth = ActionAuth.byTeam(teamId, {it.teamRead(teamId)}),
+    postAuth = { members, permissions -> members.filterItem { permissions.memberRead(it.member) }}
 ) {
     override fun execute(core: Core): Result4k<Paginator<MemberDetails, UserId>, AppError> {
         val team = core.teams.getOrFail(teamId).onFailure { return it }
@@ -60,8 +55,7 @@ class ListMembersForTeam(val teamId: TeamId): ServiceAction<Paginator<MemberDeta
             Page(
                 items = members.items.mapNotNull { member ->
                     val user = relevantUsers[member.userId] ?: return@mapNotNull null
-                    val invitedBy = member.invitedBy?.let(relevantUsers::get)
-                    MemberDetails(member, user,invitedBy, team)
+                    MemberDetails(member, user, team)
                 },
                 next = members.next
             )
@@ -70,19 +64,18 @@ class ListMembersForTeam(val teamId: TeamId): ServiceAction<Paginator<MemberDeta
 }
 
 class ListMembersForUser(val userId: UserId): ServiceAction<Paginator<MemberDetails, TeamId>>(
-    auth = ActionAuth { _, user -> begin.failIf({user.userId != userId}, {forbidden})}
+    preAuth = ActionAuth { _, permissions -> begin.failIf({!permissions.userUpdate(userId)}, {forbidden})},
+    postAuth = { members, permissions -> members.filterItem { permissions.memberRead(it.member) }}
 ) {
     override fun execute(core: Core): Result4k<Paginator<MemberDetails, TeamId>, AppError> {
         val user = core.users.getOrFail(userId).onFailure { return it }
         return Paginator<MemberDetails, TeamId> { cursor ->
             val members = core.members.list(userId)[cursor]
             val teams = core.teams.batchGet(members.items.map { it.teamId }).associateBy { it.teamId }
-            val inviters = core.users[members.items.mapNotNull { it.invitedBy }.distinct()].associateBy { it.userId }
             Page(
                 items = members.items.mapNotNull { member ->
                     val team = teams[member.teamId] ?: return@mapNotNull null
-                    val invitedBy = member.invitedBy?.let(inviters::get)
-                    MemberDetails(member, user, invitedBy, team)
+                    MemberDetails(member, user, team)
                 },
                 next = members.next
             )
@@ -92,37 +85,29 @@ class ListMembersForUser(val userId: UserId): ServiceAction<Paginator<MemberDeta
 
 // TODO cannot remove last admin of team
 class RemoveMember(val teamId: TeamId, val userId: UserId): ServiceAction<MemberDetails>(
-    auth = ActionAuth { core, user ->
-        core.members.getOrFail(teamId, userId)
-            .map { ActionAuth.byTeam(teamId, UserRole.Admin) }
-            .flatMap { it(core, user) }
-            .recoverIf({user.userId == userId}, { })
-    }
+    preAuth = ActionAuth.byTeam(teamId, {it.memberDelete(teamId, userId)})
 ) {
     override fun execute(core: Core): Result4k<MemberDetails, AppError> {
         val team = core.teams.getOrFail(teamId).onFailure { return it }
         val user = core.users.getOrFail(userId).onFailure { return it }
         val member = core.members.getOrFail(teamId, userId).onFailure { return it }
-        val invitedBy = member.invitedBy?.let(core.users::get)
 
         core.members -= member
-        return MemberDetails(member, user, invitedBy, team).asSuccess()
+        return MemberDetails(member, user, team).asSuccess()
     }
 }
 
 class CreateMember(
     val teamId: TeamId,
     val sender: UserId,
-    val emailAddress: EmailAddress,
-    val role: UserRole
+    val data: MemberCreateData
 ) : ServiceAction<MemberDetails>(
-    auth = ActionAuth.byTeam(teamId, UserRole.Admin)
+    preAuth = ActionAuth.byTeam(teamId, {it.memberCreate(teamId)}) { getRequirements(data) }
 ) {
     override fun execute(core: Core): Result4k<MemberDetails, AppError> {
         val team = core.teams.getOrFail(teamId).onFailure { return it }
-        val invitedBy = core.users.getOrFail(sender).onFailure { return it }
         val user = UserService(core).getOrCreate(UserCreateData(
-            emailAddress = emailAddress,
+            emailAddress = data.emailAddress,
             userName = null,
             photoUrl = null
         )).onFailure { return it }
@@ -136,13 +121,13 @@ class CreateMember(
         val member = Member(
             teamId = teamId,
             userId = user.userId,
-            role = role,
             invitationExpiresOn = time + core.config.invitationRetention,
-            invitedBy = invitedBy.userId
+            invitedBy = sender,
+            extensions = data.extensions
         )
         core.members += member
 
-        return MemberDetails(member, user, invitedBy, team)
+        return MemberDetails(member, user, team)
             .asSuccess()
             .peek { core.emitEvent(MemberCreatedEvent(
                 teamId = teamId,
@@ -154,7 +139,7 @@ class CreateMember(
 }
 
 class AcceptInvitation(val teamId: TeamId, val userId: UserId): ServiceAction<MemberDetails>(
-    auth = ActionAuth { _, user -> begin.failIf({user.userId != userId}, {forbidden})}
+    preAuth = ActionAuth { _, permissions -> begin.failIf({!permissions.userUpdate(userId)}, {forbidden})}
 ) {
     override fun execute(core: Core): Result4k<MemberDetails, AppError> {
         val member = core.members.getOrFail(teamId, userId)
@@ -163,17 +148,16 @@ class AcceptInvitation(val teamId: TeamId, val userId: UserId): ServiceAction<Me
 
         val team = core.teams.getOrFail(teamId).onFailure { return it }
         val user = core.users.getOrFail(userId).onFailure { return it }
-        val invitedBy = member.invitedBy?.let(core.users::get)
 
         val updated =  member.copy(invitationExpiresOn = null)
         core.members += updated
-        return MemberDetails(updated, user, invitedBy, team).asSuccess()
+        return MemberDetails(updated, user, team).asSuccess()
     }
 }
 
 // TODO this must be subject to rate limiting
 class ResendInvitation(val teamId: TeamId, val userId: UserId): ServiceAction<MemberDetails>(
-    auth = ActionAuth.byTeam(teamId, UserRole.Admin)
+    preAuth = ActionAuth.byTeam(teamId, {it.memberUpdate(teamId, userId)})
 ) {
     override fun execute(core: Core): Result4k<MemberDetails, AppError> {
         val member = core.members.getOrFail(teamId, userId)
@@ -182,8 +166,7 @@ class ResendInvitation(val teamId: TeamId, val userId: UserId): ServiceAction<Me
 
         val team = core.teams.getOrFail(teamId).onFailure { return it }
         val user = core.users.getOrFail(userId).onFailure { return it }
-        val invitedBy = member.invitedBy?.let(core.users::get)
-        val details = MemberDetails(member, user, invitedBy, team)
+        val details = MemberDetails(member, user, team)
 
         core.emitEvent(MemberCreatedEvent(
             teamId = teamId,

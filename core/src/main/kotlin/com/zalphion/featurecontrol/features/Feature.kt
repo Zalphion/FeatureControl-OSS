@@ -2,6 +2,7 @@ package com.zalphion.featurecontrol.features
 
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.keyValidation
+import com.zalphion.featurecontrol.plugins.Extendable
 import com.zalphion.featurecontrol.plugins.Extensions
 import com.zalphion.featurecontrol.teams.TeamId
 import dev.forkhandles.values.ComparableValue
@@ -17,10 +18,12 @@ data class Feature(
     val environments: Map<EnvironmentName, FeatureEnvironment>,
     val defaultVariant: Variant,
     val description: String,
-    val extensions: Extensions
-) {
+    override val extensions: Extensions
+): Extendable<Feature> {
     operator fun get(environment: EnvironmentName) = environments[environment]
         ?: FeatureEnvironment(emptyMap(), emptyMap(), emptyMap())
+
+    override fun with(extensions: Extensions) = copy(extensions = this.extensions + extensions)
 }
 
 class FeatureKey private constructor(value: String): StringValue(value), ComparableValue<FeatureKey, String> {

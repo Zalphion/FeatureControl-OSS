@@ -16,6 +16,7 @@ import com.zalphion.featurecontrol.web.navbar
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.AppError
+import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.memberNotFound
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asFailure
@@ -46,9 +47,9 @@ data class TeamPage(
     val filterModel = "team_element_filter"
 
     companion object {
-        fun create(core: Core, principal: User, teamId: TeamId, selected: PageSpec?): Result4k<TeamPage, AppError> {
-            val navBar = NavBar.get(core, principal, teamId, selected).onFailure { return it }
-            val team = navBar.memberships.find { it.team.teamId == teamId } ?: return memberNotFound(teamId, principal.userId).asFailure()
+        fun create(core: Core, permissions: Permissions<User>, teamId: TeamId, selected: PageSpec?): Result4k<TeamPage, AppError> {
+            val navBar = NavBar.get(core, permissions, teamId, selected).onFailure { return it }
+            val team = navBar.memberships.find { (_, _, team) -> team.teamId == teamId } ?: return memberNotFound(teamId, permissions.principal.userId).asFailure()
 
             return TeamPage(
                 navBar = navBar,

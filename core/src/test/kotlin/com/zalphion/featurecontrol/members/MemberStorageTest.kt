@@ -40,8 +40,8 @@ class MemberStorageTest: CoreTestDriver(storageDriver = StorageDriver.memory(Pag
 
     @Test
     fun update() {
-        val member = createMember(team1, user1, UserRole.Developer)
-        val updated = member.copy(role = UserRole.Admin)
+        val member = createMember(team1, user1)
+        val updated = member.copy(extensions = mapOf("key" to "value"))
         testObj += updated
 
         testObj[team1, user1] shouldBe updated
@@ -129,15 +129,11 @@ class MemberStorageTest: CoreTestDriver(storageDriver = StorageDriver.memory(Pag
             .shouldContainExactlyInAnyOrder(member2)
     }
 
-    private fun createMember(
-        teamId: TeamId,
-        userId: UserId,
-        role: UserRole = UserRole.Developer
-    ) = Member(
+    private fun createMember(teamId: TeamId, userId: UserId) = Member(
         teamId = teamId,
         userId = userId,
-        role = role,
         invitedBy = null,
-        invitationExpiresOn = null
+        invitationExpiresOn = null,
+        extensions = emptyMap()
     ).also(testObj::plusAssign)
 }

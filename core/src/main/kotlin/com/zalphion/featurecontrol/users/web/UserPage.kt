@@ -1,8 +1,6 @@
 package com.zalphion.featurecontrol.users.web
 
-import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
-import com.zalphion.featurecontrol.members.UserRole
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.NavBar
@@ -13,6 +11,9 @@ import com.zalphion.featurecontrol.web.navbar
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.web.withRichMethod
 import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.auth.Permissions
+import com.zalphion.featurecontrol.members.web.TeamsComponent
+import com.zalphion.featurecontrol.users.User
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
@@ -21,7 +22,6 @@ import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.form
 import kotlinx.html.h3
-import kotlinx.html.li
 import kotlinx.html.main
 import kotlinx.html.nav
 import kotlinx.html.onClick
@@ -37,6 +37,7 @@ import kotlinx.html.ul
 import org.http4k.core.Method
 
 fun Core.userPage(
+    permissions: Permissions<User>,
     navBar: NavBar<MemberDetails?>,
     messages: List<FlashMessageDto>,
     subTitle: String? = null
@@ -56,13 +57,17 @@ fun Core.userPage(
         }
 
         main("uk-width-expand uk-padding-small uk-overflow-auto") {
-            teams(navBar.memberships.filter { details -> details.member.active })
-            invitations(navBar.memberships.filter { details -> !details.member.active })
+            teams(this@userPage, navBar.memberships.filter { details -> details.member.active }, permissions)
+            invitations(navBar.memberships.filter { details -> !details.member.active }, permissions)
         }
     }
 }
 
-private fun FlowContent.teams(teams: List<MemberDetails>) {
+private fun FlowContent.teams(
+    core: Core,
+    teams: List<MemberDetails>,
+    permissions: Permissions<User>
+) {
     nav("uk-navbar-container uk-navbar-transparent") {
         attributes["uk-navbar"] = ""
 
@@ -76,30 +81,13 @@ private fun FlowContent.teams(teams: List<MemberDetails>) {
         }
     }
 
-    table("uk-table uk-table-hover") {
-        thead {
-            tr {
-                th { +"Team" }
-                th { +"Role" }
-            }
-        }
-        tbody {
-            for ((member, _, _, team) in teams) {
-                tr {
-                    td { +team.teamName.value }
-                    td { +member.role.toString() }
-                    td {
-                        ul("uk-iconnav") {
-                            li { leaveTeam(team, member) }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    core.components(this, TeamsComponent(teams, permissions))
 }
 
-private fun FlowContent.invitations(invitations: List<MemberDetails>) {
+private fun FlowContent.invitations(
+    invitations: List<MemberDetails>,
+    permissions: Permissions<User>
+) {
     nav("uk-navbar-container uk-navbar-transparent") {
         attributes["uk-navbar"] = ""
 
@@ -117,7 +105,7 @@ private fun FlowContent.invitations(invitations: List<MemberDetails>) {
         thead {
             tr {
                 th { +"Team" }
-                th { +"Role" }
+                th { +"Invited By" }
                 th { +"Expires" }
             }
         }
@@ -125,12 +113,14 @@ private fun FlowContent.invitations(invitations: List<MemberDetails>) {
             for (details in invitations) {
                 tr {
                     td { +details.team.teamName.value }
-                    td { +details.member.role.toString() }
+                    td { +details.member.invitedBy?.toEmailAddress()?.value.orEmpty() }
                     td("timestamp") { +details.member.invitationExpiresOn.toString() }
                     td {
-                        ul("uk-iconnav") {
-                            acceptInvitation(details.team)
-                            revokeInvitation(details)
+                        if (permissions.userUpdate(details.member.userId)) {
+                            ul("uk-iconnav") {
+                                acceptInvitation(details.team)
+                                revokeInvitation(details)
+                            }
                         }
                     }
                 }
@@ -139,7 +129,7 @@ private fun FlowContent.invitations(invitations: List<MemberDetails>) {
     }
 }
 
-private fun FlowContent.acceptInvitation(team: Team) {
+fun FlowContent.acceptInvitation(team: Team) {
     form(invitationsUri(team.teamId).toString(), method = FormMethod.post) {
         withRichMethod(Method.POST)
         button(type = ButtonType.submit, classes = "uk-icon-button") {
@@ -149,21 +139,19 @@ private fun FlowContent.acceptInvitation(team: Team) {
     }
 }
 
-private fun FlowContent.leaveTeam(team: Team, member: Member) {
-    val canLeave = member.role != UserRole.Admin
+fun FlowContent.leaveTeam(team: Team) {
     form(membersUri(team.teamId).toString(), method = FormMethod.post) {
         withRichMethod(Method.DELETE)
         button(type = ButtonType.submit, classes = "uk-icon-button") {
             attributes["uk-icon"] = "icon: sign-out"
-            attributes["uk-tooltip"] = if (canLeave) "Leave Team" else "Cannot leave while an Admin"
-            if (!canLeave) attributes["disabled"] = ""
+            attributes["uk-tooltip"] = "Leave Team"
         }
     }
 }
 
 fun FlowContent.revokeInvitation(details: MemberDetails) {
     val modalId = deleteModal(
-        resourceName = "Invitation from ${details.invitedBy?.userName} (${details.invitedBy?.emailAddress}) to ${details.team.teamName}",
+        resourceName = "Invitation from ${details.member.invitedBy?.toEmailAddress()} to ${details.team.teamName}",
         action = membersUri(details.team.teamId, details.user.userId),
     )
     button(type = ButtonType.button, classes = "uk-icon-button") {

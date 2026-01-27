@@ -11,11 +11,9 @@ import com.zalphion.featurecontrol.createApplication
 import com.zalphion.featurecontrol.createFeature
 import com.zalphion.featurecontrol.dev
 import com.zalphion.featurecontrol.featureKey1
-import com.zalphion.featurecontrol.forbidden
 import com.zalphion.featurecontrol.idp1Email1
-import com.zalphion.featurecontrol.members.UserRole
+import com.zalphion.featurecontrol.invoke
 import com.zalphion.featurecontrol.prod
-import com.zalphion.featurecontrol.setRole
 import com.zalphion.featurecontrol.staging
 import dev.forkhandles.result4k.kotest.shouldBeFailure
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
@@ -29,7 +27,6 @@ import org.junit.jupiter.api.Test
 class ApplicationServiceTest: CoreTestDriver() {
 
     private val principal = users.create(idp1Email1).shouldBeSuccess()
-    private val member = principal.member
     private val user = principal.user
     private val team = principal.team
 
@@ -124,28 +121,5 @@ class ApplicationServiceTest: CoreTestDriver() {
         )
 
         core.features.list(app.appId).toList().shouldHaveSize(1)
-    }
-
-    @Test
-    fun `create application - insufficient permission`() {
-        member.setRole(core, UserRole.Tester)
-
-        CreateApplication(
-            teamId = team.teamId,
-            data = ApplicationCreateData(appName1, listOf(dev, prod), emptyMap())
-        )
-            .invoke(user, core)
-            .shouldBeFailure(forbidden)
-    }
-
-    @Test
-    fun `delete application - insufficient permission`() {
-        val app = createApplication(principal, appName1)
-
-        member.setRole(core, UserRole.Tester)
-
-        DeleteApplication(app.teamId, app.appId)
-            .invoke(user, core)
-            .shouldBeFailure(forbidden)
     }
 }

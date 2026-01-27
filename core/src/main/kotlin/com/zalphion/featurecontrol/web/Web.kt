@@ -2,6 +2,7 @@ package com.zalphion.featurecontrol.web
 
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.applications.AppId
+import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.User
@@ -25,7 +26,7 @@ val htmlLens = Body.string(ContentType.TEXT_HTML)
     .map({it}, { "<!DOCTYPE html>\n$it" })
     .toLens()
 
-val principalLens = RequestKey.required<User>("principal")
+val permissionsLens = RequestKey.required<Permissions<User>>("principal")
 
 val referrerLens = Header.uri().required("Referer")
 

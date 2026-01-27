@@ -5,7 +5,6 @@ import com.zalphion.featurecontrol.create
 import com.zalphion.featurecontrol.idp1Email1
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
-import com.zalphion.featurecontrol.members.UserRole
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.teams.TeamName
@@ -25,7 +24,7 @@ class UserServiceTest: CoreTestDriver() {
                 teamId = TeamId.of("ds3rjam1"),
                 invitedBy = null,
                 invitationExpiresOn = null,
-                role = UserRole.Admin,
+                extensions = emptyMap()
             ),
             user = User(
                 userId = idp1Email1.toUserId(),
@@ -35,8 +34,7 @@ class UserServiceTest: CoreTestDriver() {
             team = Team(
                 teamId = TeamId.of("ds3rjam1"),
                 teamName = TeamName.of("User One's Team"),
-            ),
-            invitedBy = null
+            )
         )
 
         users.create(

@@ -13,11 +13,10 @@ import com.zalphion.featurecontrol.environmentNotFound
 import com.zalphion.featurecontrol.forbidden
 import com.zalphion.featurecontrol.idp1Email1
 import com.zalphion.featurecontrol.idp1Email2
-import com.zalphion.featurecontrol.members.UserRole
+import com.zalphion.featurecontrol.invoke
 import com.zalphion.featurecontrol.numberProperty
 import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.secretProperty
-import com.zalphion.featurecontrol.setRole
 import com.zalphion.featurecontrol.stagingName
 import com.zalphion.featurecontrol.strProperty
 import dev.forkhandles.result4k.kotest.shouldBeFailure
@@ -45,15 +44,6 @@ class ConfigServiceTest: CoreTestDriver() {
     fun `get config - not on team`() {
         GetConfigSpec(app1.teamId, app1.appId)
             .invoke(user2.user, core)
-            .shouldBeFailure(forbidden)
-    }
-
-    @Test
-    fun `get config - not testers allowed`() {
-        user1.member.setRole(core, UserRole.Tester)
-
-        GetConfigSpec(app1.teamId, app1.appId)
-            .invoke(user1.user, core)
             .shouldBeFailure(forbidden)
     }
 
@@ -92,14 +82,6 @@ class ConfigServiceTest: CoreTestDriver() {
     }
 
     @Test
-    fun `update config properties - no testers allowed`() {
-        user1.member.setRole(core, UserRole.Tester)
-        UpdateConfigSpec(app1.teamId, app1.appId, mapOf(strProperty, numberProperty))
-            .invoke(user1.user, core)
-            .shouldBeFailure(forbidden)
-    }
-
-    @Test
     fun `update config properties - success`() {
         val expected = ConfigSpec(
             teamId = app1.teamId,
@@ -133,18 +115,6 @@ class ConfigServiceTest: CoreTestDriver() {
         )
             .invoke(user1.user, core)
             .shouldBeFailure(environmentNotFound(app1.appId, stagingName))
-    }
-
-    @Test
-    fun `update config values - no testers allowed`() {
-        user1.member.setRole(core, UserRole.Tester)
-        UpdateConfigEnvironment(
-            app1.teamId, app1.appId, devName, mapOf(
-                PropertyKey.parse("str") to "foo"
-            )
-        )
-            .invoke(user1.user, core)
-            .shouldBeFailure(forbidden)
     }
 
     @Test

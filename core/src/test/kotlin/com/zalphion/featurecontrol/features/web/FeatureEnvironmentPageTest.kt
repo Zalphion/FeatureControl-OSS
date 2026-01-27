@@ -14,7 +14,6 @@ import com.zalphion.featurecontrol.features.Weight
 import com.zalphion.featurecontrol.idp1Email1
 import com.zalphion.featurecontrol.new
 import com.zalphion.featurecontrol.old
-import com.zalphion.featurecontrol.plugins.extensions
 import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.prodName
 import com.zalphion.featurecontrol.subject1
@@ -48,7 +47,7 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
             devName to FeatureEnvironment(
                 weights = mapOf(new to Weight.of(1)),
                 overrides = emptyMap(),
-                extensions = extensions()
+                extensions = emptyMap()
             ),
             prodName to FeatureEnvironment(
                 weights = mapOf(
@@ -59,7 +58,7 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
                     subject1 to old,
                     subject2 to new
                 ),
-                extensions = extensions()
+                extensions = emptyMap()
             )
         )
     )

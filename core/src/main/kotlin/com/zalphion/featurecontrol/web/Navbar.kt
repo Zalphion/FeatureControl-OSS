@@ -5,6 +5,7 @@ import com.zalphion.featurecontrol.users.web.avatarView
 import com.zalphion.featurecontrol.APP_NAME
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.AppError
+import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.ListMembersForUser
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teamNotFound
@@ -35,7 +36,7 @@ import kotlin.collections.set
 import kotlin.collections.toList
 
 data class NavBar<T>(
-    val principal: User,
+    val permissions: Permissions<User>,
     val memberships: List<MemberDetails>,
     val selectedTeam: T,
     val pages: Collection<PageLink>,
@@ -44,12 +45,13 @@ data class NavBar<T>(
     companion object {
         fun get(
             core: Core,
-            principal: User,
+            permissions: Permissions<User>,
             teamId: TeamId,
             selected: PageSpec?
         ): Result4k<NavBar<MemberDetails>, AppError> {
-            val authorizedTeams = ListMembersForUser(principal.userId)
-                .invoke(principal, core)
+            // TODO could maybe user the permissions object to determine this
+            val authorizedTeams = ListMembersForUser(permissions.principal.userId)
+                .invoke(permissions, core)
                 .onFailure { error(it) }
                 .toList()
 
@@ -58,7 +60,7 @@ data class NavBar<T>(
                 ?: return teamNotFound(teamId).asFailure()
 
             return NavBar(
-                principal = principal,
+                permissions = permissions,
                 memberships = authorizedTeams,
                 selectedTeam = team,
                 pages = core.getPages(teamId),
@@ -68,15 +70,15 @@ data class NavBar<T>(
 
         fun get(
             core: Core,
-            principal: User
+            permissions: Permissions<User>
         ): NavBar<MemberDetails?> {
-            val authorizedTeams = ListMembersForUser(principal.userId)
-                .invoke(principal, core)
+            val authorizedTeams = ListMembersForUser(permissions.principal.userId)
+                .invoke(permissions, core)
                 .onFailure { error(it) }
                 .toList()
 
             return NavBar(
-                principal = principal,
+                permissions = permissions,
                 memberships = authorizedTeams,
                 selectedTeam = null,
                 pages = emptyList(),
@@ -102,10 +104,10 @@ fun FlowContent.navbar(model: NavBar<out MemberDetails?>) = with(model) {
 
         div("uk-navbar-right") {
             div("uk-navbar-item") {
-                teamSelector(memberships.map { it.team },selectedTeam)
+                teamSelector(memberships.map { it.team },selectedTeam, permissions)
             }
             div("uk-navbar-item") {
-                userWidget(principal)
+                userWidget(permissions.principal)
             }
         }
     }
@@ -125,13 +127,13 @@ private fun UL.pageLink(page: PageLink, selectedPage: PageSpec?) {
     }
 }
 
-private fun FlowContent.userWidget(principal: User) {
+private fun FlowContent.userWidget(user: User) {
     button(type = ButtonType.button, classes = "uk-button uk-button-default uk-border-pill uk-padding-remove-left") {
         style = "padding-right: 10px;"
-        avatarView(principal.photoUrl, 40) {
+        avatarView(user.photoUrl, 40) {
             classes + "uk-margin-small-right"
         }
-        +(principal.userName ?: principal.emailAddress.value)
+        +(user.userName ?: user.emailAddress.value)
         span {
             attributes["uk-drop-parent-icon"] = "ratio: 1.5"
         }

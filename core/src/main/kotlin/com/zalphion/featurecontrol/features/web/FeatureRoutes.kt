@@ -15,7 +15,7 @@ import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.flash.messages
 import com.zalphion.featurecontrol.web.appIdLens
 import com.zalphion.featurecontrol.web.applicationUri
-import com.zalphion.featurecontrol.web.principalLens
+import com.zalphion.featurecontrol.web.permissionsLens
 import com.zalphion.featurecontrol.web.samePageError
 import com.zalphion.featurecontrol.web.toIndex
 import com.zalphion.featurecontrol.web.flash.withMessage
@@ -33,7 +33,7 @@ import org.http4k.lens.location
 internal fun Core.httpPostFeature(): HttpHandler = { request ->
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val data = createFeatureCreateDataLens()(request)
 
     CreateFeature(teamId, appId, data)
@@ -43,7 +43,7 @@ internal fun Core.httpPostFeature(): HttpHandler = { request ->
 }
 
 internal fun Core.httpGetFeature(): HttpHandler = fn@{ request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
@@ -63,7 +63,7 @@ internal fun Core.httpGetFeature(): HttpHandler = fn@{ request ->
 }
 
 internal fun Core.httpDeleteFeature(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
@@ -75,7 +75,7 @@ internal fun Core.httpDeleteFeature(): HttpHandler = { request ->
 }
 
 internal fun Core.httpPutFeature(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
@@ -91,7 +91,7 @@ internal fun Core.httpPutFeature(): HttpHandler = { request ->
 }
 
 internal fun Core.httpGetFeatureEnvironment(): HttpHandler = fn@{ request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
@@ -114,7 +114,7 @@ internal fun Core.httpGetFeatureEnvironment(): HttpHandler = fn@{ request ->
 }
 
 internal fun Core.httpPostFeatureEnvironment(): HttpHandler = fn@{ request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)

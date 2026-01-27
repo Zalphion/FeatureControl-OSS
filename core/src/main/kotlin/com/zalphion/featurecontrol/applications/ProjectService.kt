@@ -3,8 +3,8 @@ package com.zalphion.featurecontrol.applications
 import com.zalphion.featurecontrol.ActionAuth
 import com.zalphion.featurecontrol.ServiceAction
 import com.zalphion.featurecontrol.Core
-import com.zalphion.featurecontrol.members.UserRole
 import com.zalphion.featurecontrol.applicationNotEmpty
+import com.zalphion.featurecontrol.lib.filterItem
 import com.zalphion.featurecontrol.teams.TeamId
 import dev.andrewohara.utils.pagination.Paginator
 import dev.andrewohara.utils.result.failIf
@@ -13,7 +13,8 @@ import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.peek
 
 class ListApplications(val teamId: TeamId): ServiceAction<Paginator<Application, AppId>>(
-    auth = ActionAuth.byTeam(teamId)
+    preAuth = ActionAuth.byTeam(teamId, {it.teamRead(teamId)}),
+    postAuth = { applications, permissions -> applications.filterItem { permissions.applicationRead(teamId, it.appId) }}
 ) {
     override fun execute(core: Core) = core
         .applications.list(teamId).asSuccess()
@@ -23,7 +24,7 @@ class CreateApplication(
     val teamId: TeamId,
     val data: ApplicationCreateData
 ): ServiceAction<Application>(
-    auth = ActionAuth.byTeam(teamId, UserRole.Developer) {
+    preAuth = ActionAuth.byTeam(teamId, {it.applicationCreate(teamId)}) {
         data.environments.flatMap(::getRequirements).toSet()
     }
 ) {
@@ -34,14 +35,14 @@ class CreateApplication(
 }
 
 class GetApplication(val teamId: TeamId, val appId: AppId): ServiceAction<Application>(
-    auth = ActionAuth.byApplication(teamId, appId, UserRole.Tester)
+    preAuth = ActionAuth.byApplication(teamId, appId, {it.applicationRead(teamId, appId)})
 ) {
     override fun execute(core: Core) = core
         .applications.getOrFail(teamId, appId)
 }
 
 class UpdateApplication(val teamId: TeamId, val appId: AppId, val data: ApplicationUpdateData): ServiceAction<Application>(
-    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer) {
+    preAuth = ActionAuth.byApplication(teamId, appId, {it.applicationUpdate(teamId, appId)}) {
         data.environments.flatMap(::getRequirements).toSet()
     }
 ) {
@@ -52,7 +53,7 @@ class UpdateApplication(val teamId: TeamId, val appId: AppId, val data: Applicat
 }
 
 class DeleteApplication(val teamId: TeamId, val appId: AppId): ServiceAction<Application>(
-    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
+    preAuth = ActionAuth.byApplication(teamId, appId, {it.applicationDelete(teamId, appId)})
 ) {
     override fun execute(core: Core) = core
         .applications.getOrFail(teamId, appId)

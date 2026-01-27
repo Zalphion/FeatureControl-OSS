@@ -8,7 +8,7 @@ import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.environmentNameLens
 import com.zalphion.featurecontrol.web.flash.messages
 import com.zalphion.featurecontrol.web.htmlLens
-import com.zalphion.featurecontrol.web.principalLens
+import com.zalphion.featurecontrol.web.permissionsLens
 import com.zalphion.featurecontrol.web.appIdLens
 import com.zalphion.featurecontrol.web.referrerLens
 import com.zalphion.featurecontrol.web.samePageError
@@ -27,7 +27,7 @@ import org.http4k.core.with
 import org.http4k.lens.location
 
 internal fun Core.httpGetConfigSpec(): HttpHandler = fn@{ request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
 
@@ -46,7 +46,7 @@ internal fun Core.httpGetConfigSpec(): HttpHandler = fn@{ request ->
 }
 
 internal fun Core.httpPostConfigSpec(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val data = createConfigSpecDataLens()(request)
@@ -62,7 +62,7 @@ internal fun Core.httpPostConfigSpec(): HttpHandler = { request ->
 }
 
 internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val environmentName = environmentNameLens(request)
@@ -82,7 +82,7 @@ internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
 }
 
 internal fun Core.httpPostConfigEnvironment(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val environmentName = environmentNameLens(request)

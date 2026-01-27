@@ -7,7 +7,7 @@ import com.zalphion.featurecontrol.teams.TeamName
 import com.zalphion.featurecontrol.teams.UpdateTeam
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.membersUri
-import com.zalphion.featurecontrol.web.principalLens
+import com.zalphion.featurecontrol.web.permissionsLens
 import com.zalphion.featurecontrol.web.samePage
 import com.zalphion.featurecontrol.web.teamIdLens
 import com.zalphion.featurecontrol.web.flash.toFlashMessage
@@ -32,21 +32,21 @@ private object CreateUpdateTeamForm {
 }
 
 internal fun Core.createTeam(): HttpHandler = fn@{ request ->
-    val principal = principalLens(request)
+    val permissions = permissionsLens(request)
     val form = CreateUpdateTeamForm.form(request)
     val data = TeamCreateUpdateData(
         teamName = CreateUpdateTeamForm.teamName(form)
     )
 
-    val team = CreateTeam(principal.userId, data)
-        .invoke(principal, this)
+    val team = CreateTeam(permissions.principal.userId, data)
+        .invoke(permissions, this)
         .onFailure { return@fn request.toIndex().withMessage(it.reason) }
 
     Response(Status.SEE_OTHER).location(membersUri(team.teamId))
 }
 
 internal fun Core.updateTeam(): HttpHandler = fn@ { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
 
     val form = CreateUpdateTeamForm.form(request)

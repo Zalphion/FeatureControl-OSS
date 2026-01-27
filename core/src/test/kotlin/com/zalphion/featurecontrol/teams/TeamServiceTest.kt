@@ -8,15 +8,16 @@ import com.zalphion.featurecontrol.getMyTeam
 import com.zalphion.featurecontrol.idp1Email1
 import com.zalphion.featurecontrol.idp1Email2
 import com.zalphion.featurecontrol.idp2Email1
+import com.zalphion.featurecontrol.invoke
 import com.zalphion.featurecontrol.memberAlreadyExists
 import com.zalphion.featurecontrol.memberNotFound
 import com.zalphion.featurecontrol.members.CreateMember
 import com.zalphion.featurecontrol.members.Member
+import com.zalphion.featurecontrol.members.MemberCreateData
 import com.zalphion.featurecontrol.members.MemberDetails
+import com.zalphion.featurecontrol.members.MemberUpdateData
 import com.zalphion.featurecontrol.members.RemoveMember
 import com.zalphion.featurecontrol.members.UpdateMember
-import com.zalphion.featurecontrol.members.UserRole
-import com.zalphion.featurecontrol.setRole
 import dev.andrewohara.utils.pagination.Page
 import dev.forkhandles.result4k.kotest.shouldBeFailure
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
@@ -30,21 +31,7 @@ import java.time.Duration
 class TeamServiceTest: CoreTestDriver() {
 
     @Test
-    fun `remove member - not admin`() {
-        val myUser = users.create(idp1Email1).shouldBeSuccess().user
-        val (myMember, _, _, myTeam) = myUser.getMyTeam(core).shouldNotBeNull()
-        myMember.setRole(core, UserRole.Developer)
-
-        val otherUser = users.create(idp1Email2).shouldBeSuccess().user
-        val otherMember = otherUser.addTo(core, myTeam)
-
-        RemoveMember(otherMember.teamId, otherMember.userId)
-            .invoke(myUser, core)
-            .shouldBeFailure(forbidden)
-    }
-
-    @Test
-    fun `remove member - team you don't have access to`() {
+    fun `remove member - forbidden`() {
         val myUser = users.create(idp1Email1).shouldBeSuccess().user
 
         val otherOrgUser = users.create(idp2Email1).shouldBeSuccess().user
@@ -57,32 +44,29 @@ class TeamServiceTest: CoreTestDriver() {
 
     @Test
     fun `remove member - success`() {
-        val (myMember, myUser, _, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (myMember, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
 
         val otherUser = users.create(idp1Email2).shouldBeSuccess().user
         val otherMember = otherUser.addTo(core, myTeam)
 
         RemoveMember(teamId = otherMember.teamId, userId = otherMember.userId)
             .invoke(myUser, core)
-            .shouldBeSuccess(
-                MemberDetails(
-                    member = otherMember,
-                    team = myTeam,
-                    user = otherUser,
-                    invitedBy = null
-                )
-            )
+            .shouldBeSuccess(MemberDetails(otherMember, otherUser, myTeam))
 
         core.members.list(myTeam.teamId).toList()
             .shouldContainExactlyInAnyOrder(myMember)
     }
 
     @Test
-    fun `invite user - success as admin`() {
-        val (_, myUser, _, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+    fun `invite user - success`() {
+        val (_, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
         val otherUser = users.create(idp1Email2).shouldBeSuccess().user
 
-        val memberDetails = CreateMember(myTeam.teamId, myUser.userId, otherUser.emailAddress, UserRole.Developer)
+        val memberDetails = CreateMember(
+            teamId = myTeam.teamId,
+            sender = myUser.userId,
+            data = MemberCreateData(otherUser.emailAddress, emptyMap())
+        )
             .invoke(myUser, core)
             .shouldBeSuccess()
 
@@ -90,13 +74,12 @@ class TeamServiceTest: CoreTestDriver() {
             member = Member(
                 teamId = myTeam.teamId,
                 userId = otherUser.userId,
-                role = UserRole.Developer,
                 invitedBy = myUser.userId,
                 invitationExpiresOn = time + Duration.ofDays(1),
+                extensions = emptyMap()
             ),
             user = otherUser,
-            team = myTeam,
-            invitedBy = myUser
+            team = myTeam
         )
 
         core.members.list(myTeam.teamId)
@@ -104,41 +87,41 @@ class TeamServiceTest: CoreTestDriver() {
     }
 
     @Test
-    fun `invite user - forbidden as non-admin`() {
-        val (myMember, myUser, _, myTeam) = users.create(idp1Email1).shouldBeSuccess()
-        myMember.setRole(core, UserRole.Developer)
+    fun `invite user - forbidden`() {
+        val (_, myUser, _) = users.create(idp1Email1).shouldBeSuccess()
+        val otherTeam = users.create(idp1Email2).shouldBeSuccess().team
 
-        CreateMember(myTeam.teamId, myUser.userId, idp1Email2, UserRole.Developer)
+        CreateMember(otherTeam.teamId, myUser.userId, MemberCreateData(idp1Email2, emptyMap()))
             .invoke(myUser, core)
             .shouldBeFailure(forbidden)
     }
 
     @Test
     fun `invite user - cannot invite self`() {
-        val (myMember, myUser, _, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (myMember, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
 
-        CreateMember(myTeam.teamId, myUser.userId, myUser.emailAddress, UserRole.Admin)
+        CreateMember(myTeam.teamId, myUser.userId, MemberCreateData(myUser.emailAddress, emptyMap()))
             .invoke(myUser, core)
             .shouldBeFailure(memberAlreadyExists(myMember))
     }
 
     @Test
     fun `invite user - already a member`() {
-        val (_, myUser, _, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (_, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
 
         val otherUser = users.create(idp1Email2).shouldBeSuccess().user
         val otherMember = otherUser.addTo(core, myTeam)
 
-        CreateMember(myTeam.teamId, myUser.userId, otherUser.emailAddress, UserRole.Admin)
+        CreateMember(myTeam.teamId, myUser.userId, MemberCreateData(otherUser.emailAddress, emptyMap()))
             .invoke(myUser, core)
             .shouldBeFailure(memberAlreadyExists(otherMember))
     }
 
     @Test
     fun `update member - cannot change own`() {
-        val (member, user, _, _) = users.create(idp1Email1).shouldBeSuccess()
+        val (member, user, _) = users.create(idp1Email1).shouldBeSuccess()
 
-        UpdateMember(teamId = member.teamId, member.userId, UserRole.Developer)
+        UpdateMember(teamId = member.teamId, member.userId, MemberUpdateData((mapOf("foo" to "bar"))))
             .invoke(user, core)
             .shouldBeFailure(forbidden)
     }
@@ -148,34 +131,30 @@ class TeamServiceTest: CoreTestDriver() {
         val myUser = users.create(idp1Email1).shouldBeSuccess().user
         val otherMember = users.create(idp2Email1).shouldBeSuccess().member
 
-        UpdateMember(otherMember.teamId, otherMember.userId, UserRole.Developer)
+        UpdateMember(otherMember.teamId, otherMember.userId, MemberUpdateData(mapOf("foo" to "bar")))
             .invoke(myUser, core)
             .shouldBeFailure(forbidden)
     }
 
     @Test
     fun `update member - member not found`() {
-        val (_, myUser, _, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (_, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
         val otherUser = users.create(idp1Email2).shouldBeSuccess().user
 
-        UpdateMember(myTeam.teamId, otherUser.userId, UserRole.Developer)
+        UpdateMember(myTeam.teamId, otherUser.userId, MemberUpdateData(mapOf("foo" to "bar")))
             .invoke(myUser, core)
             .shouldBeFailure(memberNotFound(myTeam.teamId, otherUser.userId))
     }
 
     @Test
-    fun `update member - success as admin`() {
-        val (myMember, myUser, _, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+    fun `update member - success`() {
+        val (myMember, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
 
         val otherUser = users.create(idp1Email2).shouldBeSuccess().user
-        val otherMember = otherUser.addTo(core, myTeam, UserRole.Tester)
+        val otherMember = otherUser.addTo(core, myTeam)
+        val expected = otherMember.copy(extensions = mapOf("foo" to "bar"))
 
-        time += Duration.ofMinutes(10)
-        val expected = otherMember.copy(
-            role = UserRole.Developer,
-        )
-
-        UpdateMember(otherMember.teamId, otherMember.userId, UserRole.Developer)
+        UpdateMember(otherMember.teamId, otherMember.userId, MemberUpdateData(mapOf("foo" to "bar")))
             .invoke(myUser, core)
             .shouldBeSuccess(expected)
 
@@ -184,21 +163,8 @@ class TeamServiceTest: CoreTestDriver() {
     }
 
     @Test
-    fun `update member - forbidden as non-admin`() {
-        val (myMember, myUser, _, myTeam) = users.create(idp1Email1).shouldBeSuccess()
-        myMember.setRole(core, UserRole.Developer)
-
-        val otherUser = users.create(idp1Email2).shouldBeSuccess().user
-        val otherMember = otherUser.addTo(core,myTeam, role = UserRole.Tester)
-
-        UpdateMember(myTeam.teamId, otherMember.userId, UserRole.Developer)
-            .invoke(myUser, core)
-            .shouldBeFailure(forbidden)
-    }
-
-    @Test
     fun `create team`() {
-        val (myMember, myUser, _, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (myMember, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
 
         val otherTeam = CreateTeam(myUser.userId, TeamCreateUpdateData(TeamName.of("Other Team")))
             .invoke(myUser, core)
@@ -212,9 +178,9 @@ class TeamServiceTest: CoreTestDriver() {
                 Member(
                     teamId = otherTeam.teamId,
                     userId = myUser.userId,
-                    role = UserRole.Admin,
                     invitedBy = null,
-                    invitationExpiresOn = null
+                    invitationExpiresOn = null,
+                    extensions = emptyMap()
                 ),
                 myMember
             ),

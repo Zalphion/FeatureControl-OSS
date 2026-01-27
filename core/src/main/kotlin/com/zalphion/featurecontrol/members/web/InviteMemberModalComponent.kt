@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
+import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.confirmCancelButtons
 import com.zalphion.featurecontrol.web.membersUri
@@ -22,12 +23,26 @@ import org.http4k.core.Method
 
 private const val MODAL_ID_INVITE_MEMBERS = "inviteMembersModal"
 
-internal fun FlowContent.createMemberModal(team: Team): String {
+class InviteMemberModalComponent(val team: Team) {
+
+    companion object {
+        fun core(
+            extraInputs: FlowContent.(InviteMemberModalComponent) -> Unit = {}
+        ) = Component<InviteMemberModalComponent> { flow, data ->
+            flow.createMemberModal(data, extraInputs)
+        }
+    }
+}
+
+private fun FlowContent.createMemberModal(
+    data: InviteMemberModalComponent,
+    extraInputs: FlowContent.(InviteMemberModalComponent) -> Unit
+): String {
     div("uk-modal uk-modal-container") {
         id = MODAL_ID_INVITE_MEMBERS
 
         div("uk-modal-dialog") {
-            form(method = FormMethod.post, action = membersUri(team.teamId).toString(), classes = "uk-form-horizontal") {
+            form(method = FormMethod.post, action = membersUri(data.team.teamId).toString(), classes = "uk-form-horizontal") {
                 withRichMethod(Method.POST)
 
                 div("uk-modal-header") {
@@ -42,7 +57,7 @@ internal fun FlowContent.createMemberModal(team: Team): String {
                     p {
                         + "Invite new members to "
                         strong {
-                            + team.teamName.value
+                            + data.team.teamName.value
                         }
                     }
 
@@ -60,9 +75,7 @@ internal fun FlowContent.createMemberModal(team: Team): String {
                         }
                     }
 
-                    div("uk-margin") {
-                        roleSelector(null)
-                    }
+                    extraInputs(data)
                 }
 
                 div("uk-modal-footer") {

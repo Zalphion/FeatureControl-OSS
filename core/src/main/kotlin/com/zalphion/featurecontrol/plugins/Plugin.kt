@@ -17,6 +17,8 @@ import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.FeatureCreateData
 import com.zalphion.featurecontrol.features.FeatureUpdateData
+import com.zalphion.featurecontrol.members.MemberCreateData
+import com.zalphion.featurecontrol.members.MemberUpdateData
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.web.PageLink
@@ -30,10 +32,12 @@ interface Plugin {
     fun onEvent(event: Event): Result4k<Unit, AppError> = Unit.asSuccess()
 
     // entitlements
-    fun getEntitlements(team: TeamId): Entitlements = emptySet()
+    fun getRequirements(team: TeamId): Entitlements = emptySet()
     fun getRequirements(data: FeatureCreateData): Entitlements = emptySet()
     fun getRequirements(data: FeatureUpdateData): Entitlements = emptySet()
     fun getRequirements(environment: Environment): Entitlements = emptySet()
+    fun getRequirements(data: MemberCreateData): Entitlements = emptySet()
+    fun getRequirements(data: MemberUpdateData): Entitlements = emptySet()
 
     // HTTP
     fun getRoutes(): RoutingHttpHandler? = null

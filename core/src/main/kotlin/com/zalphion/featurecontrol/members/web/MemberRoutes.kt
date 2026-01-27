@@ -6,17 +6,17 @@ import com.zalphion.featurecontrol.teams.web.teamPage
 import com.zalphion.featurecontrol.members.AcceptInvitation
 import com.zalphion.featurecontrol.members.CreateMember
 import com.zalphion.featurecontrol.members.ListMembersForTeam
+import com.zalphion.featurecontrol.members.MemberCreateData
+import com.zalphion.featurecontrol.members.MemberUpdateData
 import com.zalphion.featurecontrol.members.RemoveMember
 import com.zalphion.featurecontrol.members.ResendInvitation
 import com.zalphion.featurecontrol.members.UpdateMember
-import com.zalphion.featurecontrol.members.UserRole
-import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.PageSpec
 import com.zalphion.featurecontrol.web.flash.messages
 import com.zalphion.featurecontrol.web.htmlLens
 import com.zalphion.featurecontrol.web.invitationsUri
-import com.zalphion.featurecontrol.web.principalLens
+import com.zalphion.featurecontrol.web.permissionsLens
 import com.zalphion.featurecontrol.web.applicationsUri
 import com.zalphion.featurecontrol.web.referrerLens
 import com.zalphion.featurecontrol.web.samePageError
@@ -29,73 +29,56 @@ import com.zalphion.featurecontrol.web.flash.withSuccess
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.recover
-import org.http4k.core.Body
 import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.with
-import org.http4k.lens.FormField
-import org.http4k.lens.Validator
-import org.http4k.lens.enum
 import org.http4k.lens.location
-import org.http4k.lens.value
-import org.http4k.lens.webForm
 import kotlin.collections.toList
 
-private object CreateMemberForm {
-    val role = FormField.enum<UserRole>().required("role")
-    val email = FormField.value(EmailAddress).required("emailAddress")
-    val form = Body.webForm(Validator.Strict, role, email).toLens()
-}
-
-private object UpdateMemberForm {
-    val role = FormField.enum<UserRole>().required("role")
-    val form = Body.webForm(Validator.Strict, role).toLens()
-}
-
 internal fun Core.showMembers(): HttpHandler = fn@{ request ->
-    val principal = principalLens(request)
+    val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
 
     val members = ListMembersForTeam(teamId)
-        .invoke(principal, this)
+        .invoke(permissions, this)
         .onFailure { return@fn request.toIndex().withMessage(it.reason) }
         .toList()
         .filter { it.member.active }
 
-    val model = TeamPage.create(this, principal, teamId, PageSpec.members)
+    val model = TeamPage.create(this, permissions, teamId, PageSpec.members)
         .onFailure { return@fn request.samePageError(it) }
 
     Response(Status.OK).with(htmlLens of teamPage(
         model = model,
         messages = request.messages(),
-        content = { membersView(it.team.team, members) }
+        content = { membersView(this@showMembers, it.team.team, members, permissions) }
     ))
 }
 
 internal fun Core.showInvitations(): HttpHandler = fn@{ request ->
-    val principal = principalLens(request)
+    val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
 
     val invitations = ListMembersForTeam(teamId)
-        .invoke(principal, this)
+        .invoke(permissions, this)
         .onFailure { return@fn request.toIndex().withMessage(it.reason) }
         .toList()
         .filter { !it.member.active }
 
-    val model = TeamPage.create(this, principal, teamId, PageSpec.invitations)
+    val model = TeamPage.create(this, permissions, teamId, PageSpec.invitations)
         .onFailure { return@fn request.samePageError(it) }
 
     Response(Status.OK).with(
         htmlLens of teamPage(
             model = model,
             messages = request.messages(),
-            content = { teamInvitations(it.team.team, invitations) }
+            content = { teamInvitations(this@showInvitations, it.team.team, invitations, permissions) }
         ))
 }
 
 internal fun Core.acceptInvitation(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
@@ -114,13 +97,15 @@ internal fun Core.acceptInvitation(): HttpHandler = { request ->
 }
 
 internal fun Core.updateMember(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
-    val form = UpdateMemberForm.form(request)
-
-    UpdateMember(teamId, userId, UpdateMemberForm.role(form))
+    UpdateMember(
+        teamId = teamId,
+        userId = userId,
+        data = lenses<MemberUpdateData>(request)
+    )
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER)
             .location(referrerLens(request))
@@ -133,7 +118,7 @@ internal fun Core.updateMember(): HttpHandler = { request ->
 }
 
 internal fun Core.deleteMember(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
@@ -151,7 +136,7 @@ internal fun Core.deleteMember(): HttpHandler = { request ->
 }
 
 internal fun Core.resendInvitation(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
@@ -167,16 +152,16 @@ internal fun Core.resendInvitation(): HttpHandler = { request ->
 }
 
 internal fun Core.createMember(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
 
-    val form = CreateMemberForm.form(request)
-    val email = CreateMemberForm.email(form)
-    val role = CreateMemberForm.role(form)
-
-    val result = CreateMember(teamId, principal.userId, email, role)
-        .invoke(principal, this)
-        .map { FlashMessageDto(FlashMessageDto.Type.Success, "Invitation sent to $email") }
+    val result = CreateMember(
+        teamId = teamId,
+        sender = permissions.principal.userId,
+        data = lenses<MemberCreateData>(request)
+    )
+        .invoke(permissions, this)
+        .map { FlashMessageDto(FlashMessageDto.Type.Success, "Invitation sent to ${it.member.userId.toEmailAddress()}") }
         .recover { it.toFlashMessage() }
 
     Response(Status.SEE_OTHER)

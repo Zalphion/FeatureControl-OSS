@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.features
 
+import com.zalphion.featurecontrol.plugins.Extendable
 import com.zalphion.featurecontrol.plugins.Extensions
 import dev.forkhandles.values.ComparableValue
 import dev.forkhandles.values.IntValue
@@ -12,8 +13,10 @@ import dev.forkhandles.values.minValue
 data class FeatureEnvironment(
     val weights: Map<Variant, Weight>,
     val overrides: Map<SubjectId, Variant>, // illegal to have a subjectId point to more than one variant
-    val extensions: Extensions
-)
+    override val extensions: Extensions
+): Extendable<FeatureEnvironment> {
+    override fun with(extensions: Extensions) = copy(extensions = this.extensions + extensions)
+}
 
 class SubjectId private constructor(value: String): StringValue(value), ComparableValue<SubjectId, String> {
     companion object: StringValueFactory<SubjectId>(::SubjectId, (1..64).length)

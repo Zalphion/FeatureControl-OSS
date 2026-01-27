@@ -8,7 +8,7 @@ import com.zalphion.featurecontrol.web.appIdLens
 import com.zalphion.featurecontrol.applications.UpdateApplication
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.flash.messages
-import com.zalphion.featurecontrol.web.principalLens
+import com.zalphion.featurecontrol.web.permissionsLens
 import com.zalphion.featurecontrol.web.samePage
 import com.zalphion.featurecontrol.web.teamIdLens
 import com.zalphion.featurecontrol.web.toIndex
@@ -25,7 +25,7 @@ import org.http4k.core.with
 import org.http4k.lens.location
 
 fun Core.showApplications(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
 
     ApplicationsPage.forTeam(this, principal, teamId)
@@ -41,7 +41,7 @@ fun Core.showApplications(): HttpHandler = { request ->
 }
 
 fun Core.createApplication(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val data = createApplicationCreateDataLens()(request)
 
@@ -56,7 +56,7 @@ fun Core.createApplication(): HttpHandler = { request ->
 }
 
 internal fun Core.deleteApplication(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val applicationId = appIdLens(request)
 
@@ -67,7 +67,7 @@ internal fun Core.deleteApplication(): HttpHandler = { request ->
 }
 
 internal fun Core.updateApplication(): HttpHandler = { request ->
-    val principal = principalLens(request)
+    val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val applicationId = appIdLens(request)
     val data = this@updateApplication.createApplicationUpdateDataLens()(request)

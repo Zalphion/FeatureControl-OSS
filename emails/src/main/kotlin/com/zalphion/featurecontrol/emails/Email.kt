@@ -16,11 +16,10 @@ fun Plugin.Companion.email(
     loginUri: Uri,
     onInit: (Email) -> Unit = {}
 ) = object: PluginFactory<Email>(onCreate = onInit) {
-    override fun createInternal(core: Core) = Email(core, emails, loginUri)
+    override fun createInternal(core: Core) = Email(emails, loginUri)
 }
 
 class Email internal constructor(
-    val core: Core,
     val emails: EmailSender,
     val loginUri: Uri
 ): Plugin {

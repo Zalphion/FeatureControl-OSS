@@ -1,6 +1,5 @@
 package com.zalphion.featurecontrol
 
-import com.squareup.moshi.JsonAdapter
 import com.zalphion.featurecontrol.emails.EmailSender
 import com.zalphion.featurecontrol.emails.email
 import com.zalphion.featurecontrol.web.LOGIN_PATH
@@ -17,45 +16,44 @@ import org.http4k.core.Uri
 import org.http4k.filter.ServerFilters
 import org.http4k.server.Undertow
 import org.http4k.server.asServer
-import se.ansman.kotshi.KotshiJsonAdapterFactory
 import java.security.SecureRandom
 import java.time.Clock
 import kotlin.random.asKotlinRandom
 
-fun main() = hostedCoreMain(emptyList())
+fun main() = hostedCoreMain()
 
-@KotshiJsonAdapterFactory
-private object HostedCoreJsonAdapterFactory: JsonAdapter.Factory by KotshiHostedCoreJsonAdapterFactory
-
-fun hostedCoreMain(additionalPlugins: List<PluginFactory<*>>) {
-    val env = Environment.ENV
-
-    val core = CoreBuilder(
-        clock = Clock.systemUTC(),
-        random = SecureRandom().asKotlinRandom(),
-        config = CoreConfig(
-            appSecret = env[Settings.appSecret],
-            staticUri = Uri.of("/"), // vendored in jar
-            origin = env[Settings.origin],
-            teamsStorageName = "teams",
-            configEnvironmentsTableName = "config_environments",
-            usersStorageName = "users",
-            membersStorageName = "members",
-            applicationsStorageName = "applications",
-            featuresStorageName = "features",
-            configsStorageName = "configs",
-            apiKeysStorageName = "api_keys"
-        ),
-        storageDriver = StorageDriver.postgres(
-            uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
-            credentials = env[Settings.postgresDatabaseCredentials],
-            pageSize = PageSize.of(100)
-        ),
-        eventBusFn = ::localEventBus,
-        plugins = additionalPlugins
-    ).build {
-        plugins += HostedCoreJsonAdapterFactory.asJsonPlugin()
-        plugins += Plugin.email(
+fun hostedCoreMain(
+    env: Environment = Environment.ENV,
+    plugins: List<PluginFactory<*>> = emptyList()
+) = createCore(
+    clock = Clock.systemUTC(),
+    random = SecureRandom().asKotlinRandom(),
+    config = CoreConfig(
+        appSecret = env[Settings.appSecret],
+        staticUri = Uri.of("/"), // vendored in jar
+        origin = env[Settings.origin],
+        teamsStorageName = "teams",
+        configEnvironmentsTableName = "config_environments",
+        usersStorageName = "users",
+        membersStorageName = "members",
+        applicationsStorageName = "applications",
+        featuresStorageName = "features",
+        configsStorageName = "configs",
+        apiKeysStorageName = "api_keys",
+        googleClientId = env[Settings.googleClientId],
+        csrfTtl = env[Settings.csrfTtl],
+        sessionLength = env[Settings.sessionLength],
+        invitationRetention = env[Settings.invitationsRetention]
+    ),
+    storageDriver = StorageDriver.postgres(
+        uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
+        credentials = env[Settings.postgresDatabaseCredentials],
+        pageSize = PageSize.of(100)
+    ),
+    eventBusFn = ::localEventBus,
+    plugins = listOf(
+        *plugins.toTypedArray(),
+        Plugin.email(
             loginUri = env[Settings.origin].path(LOGIN_PATH),
             emails = EmailSender.smtp(
                 fromName = env[Settings.smtpFromName],
@@ -67,19 +65,11 @@ fun hostedCoreMain(additionalPlugins: List<PluginFactory<*>>) {
                 startTls = env[Settings.smtpStartTls],
             )
         )
-
-        config = config.copy(
-            googleClientId = env[Settings.googleClientId],
-            csrfTtl = env[Settings.csrfTtl],
-            sessionLength = env[Settings.sessionLength],
-            invitationRetention = env[Settings.invitationsRetention]
-        )
-    }
-
-    core.getRoutes()
-        .withFilter(ServerFilters.GZip())
-        .asServer(Undertow(env[Settings.port].value))
-        .start()
-        .also { println("Started on http://localhost:${it.port()}") }
-        .block()
-}
+    )
+)
+    .getRoutes()
+    .withFilter(ServerFilters.GZip())
+    .asServer(Undertow(env[Settings.port].value))
+    .start()
+    .also { println("Started on http://localhost:${it.port()}") }
+    .block()

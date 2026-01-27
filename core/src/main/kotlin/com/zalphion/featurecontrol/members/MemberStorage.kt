@@ -4,6 +4,7 @@ import com.zalphion.featurecontrol.storage.Repository
 import com.zalphion.featurecontrol.lib.mapItem
 import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.memberNotFound
+import com.zalphion.featurecontrol.plugins.Extensions
 import com.zalphion.featurecontrol.storage.StorageCompanion
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.UserId
@@ -34,8 +35,8 @@ data class StoredMember(
     val teamId: TeamId,
     val userId: UserId,
     val invitedBy: UserId?,
-    val role: StoredUserRole,
-    val invitationExpiresOn: Instant?
+    val invitationExpiresOn: Instant?,
+    val extensions: Extensions
 )
 
 @JsonSerializable
@@ -45,23 +46,15 @@ private fun Member.toStored() = StoredMember(
     teamId = teamId,
     userId = userId,
     invitedBy = invitedBy,
-    role = when(role) {
-        UserRole.Admin -> StoredUserRole.Admin
-        UserRole.Developer -> StoredUserRole.Developer
-        UserRole.Tester -> StoredUserRole.Tester
-    },
-    invitationExpiresOn = invitationExpiresOn
+    invitationExpiresOn = invitationExpiresOn,
+    extensions = extensions
 )
 
 private fun StoredMember.toModel() = Member(
     teamId = teamId,
     userId = userId,
-    role = when(role) {
-        StoredUserRole.Admin -> UserRole.Admin
-        StoredUserRole.Developer -> UserRole.Developer
-        StoredUserRole.Tester -> UserRole.Tester
-    },
     invitedBy = invitedBy,
-    invitationExpiresOn = invitationExpiresOn
+    invitationExpiresOn = invitationExpiresOn,
+    extensions = extensions
 )
 

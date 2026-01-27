@@ -15,8 +15,6 @@ import com.zalphion.featurecontrol.features.Weight
 import com.zalphion.featurecontrol.crypto.Base64String
 import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.lib.Colour
-import com.zalphion.featurecontrol.plugins.Plugin
-import com.zalphion.featurecontrol.plugins.PluginFactory
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.teams.TeamName
 import com.zalphion.featurecontrol.users.EmailAddress
@@ -76,12 +74,4 @@ class JsonExport(
         moshi = { moshi(this); next.moshi(this) },
         mapping = { mapping(this); next.mapping(this) }
     )
-}
-
-object JsonPlugin: Plugin
-
-fun JsonAdapter.Factory.asJsonPlugin() = object: PluginFactory<JsonPlugin>(
-    jsonExport = JsonExport({ add(this@asJsonPlugin) } )
-) {
-    override fun createInternal(core: Core) = JsonPlugin
 }

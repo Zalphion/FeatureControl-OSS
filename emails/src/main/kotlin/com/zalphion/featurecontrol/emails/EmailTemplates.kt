@@ -4,7 +4,7 @@ import com.zalphion.featurecontrol.APP_NAME
 import com.zalphion.featurecontrol.members.MemberDetails
 
 fun FullEmailMessage.Companion.invitation(emails: Email, details: MemberDetails): FullEmailMessage {
-    val invitedBy = details.invitedBy
+    val invitedBy = details.member.invitedBy
 
     return FullEmailMessage(
         to = listOf(details.user.emailAddress),
@@ -12,7 +12,7 @@ fun FullEmailMessage.Companion.invitation(emails: Email, details: MemberDetails)
             subject = "You've been invited to join ${details.team.teamName}",
             textBody = """
             ${if (invitedBy != null) {
-                "${invitedBy.fullName()} has invited you to join ${details.team.teamName} on $APP_NAME."
+                "${invitedBy.toEmailAddress()} has invited you to join ${details.team.teamName} on $APP_NAME."
             } else {
                 "You've been invited to join ${details.team.teamName}."
             }}

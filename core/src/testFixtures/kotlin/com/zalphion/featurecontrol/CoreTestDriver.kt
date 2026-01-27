@@ -32,9 +32,9 @@ abstract class CoreTestDriver(
     }
 
     var entitlements = mutableMapOf<TeamId, Entitlements>()
-    override fun getEntitlements(team: TeamId) = entitlements[team].orEmpty()
+    override fun getRequirements(team: TeamId) = entitlements[team].orEmpty()
 
-    val core = CoreBuilder(
+    val core = createCore(
         storageDriver = storageDriver,
         clock = clock,
         random = Random(1337),
@@ -57,7 +57,7 @@ abstract class CoreTestDriver(
             override fun createInternal(core: Core) = this@CoreTestDriver
         },
         eventBusFn = ::localEventBus
-    ).build()
+    )
 
     val users get() = UserService(core)
 }

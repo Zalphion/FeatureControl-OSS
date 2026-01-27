@@ -14,6 +14,7 @@ import com.zalphion.featurecontrol.applications.web.createCoreApplicationUpdateD
 import com.zalphion.featurecontrol.applications.web.deleteApplication
 import com.zalphion.featurecontrol.applications.web.showApplications
 import com.zalphion.featurecontrol.applications.web.updateApplication
+import com.zalphion.featurecontrol.auth.PermissionsFactory
 import com.zalphion.featurecontrol.auth.web.Sessions
 import com.zalphion.featurecontrol.auth.web.SocialAuthorizer
 import com.zalphion.featurecontrol.auth.web.authRoutes
@@ -55,13 +56,22 @@ import com.zalphion.featurecontrol.features.web.httpPostFeature
 import com.zalphion.featurecontrol.features.web.httpPostFeatureEnvironment
 import com.zalphion.featurecontrol.features.web.httpPutFeature
 import com.zalphion.featurecontrol.members.ListMembersForUser
+import com.zalphion.featurecontrol.members.MemberCreateData
 import com.zalphion.featurecontrol.members.MemberStorage
+import com.zalphion.featurecontrol.members.MemberUpdateData
+import com.zalphion.featurecontrol.members.web.InviteMemberModalComponent
+import com.zalphion.featurecontrol.members.web.TeamsComponent
+import com.zalphion.featurecontrol.members.web.MemberLenses
+import com.zalphion.featurecontrol.members.web.MembersComponent
 import com.zalphion.featurecontrol.members.web.acceptInvitation
+import com.zalphion.featurecontrol.members.web.createMember
 import com.zalphion.featurecontrol.members.web.deleteMember
 import com.zalphion.featurecontrol.members.web.resendInvitation
 import com.zalphion.featurecontrol.members.web.showInvitations
 import com.zalphion.featurecontrol.members.web.showMembers
 import com.zalphion.featurecontrol.members.web.updateMember
+import com.zalphion.featurecontrol.plugins.ComponentRegistry
+import com.zalphion.featurecontrol.plugins.LensRegistry
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
 import com.zalphion.featurecontrol.storage.StorageDriver
@@ -86,7 +96,7 @@ import com.zalphion.featurecontrol.web.featureKeyLens
 import com.zalphion.featurecontrol.web.isRichDelete
 import com.zalphion.featurecontrol.web.isRichPut
 import com.zalphion.featurecontrol.web.membersUri
-import com.zalphion.featurecontrol.web.principalLens
+import com.zalphion.featurecontrol.web.permissionsLens
 import com.zalphion.featurecontrol.web.teamIdLens
 import com.zalphion.featurecontrol.web.userIdLens
 import dev.andrewohara.utils.http4k.logErrors
@@ -121,43 +131,38 @@ import kotlin.random.Random
 
 const val APP_NAME = "Feature Control"
 
-class CoreBuilder(
-    val clock: Clock,
-    val random: Random,
-    var config: CoreConfig,
+fun createCore(
+    clock: Clock,
+    random: Random,
+    config: CoreConfig,
     plugins: List<PluginFactory<*>> = emptyList(),
-    private val storageDriver: StorageDriver,
-    private val eventBusFn: (List<Plugin>) -> EventBus
-) {
-    var plugins = plugins.toMutableList()
-
-    fun build(fn: CoreBuilder.() -> Unit = {}): Core {
-        fn()
-        val json = buildJson(plugins.mapNotNull { it.jsonExport })
-        return Core(
+    storageDriver: StorageDriver,
+    eventBusFn: (List<Plugin>) -> EventBus
+): Core {
+    val json = buildJson(plugins.mapNotNull { it.jsonExport })
+    return Core(
+        clock = clock,
+        random = random,
+        json = json,
+        config = config,
+        plugins = plugins,
+        storageDriver = storageDriver,
+        eventBusFn = eventBusFn,
+        teams = TeamStorage.create(config.teamsStorageName, storageDriver, json),
+        users = UserStorage.create(config.usersStorageName, storageDriver, json),
+        members = MemberStorage.create(config.membersStorageName, storageDriver, json),
+        applications = ApplicationStorage.create(config.applicationsStorageName, storageDriver, json),
+        features = FeatureStorage.create(config.featuresStorageName, storageDriver, json),
+        configs = ConfigStorage.create(config.configsStorageName, config.configEnvironmentsTableName, storageDriver, json),
+        apiKeys = ApiKeyStorage.create(config.apiKeysStorageName, storageDriver, json),
+        sessions = Sessions.hMacJwt(
             clock = clock,
-            random = random,
-            json = json,
-            config = config,
-            plugins = plugins,
-            storageDriver = storageDriver,
-            eventBusFn = eventBusFn,
-            teams = TeamStorage.create(config.teamsStorageName, storageDriver, json),
-            users = UserStorage.create(config.usersStorageName, storageDriver, json),
-            members = MemberStorage.create(config.membersStorageName, storageDriver, json),
-            applications = ApplicationStorage.create(config.applicationsStorageName, storageDriver, json),
-            features = FeatureStorage.create(config.featuresStorageName, storageDriver, json),
-            configs = ConfigStorage.create(config.configsStorageName, config.configEnvironmentsTableName, storageDriver, json),
-            apiKeys = ApiKeyStorage.create(config.apiKeysStorageName, storageDriver, json),
-            sessions = Sessions.hMacJwt(
-                clock = clock,
-                appSecret = config.appSecret,
-                issuer = config.origin.toString(),
-                sessionLength = config.sessionLength,
-                random = random
-            )
+            appSecret = config.appSecret,
+            issuer = config.origin.toString(),
+            sessionLength = config.sessionLength,
+            random = random
         )
-    }
+    )
 }
 
 class Core internal constructor(
@@ -179,8 +184,22 @@ class Core internal constructor(
 ) {
     private val plugins = plugins.map { it.create(this) }
 
+    val permissions = plugins
+        .firstNotNullOfOrNull { it.permissionsFactoryFn(this) }
+        ?: PermissionsFactory.teamMembership(users, members)
+
+    val lenses = LensRegistry().apply {
+        set(MemberCreateData::class, MemberLenses.coreCreate())
+    }
+
+    val components = ComponentRegistry().apply {
+        set(TeamsComponent::class, TeamsComponent.core())
+        set(MembersComponent::class, MembersComponent.core())
+        set(InviteMemberModalComponent::class, InviteMemberModalComponent.core())
+    }
+
     fun getEntitlements(teamId: TeamId) = plugins
-        .flatMap { it.getEntitlements(teamId) }
+        .flatMap { it.getRequirements(teamId) }
         .toSet()
 
     fun getRequirements(data: FeatureCreateData) = plugins
@@ -193,6 +212,14 @@ class Core internal constructor(
 
     fun getRequirements(environment: Environment) = plugins
         .flatMap { it.getRequirements(environment) }
+        .toSet()
+
+    fun getRequirements(data: MemberCreateData) = plugins
+        .flatMap { it.getRequirements(data) }
+        .toSet()
+
+    fun getRequirements(data: MemberUpdateData) = plugins
+        .flatMap { it.getRequirements(data) }
         .toSet()
 
     // applications
@@ -287,8 +314,8 @@ class Core internal constructor(
             { request ->
                 request.cookie(SESSION_COOKIE_NAME)?.value
                     ?.let(sessions::verify)
-                    ?.let(users::get)
-                    ?.let { request.with(principalLens of it) }
+                    ?.let(permissions::create)
+                    ?.let { request.with(permissionsLens of it) }
                     ?.let(next)
                     ?: Response(Status.FOUND).location(Uri.of(LOGIN_PATH))
             }
@@ -298,10 +325,10 @@ class Core internal constructor(
             // plugins can override existing routes
             *plugins.mapNotNull { it.getWebRoutes() }.toTypedArray(),
             INDEX_PATH bind Method.GET to { request: Request ->
-                val principal = principalLens(request)
+                val permissions = permissionsLens(request)
                 // FIXME go to team selector instead of trying to find a team
-                val team = ListMembersForUser(principal.userId)
-                    .invoke(principal, this)
+                val team = ListMembersForUser(permissions.principal.userId)
+                    .invoke(permissions, this)
                     .onFailure { error(it) }
                     .minByOrNull { it.member.teamId }
                     ?.team
@@ -359,7 +386,8 @@ class Core internal constructor(
                     Method.GET bind showMembers(),
                     isRichDelete bind deleteMember(),
                     isRichPut bind updateMember(),
-                    Method.POST bind acceptInvitation()
+                    Method.POST bind createMember(),
+                    "$userIdLens" bind Method.POST to acceptInvitation()
                 )),
                 "invitations" bind routes(listOf(
                     Method.GET bind showInvitations(),

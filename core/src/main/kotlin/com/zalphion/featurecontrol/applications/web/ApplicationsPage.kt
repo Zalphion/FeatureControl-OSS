@@ -18,6 +18,7 @@ import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.GetApplication
+import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.configs.ConfigEnvironment
 import com.zalphion.featurecontrol.configs.ConfigSpec
 import com.zalphion.featurecontrol.configs.GetConfigEnvironment
@@ -64,14 +65,14 @@ data class ApplicationsPage<A, I, E>(
 
     companion object {
         fun forTeam(
-            core: Core, principal: User, teamId: TeamId
+            core: Core, permissions: Permissions<User>, teamId: TeamId
         ): Result4k<ApplicationsPage<Application?, Void?, Void?>, AppError> {
             val navBar = NavBar
-                .get(core, principal, teamId, PageSpec.applications)
+                .get(core, permissions, teamId, PageSpec.applications)
                 .onFailure { return it }
 
             val applications = ListApplications(teamId)
-                .invoke(principal, core)
+                .invoke(permissions, core)
                 .onFailure { return it }
                 .toList()
 
@@ -86,28 +87,28 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forConfigSpec(
-            core: Core, principal: User, teamId: TeamId, appId: AppId
+            core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId
         ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment?>, AppError> {
             val application = GetApplication(teamId, appId)
-                .invoke(principal, core)
+                .invoke(permissions, core)
                 .onFailure { return it }
 
             val features = ListFeatures(teamId, appId)
-                .invoke(principal, core)
+                .invoke(permissions, core)
                 .onFailure { return it }
                 .toList()
 
             val applications = ListApplications(application.teamId)
-                .invoke(principal, core)
+                .invoke(permissions, core)
                 .onFailure { return it }
                 .toList()
 
             val configSpec = GetConfigSpec(teamId, appId)
-                .invoke(principal, core)
+                .invoke(permissions, core)
                 .onFailure { return it }
 
             val navBar = NavBar
-                .get(core, principal, application.teamId, PageSpec.applications)
+                .get(core, permissions, application.teamId, PageSpec.applications)
                 .onFailure { return it }
 
             return ApplicationsPage<Application, ConfigSpec, ConfigEnvironment?>(
@@ -122,14 +123,14 @@ data class ApplicationsPage<A, I, E>(
 
         fun forConfigEnvironment(
             core: Core,
-            principal: User,
+            permissions: Permissions<User>,
             teamId: TeamId,
             appId: AppId,
             environmentName: EnvironmentName
         ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment>, AppError> {
-            val model = forConfigSpec(core, principal, teamId, appId).onFailure { return it }
+            val model = forConfigSpec(core, permissions, teamId, appId).onFailure { return it }
             val environment = GetConfigEnvironment(teamId, appId, environmentName)
-                .invoke(principal, core)
+                .invoke(permissions, core)
                 .onFailure { return it }
 
             return ApplicationsPage(
@@ -143,9 +144,9 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forFeature(
-            core: Core, principal: User, teamId: TeamId, appId: AppId, featureKey: FeatureKey
+            core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey
         ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment?>, AppError> {
-            val model = forConfigSpec(core, principal, teamId, appId).onFailure { return it }
+            val model = forConfigSpec(core, permissions, teamId, appId).onFailure { return it }
 
             val feature = model.features.find { it.key == featureKey } ?: return featureNotFound(appId, featureKey).asFailure()
 
@@ -160,9 +161,9 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forFeatureEnvironment(
-            core: Core, principal: User, teamId: TeamId, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName
+            core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName
         ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment>, AppError> {
-            val model = forFeature(core, principal, teamId, appId, featureKey).onFailure { return it }
+            val model = forFeature(core, permissions, teamId, appId, featureKey).onFailure { return it }
             val environment = model.selectedApplication.getOrFail(environmentName)
                 .map { model.selectedItem[environmentName] }
                 .onFailure { return it }

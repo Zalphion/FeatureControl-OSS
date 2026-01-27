@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.shadow)
-    alias(libs.plugins.ksp)
     application
 }
 
@@ -18,8 +17,6 @@ dependencies {
     runtimeOnly(libs.webjars.dayjs)
     runtimeOnly(libs.tinylog.impl)
     runtimeOnly(libs.tinylog.slf4j)
-
-    ksp(libs.kotshi.compiler)
 }
 
 application {

@@ -3,7 +3,6 @@ package com.zalphion.featurecontrol.users
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
-import com.zalphion.featurecontrol.members.UserRole
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.teams.TeamName
@@ -28,16 +27,16 @@ class UserService(private val core: Core) {
             val member = Member(
                 teamId = team.teamId,
                 userId = user.userId,
-                role = UserRole.Admin,
                 invitedBy = null,
-                invitationExpiresOn = null
+                invitationExpiresOn = null,
+                extensions = emptyMap()
             )
 
             core.users += user
             core.teams += team
             core.members += member
 
-            MemberDetails(member, user, null, team)
+            MemberDetails(member, user, team)
         }
 
     fun getOrCreate(data: UserCreateData) = begin

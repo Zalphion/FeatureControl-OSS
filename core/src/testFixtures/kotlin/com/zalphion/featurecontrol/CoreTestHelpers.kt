@@ -7,26 +7,24 @@ import com.zalphion.featurecontrol.features.FeatureCreateData
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.FeatureUpdateData
 import com.zalphion.featurecontrol.features.Variant
-import com.zalphion.featurecontrol.members.ListMembersForUser
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
-import com.zalphion.featurecontrol.members.UserRole
 import com.zalphion.featurecontrol.plugins.Extensions
 import com.zalphion.featurecontrol.applications.CreateApplication
 import com.zalphion.featurecontrol.applications.Environment
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.applications.ApplicationCreateData
 import com.zalphion.featurecontrol.applications.AppName
+import com.zalphion.featurecontrol.auth.Permissions
+import com.zalphion.featurecontrol.auth.teamMembership
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.users.User
 import com.zalphion.featurecontrol.users.UserCreateData
 import com.zalphion.featurecontrol.users.UserService
-import dev.forkhandles.result4k.Success
+import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
-import dev.forkhandles.result4k.valueOrNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
 import org.http4k.core.Uri
 
 fun FeatureUpdateData.toCreate(featureKey: FeatureKey) = FeatureCreateData(
@@ -47,7 +45,7 @@ fun CoreTestDriver.createApplication(
     teamId = principal.team.teamId,
     data = ApplicationCreateData(appName, environments, extensions)
 )
-    .invoke(principal.user, core)
+    .invoke(Permissions.teamMembership(principal.user, listOf(principal.team.teamId)), core)
     .shouldBeSuccess()
 
 fun CoreTestDriver.createFeature(
@@ -74,7 +72,7 @@ fun CoreTestDriver.createFeature(
         extensions = extensions
     )
 )
-    .invoke(principal.user, core)
+    .invoke(Permissions.teamMembership(principal.user, listOf(principal.team.teamId)), core)
     .shouldBeSuccess()
 
 fun UserService.create(
@@ -87,21 +85,24 @@ fun UserService.create(
     photoUrl = photoUrl
 ))
 
-fun User.getMyTeam(core: Core) = ListMembersForUser(userId)
-    .invoke(this, core)
-    .shouldBeSuccess()
-    .minByOrNull { it.member.teamId }
+fun User.getMyTeam(core: Core): MemberDetails = core.members.list(userId)
+    .find { it.invitedBy == null }
+    .shouldNotBeNull()
+    .let { MemberDetails(
+        member = it,
+        user = this,
+        team =core.teams[it.teamId].shouldNotBeNull()
+    ) }
 
-fun Member.setRole(core: Core, newRole: UserRole) {
-    core.members += copy(role = newRole)
-}
+fun User.addTo(core: Core, team: Team) = Member(
+    teamId = team.teamId,
+    userId = userId,
+    invitedBy = null,
+    invitationExpiresOn = null,
+    extensions = emptyMap()
+).also(core.members::plusAssign)
 
-fun User.addTo(core: Core, team: Team, role: UserRole = UserRole.Developer): Member {
-    return Member(
-        teamId = team.teamId,
-        userId = userId,
-        role = role,
-        invitedBy = null,
-        invitationExpiresOn = null
-    ).also(core.members::plusAssign)
+fun <T: Any> ServiceAction<T>.invoke(user: User, core: Core): Result4k<T, AppError> {
+    val permissions = core.permissions.create(user.userId).shouldNotBeNull()
+    return invoke(permissions, core)
 }

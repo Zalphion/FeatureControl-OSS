@@ -5,7 +5,6 @@ import com.zalphion.featurecontrol.AppError
 import com.zalphion.featurecontrol.crypto.Encryption
 import com.zalphion.featurecontrol.crypto.aesGcm
 import com.zalphion.featurecontrol.features.EnvironmentName
-import com.zalphion.featurecontrol.members.UserRole
 import com.zalphion.featurecontrol.ActionAuth
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.ServiceAction
@@ -19,7 +18,7 @@ import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.peek
 
 class GetConfigSpec(val teamId: TeamId, val appId: AppId): ServiceAction<ConfigSpec>(
-    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
+    preAuth = ActionAuth.byApplication(teamId, appId, {it.configRead(teamId, appId)})
 ) {
     override fun execute(core: Core) = core
         .applications.getOrFail(teamId, appId)
@@ -31,7 +30,7 @@ class UpdateConfigSpec(
     val appId: AppId,
     val properties: Map<PropertyKey, Property>
 ): ServiceAction<ConfigSpec>(
-    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
+    preAuth = ActionAuth.byApplication(teamId, appId, {it.configUpdate(teamId, appId)})
 ) {
     override fun execute(core: Core) = core
         .applications.getOrFail(teamId, appId)
@@ -48,7 +47,7 @@ class GetConfigEnvironment(
     val appId: AppId,
     val environmentName: EnvironmentName
 ): ServiceAction<ConfigEnvironment>(
-    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
+    preAuth = ActionAuth.byApplication(teamId, appId, { it.configRead(teamId, appId, environmentName) })
 ) {
     override fun execute(core: Core) = core
         .applications.getOrFail(teamId, appId)
@@ -62,7 +61,7 @@ class UpdateConfigEnvironment(
     val environmentName: EnvironmentName,
     val data: Map<PropertyKey, String>
 ): ServiceAction<ConfigEnvironment>(
-    auth = ActionAuth.byApplication(teamId, appId, UserRole.Developer)
+    preAuth = ActionAuth.byApplication(teamId, appId, {it.configUpdate(teamId, appId, environmentName)})
 ) {
     override fun execute(core: Core) = this
         .processValues(core)

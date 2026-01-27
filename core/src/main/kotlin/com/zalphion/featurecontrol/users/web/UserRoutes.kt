@@ -4,20 +4,21 @@ import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.web.htmlLens
 import com.zalphion.featurecontrol.web.NavBar
 import com.zalphion.featurecontrol.web.flash.messages
-import com.zalphion.featurecontrol.web.principalLens
+import com.zalphion.featurecontrol.web.permissionsLens
 import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.with
 
 internal fun Core.showUserSettings(): HttpHandler = fn@{ request ->
-    val principal = principalLens(request)
+    val permissions = permissionsLens(request)
 
-    val navBar = NavBar.get(this, principal)
+    val navBar = NavBar.get(this, permissions)
 
     Response(Status.OK).with(htmlLens of userPage(
         navBar = navBar,
-        messages = request.messages()
+        messages = request.messages(),
+        permissions = permissions
     ))
 }
 
