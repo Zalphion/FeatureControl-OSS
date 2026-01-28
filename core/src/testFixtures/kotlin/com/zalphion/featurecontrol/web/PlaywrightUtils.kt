@@ -58,7 +58,7 @@ fun Page.getModal(name: String): Locator {
 }
 
 fun CoreTestDriver.playwright() = LaunchPlaywrightBrowser(
-    http = core.mergeRoutes(),
+    http = core.getRoutes(),
     launchOptions = BrowserType.LaunchOptions().setHeadless(ci)
 )
 

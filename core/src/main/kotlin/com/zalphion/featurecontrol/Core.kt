@@ -18,6 +18,7 @@ import com.zalphion.featurecontrol.auth.PermissionsFactory
 import com.zalphion.featurecontrol.auth.web.Sessions
 import com.zalphion.featurecontrol.auth.web.SocialAuthorizer
 import com.zalphion.featurecontrol.auth.web.createSessionCookie
+import com.zalphion.featurecontrol.auth.web.csrfDoubleSubmitFilter
 import com.zalphion.featurecontrol.auth.web.google
 import com.zalphion.featurecontrol.auth.web.hMacJwt
 import com.zalphion.featurecontrol.auth.web.loginView
@@ -96,15 +97,24 @@ import com.zalphion.featurecontrol.web.permissionsLens
 import com.zalphion.featurecontrol.web.teamIdLens
 import com.zalphion.featurecontrol.web.toIndex
 import com.zalphion.featurecontrol.web.userIdLens
+import dev.andrewohara.utils.http4k.logErrors
+import dev.andrewohara.utils.http4k.logSummary
 import dev.forkhandles.result4k.onFailure
+import org.http4k.core.Filter
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.core.Uri
 import org.http4k.core.body.form
+import org.http4k.core.cookie.cookie
 import org.http4k.core.cookie.invalidateCookie
 import org.http4k.core.cookie.replaceCookie
+import org.http4k.core.then
 import org.http4k.core.with
+import org.http4k.filter.FlashAttributesFilter
+import org.http4k.filter.ResponseFilters
+import org.http4k.filter.ServerFilters
 import org.http4k.filter.flash
 import org.http4k.filter.withFlash
 import org.http4k.format.AutoMarshalling
@@ -168,7 +178,7 @@ class Core internal constructor(
     val apiKeys: ApiKeyStorage,
     pluginFactories: List<PluginFactory<*>>,
     eventBusFn: (List<Plugin>) -> EventBus
-): Plugin {
+) {
     val permissions = pluginFactories
         .firstNotNullOfOrNull { it.permissionsFactoryFn(this) }
         ?: PermissionsFactory.teamMembership(users, members)
@@ -202,31 +212,31 @@ class Core internal constructor(
 
     private val plugins = pluginFactories.map { it.create(this) }
 
-    override fun getEntitlements(teamId: TeamId) = plugins
+    fun getEntitlements(teamId: TeamId) = plugins
         .flatMap { it.getEntitlements(teamId) }
         .toSet()
 
-    override fun getRequirements(data: FeatureCreateData) = plugins
+    fun getRequirements(data: FeatureCreateData) = plugins
         .flatMap { it.getRequirements(data) }
         .toSet()
 
-    override fun getRequirements(data: FeatureUpdateData) = plugins
+    fun getRequirements(data: FeatureUpdateData) = plugins
         .flatMap { it.getRequirements(data) }
         .toSet()
 
-    override fun getRequirements(environment: Environment) = plugins
+    fun getRequirements(environment: Environment) = plugins
         .flatMap { it.getRequirements(environment) }
         .toSet()
 
-    override fun getRequirements(data: MemberCreateData) = plugins
+    fun getRequirements(data: MemberCreateData) = plugins
         .flatMap { it.getRequirements(data) }
         .toSet()
 
-    override fun getRequirements(data: MemberUpdateData) = plugins
+    fun getRequirements(data: MemberUpdateData) = plugins
         .flatMap { it.getRequirements(data) }
         .toSet()
 
-    override fun getPages(teamId: TeamId) = buildList {
+    fun getPages(teamId: TeamId) = buildList {
         this += PageLink(PageSpec.applications, applicationsUri(teamId))
         for (plugin in plugins) {
             addAll(plugin.getPages(teamId))
@@ -236,7 +246,7 @@ class Core internal constructor(
     private val eventBus = eventBusFn(this.plugins)
     fun emitEvent(event: Event) = eventBus(event)
 
-    override fun getRoutes(): RoutingHttpHandler {
+    fun getRoutes(): RoutingHttpHandler {
         // TODO move to plugin?
         val socialAuth = if (config.googleClientId == null) {
             SocialAuthorizer.noOp()
@@ -244,29 +254,44 @@ class Core internal constructor(
             SocialAuthorizer.google(config.googleClientId, clock)
         }
 
-        return routes(listOf(
-            *plugins.mapNotNull { it.getRoutes() }.toTypedArray(),
-            LOGIN_PATH bind Method.GET to {
-                Response(Status.OK).with(htmlLens of loginView())
-            },
-            REDIRECT_PATH bind Method.POST to fn@{ request ->
-                val userData = request.form("credential")
-                    ?.let(socialAuth::invoke)
-                    ?: return@fn Response(Status.UNAUTHORIZED)
-
-                val user = UserService(this)
-                    .getOrCreate(userData)
-                    .onFailure { error(it.reason) }
-
-                request.toIndex().replaceCookie(createSessionCookie(user.userId))
-            },
-            LOGOUT_PATH bind Method.POST to {
-                it.toIndex().invalidateCookie(SESSION_COOKIE_NAME, path = INDEX_PATH)
+        val sessionFilter = Filter { next ->
+            { request ->
+                request.cookie(SESSION_COOKIE_NAME)?.value
+                    ?.let(sessions::verify)
+                    ?.let(permissions::create)
+                    ?.let { request.with(permissionsLens of it) }
+                    ?.let(next)
+                    ?: Response(Status.FOUND).location(Uri.of(LOGIN_PATH))
             }
-        ))
+        }
+
+        return ResponseFilters
+            .logSummary(clock = clock)
+            .then(ServerFilters.logErrors())
+            .then(routes(listOf(
+                *plugins.mapNotNull { it.getRoutes() }.toTypedArray(),
+                LOGIN_PATH bind Method.GET to {
+                    Response(Status.OK).with(htmlLens of loginView())
+                },
+                REDIRECT_PATH bind Method.POST to fn@{ request ->
+                    val userData = request.form("credential")
+                        ?.let(socialAuth::invoke)
+                        ?: return@fn Response(Status.UNAUTHORIZED)
+
+                    val user = UserService(this)
+                        .getOrCreate(userData)
+                        .onFailure { error(it.reason) }
+
+                    request.toIndex().replaceCookie(createSessionCookie(user.userId))
+                },
+                FlashAttributesFilter
+                    .then(sessionFilter)
+                    .then(csrfDoubleSubmitFilter(random, config.secureCookies, config.csrfTtl))
+                    .then(getWebRoutes())
+            )))
     }
 
-    override fun getWebRoutes() = routes(listOf(
+    private fun getWebRoutes() = routes(listOf(
         // plugins can override existing routes
         *plugins.mapNotNull { it.getWebRoutes() }.toTypedArray(),
         INDEX_PATH bind Method.GET to { request: Request ->
@@ -284,6 +309,9 @@ class Core internal constructor(
                 .location(applicationsUri(team.teamId))
         },
         USER_SETTINGS_PATH bind Method.GET to showUserSettings(),
+        LOGOUT_PATH bind Method.POST to {
+            it.toIndex().invalidateCookie(SESSION_COOKIE_NAME, path = INDEX_PATH)
+        },
         "/teams" bind routes(
             Method.POST bind createTeam(),
             "$teamIdLens" bind routes(listOf(
