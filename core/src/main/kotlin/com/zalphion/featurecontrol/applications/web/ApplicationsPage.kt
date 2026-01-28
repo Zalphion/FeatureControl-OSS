@@ -202,11 +202,11 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
             div {
                 attributes["aria-label"] = "Application List"
                 for (application in applications) {
-                    card(
-                        card = applicationCard(application),
+                    core.render(this, ApplicationCardComponent(
+                        application = application,
                         selected = application == selectedApplication,
                         filterModel = filterModel
-                    )
+                    ))
                 }
             }
         }
@@ -219,17 +219,19 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
 
                 applicationNavBar(core, selectedApplication, filterModel)
 
-                card(
-                    card = core.createConfigCard(selectedApplication),
+                core.render(this, ConfigCardComponent(
+                    application = selectedApplication,
                     selected = selectedFeature == null,
                     filterModel = filterModel
-                )
+                ))
+
                 for (feature in features) {
-                    card(
-                        card = core.createFeatureCard(selectedApplication, feature),
+                    core.render(this, FeatureCardComponent(
+                        application = selectedApplication,
+                        feature = feature,
                         selected = selectedFeature == feature.key,
                         filterModel = filterModel
-                    )
+                    ))
                 }
             }
 

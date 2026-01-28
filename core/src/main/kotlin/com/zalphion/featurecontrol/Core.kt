@@ -1,13 +1,13 @@
 package com.zalphion.featurecontrol
 
 import com.zalphion.featurecontrol.apikeys.ApiKeyStorage
-import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.applications.ApplicationStorage
 import com.zalphion.featurecontrol.applications.Environment
+import com.zalphion.featurecontrol.applications.web.ApplicationCardComponent
+import com.zalphion.featurecontrol.applications.web.ConfigCardComponent
+import com.zalphion.featurecontrol.applications.web.FeatureCardComponent
 import com.zalphion.featurecontrol.applications.web.NewApplicationModalComponent
 import com.zalphion.featurecontrol.applications.web.UpdateApplicationModalComponent
-import com.zalphion.featurecontrol.applications.web.coreConfigCard
-import com.zalphion.featurecontrol.applications.web.coreFeatureCard
 import com.zalphion.featurecontrol.applications.web.createApplication
 import com.zalphion.featurecontrol.applications.web.createCoreApplicationCreateDataLens
 import com.zalphion.featurecontrol.applications.web.createCoreApplicationUpdateDataLens
@@ -32,7 +32,6 @@ import com.zalphion.featurecontrol.configs.web.httpPostConfigEnvironment
 import com.zalphion.featurecontrol.configs.web.httpPostConfigSpec
 import com.zalphion.featurecontrol.events.Event
 import com.zalphion.featurecontrol.events.EventBus
-import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.FeatureCreateData
 import com.zalphion.featurecontrol.features.FeatureStorage
 import com.zalphion.featurecontrol.features.FeatureUpdateData
@@ -198,7 +197,10 @@ class Core internal constructor(
         FeatureComponent.core(this).toContainer(),
         FeatureEnvironmentComponent.core(this).toContainer(),
         ConfigSpecComponent.core(this).toContainer(),
-        ConfigEnvironmentComponent.core(this).toContainer()
+        ConfigEnvironmentComponent.core(this).toContainer(),
+        ApplicationCardComponent.core().toContainer(),
+        ConfigCardComponent.core().toContainer(),
+        FeatureCardComponent.core().toContainer()
     )})
 
     private val plugins = plugins.map { it.create(this) }
@@ -226,14 +228,6 @@ class Core internal constructor(
     fun getRequirements(data: MemberUpdateData) = plugins
         .flatMap { it.getRequirements(data) }
         .toSet()
-
-    fun createConfigCard(application: Application) = plugins
-        .firstNotNullOfOrNull { it.configCard(application) }
-        ?: coreConfigCard(application)
-
-    fun createFeatureCard(application: Application, feature: Feature) = plugins
-        .firstNotNullOfOrNull { it.featureCard(application, feature) }
-        ?: coreFeatureCard(feature)
 
     fun getPages(teamId: TeamId) = buildList {
         this += PageLink(PageSpec.applications, applicationsUri(teamId))
