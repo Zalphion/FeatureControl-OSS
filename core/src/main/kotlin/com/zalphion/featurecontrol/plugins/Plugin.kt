@@ -18,7 +18,7 @@ interface Plugin {
     fun onEvent(event: Event): Result4k<Unit, AppError> = Unit.asSuccess()
 
     // get the entitlements provided by the team
-    fun getEntitlements(team: TeamId): Entitlements = emptySet()
+    fun getEntitlements(teamId: TeamId): Entitlements = emptySet()
 
     // extract required entitlements from the data
     fun getRequirements(data: FeatureCreateData): Entitlements = emptySet()

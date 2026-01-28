@@ -7,7 +7,7 @@ import java.time.Duration
 
 data class CoreConfig(
     val origin: Uri,
-    val staticUri: Uri,
+    val staticUri: Uri, // point to static assets (e.g. css/js/img)
     val appSecret: AppSecret,
     val googleClientId: String? = null,
     val csrfTtl: Duration = Duration.ofHours(8),
@@ -16,12 +16,12 @@ data class CoreConfig(
     var invitationRetention: Duration = Duration.ofDays(7),
     val redirectUri: Uri = origin.path(REDIRECT_PATH),
 
-    val teamsStorageName: String,
-    val usersStorageName: String,
-    val membersStorageName: String,
-    val applicationsStorageName: String,
-    val featuresStorageName: String,
-    val configsStorageName: String,
-    val configEnvironmentsTableName: String,
-    val apiKeysStorageName: String,
+    val teamsStorageName: String = "teams",
+    val usersStorageName: String = "users",
+    val membersStorageName: String = "members",
+    val applicationsStorageName: String = "applications",
+    val featuresStorageName: String = "features",
+    val configsStorageName: String = "config_specs",
+    val configEnvironmentsTableName: String = "config_environments",
+    val apiKeysStorageName: String = "api_keys",
 )

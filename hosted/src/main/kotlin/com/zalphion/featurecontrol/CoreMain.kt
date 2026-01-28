@@ -7,9 +7,11 @@ import com.zalphion.featurecontrol.emails.smtp
 import com.zalphion.featurecontrol.events.localEventBus
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
+import com.zalphion.featurecontrol.plugins.webjars
 import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.storage.postgres
+import com.zalphion.featurecontrol.web.mergeRoutes
 import org.http4k.config.Environment
 import org.http4k.core.Credentials
 import org.http4k.core.Uri
@@ -20,9 +22,9 @@ import java.security.SecureRandom
 import java.time.Clock
 import kotlin.random.asKotlinRandom
 
-fun main() = hostedCoreMain()
+fun main() = hostedMain()
 
-fun hostedCoreMain(
+fun hostedMain(
     env: Environment = Environment.ENV,
     plugins: List<PluginFactory<*>> = emptyList()
 ) = createCore(
@@ -30,22 +32,15 @@ fun hostedCoreMain(
     random = SecureRandom().asKotlinRandom(),
     config = CoreConfig(
         appSecret = env[Settings.appSecret],
-        staticUri = Uri.of("/"), // vendored in jar
+        staticUri = Uri.of("/"), // provided by webjars
         origin = env[Settings.origin],
-        teamsStorageName = "teams",
-        configEnvironmentsTableName = "config_environments",
-        usersStorageName = "users",
-        membersStorageName = "members",
-        applicationsStorageName = "applications",
-        featuresStorageName = "features",
-        configsStorageName = "configs",
-        apiKeysStorageName = "api_keys",
         googleClientId = env[Settings.googleClientId],
         csrfTtl = env[Settings.csrfTtl],
         sessionLength = env[Settings.sessionLength],
         invitationRetention = env[Settings.invitationsRetention]
     ),
     storageDriver = StorageDriver.postgres(
+        // TODO may want to add some validation to the original url (e.g. verify it was postgresql)
         uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
         credentials = env[Settings.postgresDatabaseCredentials],
         pageSize = PageSize.of(100)
@@ -53,6 +48,7 @@ fun hostedCoreMain(
     eventBusFn = ::localEventBus,
     plugins = listOf(
         *plugins.toTypedArray(),
+        Plugin.webjars(),
         Plugin.email(
             loginUri = env[Settings.origin].path(LOGIN_PATH),
             emails = EmailSender.smtp(
@@ -64,10 +60,10 @@ fun hostedCoreMain(
                 },
                 startTls = env[Settings.smtpStartTls],
             )
-        )
+        ),
     )
 )
-    .getRoutes()
+    .mergeRoutes()
     .withFilter(ServerFilters.GZip())
     .asServer(Undertow(env[Settings.port].value))
     .start()

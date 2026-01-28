@@ -5,6 +5,7 @@ import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.events.localEventBus
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
+import com.zalphion.featurecontrol.plugins.webjars
 import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.storage.memory
@@ -23,7 +24,7 @@ abstract class CoreTestDriver(
     plugins: List<PluginFactory<*>> = emptyList(),
     storageDriver: StorageDriver = StorageDriver.memory(PageSize.of(2)),
     appSecret: AppSecret = AppSecret.of("secret")
-): Plugin {
+) {
     var time: Instant = Instant.parse("2025-07-29T12:00:00Z")
     private val clock get() = object: Clock() {
         override fun getZone() = ZoneOffset.UTC
@@ -32,7 +33,6 @@ abstract class CoreTestDriver(
     }
 
     var entitlements = mutableMapOf<TeamId, Entitlements>()
-    override fun getEntitlements(team: TeamId) = entitlements[team].orEmpty()
 
     val core = createCore(
         storageDriver = storageDriver,
@@ -53,9 +53,15 @@ abstract class CoreTestDriver(
             invitationRetention = Duration.ofDays(1),
         ),
 
-        plugins = plugins + object: PluginFactory<CoreTestDriver>() {
-            override fun createInternal(core: Core) = this@CoreTestDriver
-        },
+        plugins = listOf(
+            *plugins.toTypedArray(),
+            Plugin.webjars(),
+            object: PluginFactory<Plugin>() {
+                override fun createInternal(core: Core) = object : Plugin {
+                    override fun getEntitlements(teamId: TeamId) = entitlements[teamId].orEmpty()
+                }
+            },
+        ),
         eventBusFn = ::localEventBus
     )
 

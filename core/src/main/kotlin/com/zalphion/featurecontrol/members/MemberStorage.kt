@@ -36,7 +36,7 @@ data class StoredMember(
     val userId: UserId,
     val invitedBy: UserId?,
     val invitationExpiresOn: Instant?,
-    val extensions: Extensions
+    val extensions: Extensions = emptyMap() // TODO for back-compat; remove later
 )
 
 @JsonSerializable
