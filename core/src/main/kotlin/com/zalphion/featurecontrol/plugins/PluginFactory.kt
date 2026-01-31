@@ -15,3 +15,7 @@ abstract class PluginFactory<P: Plugin>(
 
     fun create(core: Core) = createInternal(core).also(onCreate)
 }
+
+fun <P: Plugin> P.toFactory(onInit: (P) -> Unit = {}) = object: PluginFactory<P>() {
+    override fun createInternal(core: Core) = this@toFactory.also(onInit)
+}

@@ -56,11 +56,9 @@ abstract class CoreTestDriver(
         plugins = listOf(
             *plugins.toTypedArray(),
             Plugin.webjars(),
-            object: PluginFactory<Plugin>() {
-                override fun createInternal(core: Core) = object : Plugin {
-                    override fun getEntitlements(teamId: TeamId) = entitlements[teamId].orEmpty()
-                }
-            },
+            object : Plugin {
+                override fun getEntitlements(teamId: TeamId) = entitlements[teamId].orEmpty()
+            }.toFactory()
         ),
         eventBusFn = ::localEventBus
     )

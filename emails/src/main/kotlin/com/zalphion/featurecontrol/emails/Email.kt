@@ -1,11 +1,10 @@
 package com.zalphion.featurecontrol.emails
 
-import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.AppError
 import com.zalphion.featurecontrol.events.Event
 import com.zalphion.featurecontrol.events.MemberCreatedEvent
 import com.zalphion.featurecontrol.plugins.Plugin
-import com.zalphion.featurecontrol.plugins.PluginFactory
+import com.zalphion.featurecontrol.plugins.toFactory
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asSuccess
 import dev.forkhandles.result4k.map
@@ -15,9 +14,7 @@ fun Plugin.Companion.email(
     emails: EmailSender,
     loginUri: Uri,
     onInit: (Email) -> Unit = {}
-) = object: PluginFactory<Email>(onCreate = onInit) {
-    override fun createInternal(core: Core) = Email(emails, loginUri)
-}
+) = Email(emails, loginUri).toFactory(onInit)
 
 class Email internal constructor(
     val emails: EmailSender,
