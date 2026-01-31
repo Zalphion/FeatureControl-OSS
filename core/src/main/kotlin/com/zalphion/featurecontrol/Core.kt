@@ -195,7 +195,7 @@ class Core internal constructor(
         createCoreConfigEnvironmentDataLens(json).toContainer()
     ))
 
-    val render = ComponentRegistry(pluginFactories.flatMap { it.componentExports(this) + listOf(
+    val render: ComponentRegistry = ComponentRegistry(pluginFactories.flatMap { it.componentExports(this) + listOf(
         TeamsComponent.core().toContainer(),
         MembersComponent.core().toContainer(),
         InviteMemberModalComponent.core().toContainer(),

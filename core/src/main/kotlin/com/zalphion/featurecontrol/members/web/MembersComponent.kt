@@ -1,6 +1,5 @@
 package com.zalphion.featurecontrol.members.web
 
-import com.zalphion.featurecontrol.auth.Entitlements
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
