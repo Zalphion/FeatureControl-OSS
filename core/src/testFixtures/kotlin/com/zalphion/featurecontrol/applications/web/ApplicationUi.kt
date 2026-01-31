@@ -5,7 +5,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppName
-import com.zalphion.featurecontrol.config.web.ConfigSpecPageUi
+import com.zalphion.featurecontrol.config.web.ConfigSpecPage
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.web.FeatureCreateUI
 import com.zalphion.featurecontrol.features.web.FeaturePageUi
@@ -14,7 +14,7 @@ import com.zalphion.featurecontrol.web.getModal
 import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 
-class ApplicationComponent(private val section: Locator) {
+class ApplicationUi(private val section: Locator) {
 
     init {
         assertThat(section).isVisible()
@@ -42,14 +42,14 @@ class ApplicationComponent(private val section: Locator) {
         return FeaturePageUi(section.page()).also(block)
     }
 
-    fun config(block: (ConfigSpecPageUi) -> Unit = {}): ConfigSpecPageUi {
+    fun config(block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
         section
             .getByRole(AriaRole.LINK)
             .filter(Locator.FilterOptions().setHasText("Config"))
             .first()
             .click()
 
-        return ConfigSpecPageUi(section.page()).also(block)
+        return ConfigSpecPage(section.page()).also(block)
     }
 
     val features get() = section
@@ -67,11 +67,11 @@ class ApplicationComponent(private val section: Locator) {
         .takeIf { it.count() > 0 }
         ?.let { FeatureKey.parse(it.textContent().trim()) }
 
-    fun more(block: (ApplicationMenuComponent) -> Unit = {}): ApplicationMenuComponent {
+    fun more(block: (ApplicationMenuUi) -> Unit = {}): ApplicationMenuUi {
         section.getElement(AriaRole.BUTTON, "More Options").click()
-        return ApplicationMenuComponent(section, name).also(block)
+        return ApplicationMenuUi(section, name).also(block)
     }
 }
 
 fun Page.application() = getByRole(AriaRole.REGION, Page.GetByRoleOptions().setName("Application Details"))
-    .let(::ApplicationComponent)
+    .let(::ApplicationUi)

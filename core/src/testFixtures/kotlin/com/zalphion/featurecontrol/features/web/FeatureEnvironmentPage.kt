@@ -10,11 +10,13 @@ import com.zalphion.featurecontrol.applications.web.applicationsList
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.SubjectId
+import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.features.Weight
 import com.zalphion.featurecontrol.lib.toBiDiMapping
+import com.zalphion.featurecontrol.web.ModalUi
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.toInputProperty
-import com.zalphion.featurecontrol.web.toTagBuilderProperty
+import com.zalphion.featurecontrol.web.toListProperty
 import com.zalphion.featurecontrol.web.waitForAll
 
 private val urlRegex = ".*applications/([^/]+)/features/([^/]+)/environments/([^/]+).*".toRegex()
@@ -25,20 +27,21 @@ class FeatureEnvironmentPage(private val page: Page) {
         PlaywrightAssertions.assertThat(page).hasURL(urlRegex.toPattern())
     }
 
-    val appId = AppId.parse(urlRegex.find(page.url())!!.groupValues[1])
-    val featureKey = FeatureKey.parse(urlRegex.find(page.url())!!.groupValues[2])
-    val environment = EnvironmentName.parse(urlRegex.find(page.url())!!.groupValues[3])
+    val uriAppId = AppId.parse(urlRegex.find(page.url())!!.groupValues[1])
+    val uriFeatureKey = FeatureKey.parse(urlRegex.find(page.url())!!.groupValues[2])
+    val uriEnvironment = EnvironmentName.parse(urlRegex.find(page.url())!!.groupValues[3])
 
     val applications get() = page.applicationsList()
     val application get() = page.application()
-    val featureNav = FeatureNavComponent(page.getByRole(AriaRole.MAIN).getByRole(AriaRole.NAVIGATION), featureKey)
+    val featureNav = FeatureNavUi(page.getByRole(AriaRole.MAIN).getByRole(AriaRole.NAVIGATION), uriFeatureKey)
 
     val variants = page
         .getByRole(AriaRole.MAIN)
         .getByRole(AriaRole.TABLE)
         .locator("tbody tr")
         .waitForAll()
-        .map { VariantEnvironmentUI(it) }
+        .map { VariantEnvironmentUi(it) }
+        .associateBy { it.name }
 
     fun update(block: (FeatureEnvironmentPage) -> Unit): FeatureEnvironmentPage {
         page.getElement(AriaRole.BUTTON, "Update").click()
@@ -51,21 +54,30 @@ class FeatureEnvironmentPage(private val page: Page) {
     }
 }
 
-class VariantEnvironmentUI(private val locator: Locator) {
+class VariantEnvironmentUi(private val locator: Locator) {
 
     init {
         PlaywrightAssertions.assertThat(locator).isVisible()
     }
 
-    val variant get() = locator
+    val name get() = locator
         .getByRole(AriaRole.HEADING, Locator.GetByRoleOptions().setName("Variant"))
-        .textContent()
+        .let { Variant.parse(it.textContent().trim()) }
 
-    val weight by locator
-        .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Weight"))
+    var weight by locator
+        .getByRole(AriaRole.SPINBUTTON, Locator.GetByRoleOptions().setName("Weight"))
         .toInputProperty(Weight.toBiDiMapping())
 
-    val subjectIds = locator
-        .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Subject Ids"))
-        .toTagBuilderProperty(SubjectId.toBiDiMapping())
+    fun subjectIdsModal(block: (SubjectIdsModalUi) -> Unit) {
+        locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Subject IDs")).click()
+
+        locator.page().getByRole(AriaRole.DIALOG)
+            .let(::SubjectIdsModalUi)
+            .use(block)
+    }
+}
+
+class SubjectIdsModalUi(locator: Locator): ModalUi(locator) {
+
+    var subjectIds by locator.toListProperty(SubjectId.toBiDiMapping())
 }

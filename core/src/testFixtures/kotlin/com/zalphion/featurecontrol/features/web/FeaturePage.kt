@@ -5,7 +5,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppId
-import com.zalphion.featurecontrol.config.web.ConfigSpecPageUi
+import com.zalphion.featurecontrol.config.web.ConfigSpecPage
 import com.zalphion.featurecontrol.applications.web.application
 import com.zalphion.featurecontrol.applications.web.applicationsList
 import com.zalphion.featurecontrol.features.FeatureKey
@@ -30,7 +30,7 @@ class FeaturePageUi(private val page: Page) {
     val applications = page.applicationsList()
     val application = page.application()
 
-    val featureNav = FeatureNavComponent(main.getByRole(AriaRole.NAVIGATION), featureKey)
+    val featureNav = FeatureNavUi(main.getByRole(AriaRole.NAVIGATION), featureKey)
     val featureEdit = FeatureEditUi(main)
 
     fun update(block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
@@ -46,11 +46,11 @@ class FeaturePageUi(private val page: Page) {
 
 class FeatureMenuUi(private val section: Locator, private val key: FeatureKey) {
     fun delete(
-        block: (DeleteModalUi<FeatureKey, ConfigSpecPageUi>) -> Unit = {}
-    ): DeleteModalUi<FeatureKey, ConfigSpecPageUi> {
+        block: (DeleteModalUi<FeatureKey, ConfigSpecPage>) -> Unit = {}
+    ): DeleteModalUi<FeatureKey, ConfigSpecPage> {
         section.getElement(AriaRole.BUTTON, "Delete Feature").click()
 
         val deleteModal = section.page().getModal("Delete $key")
-        return DeleteModalUi(deleteModal, FeatureKey, ::ConfigSpecPageUi).also(block)
+        return DeleteModalUi(deleteModal, FeatureKey, ::ConfigSpecPage).also(block)
     }
 }

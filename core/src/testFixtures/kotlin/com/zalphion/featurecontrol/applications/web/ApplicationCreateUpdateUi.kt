@@ -7,7 +7,7 @@ import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.lib.Colour
 import com.zalphion.featurecontrol.web.getElement
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import com.zalphion.featurecontrol.config.web.ConfigSpecPageUi
+import com.zalphion.featurecontrol.config.web.ConfigSpecPage
 import com.zalphion.featurecontrol.web.waitForAll
 
 class ApplicationCreateUpdateUi private constructor(
@@ -44,9 +44,9 @@ class ApplicationCreateUpdateUi private constructor(
         return ProjectEnvironmentUi(row).also(block)
     }
 
-    fun submit(block: (ConfigSpecPageUi) -> Unit = {}): ConfigSpecPageUi {
+    fun submit(block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
         modal.getElement(AriaRole.BUTTON, submitButtonLabel).click()
-        return ConfigSpecPageUi(modal.page()).also(block)
+        return ConfigSpecPage(modal.page()).also(block)
     }
 }
 

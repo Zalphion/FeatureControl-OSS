@@ -1,14 +1,19 @@
 package com.zalphion.featurecontrol.web
 
 import com.microsoft.playwright.Locator
+import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import org.http4k.lens.BiDiMapping
 import kotlin.reflect.KProperty
 
-class TagBuilderLocatorProperty<T: Any>(
+class ListLocatorProperty<T: Any>(
     private val locator: Locator,
     private val mapping: BiDiMapping<String, T>
 ) {
+    init {
+        PlaywrightAssertions.assertThat(locator).isVisible()
+    }
+
     operator fun getValue(thisRef: Any?, property: KProperty<*>): List<T> {
         return locator.getByRole(AriaRole.LISTITEM)
             .waitForAll()
@@ -17,7 +22,7 @@ class TagBuilderLocatorProperty<T: Any>(
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: List<T>?) {
         // remove existing tags
-        locator.getByRole(AriaRole.LIST)
+        locator.getByRole(AriaRole.LISTITEM)
             .getByRole(AriaRole.BUTTON)
             .waitForAll()
             .forEach { it.click() }
@@ -30,4 +35,4 @@ class TagBuilderLocatorProperty<T: Any>(
     }
 }
 
-fun <T: Any> Locator.toTagBuilderProperty(mapping: BiDiMapping<String, T>) = TagBuilderLocatorProperty(this, mapping)
+fun <T: Any> Locator.toListProperty(mapping: BiDiMapping<String, T>) = ListLocatorProperty(this, mapping)

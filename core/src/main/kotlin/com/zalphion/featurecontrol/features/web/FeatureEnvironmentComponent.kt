@@ -9,6 +9,7 @@ import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.TableElementSchema
+import com.zalphion.featurecontrol.web.listBuilderModal
 import com.zalphion.featurecontrol.web.tableForm
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
@@ -31,6 +32,15 @@ class FeatureEnvironmentComponent(
             flow.form(method = FormMethod.post) {
                 extraInputs(data)
 
+                val subjectIdsModalId = "subject-ids-modal"
+                val subjectIdsEventId = "subject-ids-event"
+                listBuilderModal(
+                    label = "Subject ID",
+                    modalId = subjectIdsModalId,
+                    eventId = subjectIdsEventId,
+                    placeholderText = "Add Subject ID",
+                )
+
                 tableForm(
                     inputName = "variants",
                     rowAriaLabel = null,
@@ -48,14 +58,16 @@ class FeatureEnvironmentComponent(
                             placeholder = "e.g. 50",
                             headerClasses = "uk-width-small",
                         ),
-                        TableElementSchema.Tags(
+                        TableElementSchema.Modal(
                             label = "Subject IDs",
                             key = "subjectIds",
-                            headerClasses = "uk-width-medium"
+                            headerClasses = "uk-width-small",
+                            modalId = subjectIdsModalId,
+                            dispatchEventId = subjectIdsEventId
                         )
                     ) + extraTableSchema,
                     elements = data.feature.variants.keys.map { variant -> data.environment.toDto(variant) },
-                    mapper = core.json.asBiDiMapping(),
+                    mapper = core.json.asBiDiMapping()
                 )
 
                 updateResetButtons("Update", data.feature.uri(data.environmentName))

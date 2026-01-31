@@ -9,7 +9,9 @@ class InputLocatorProperty<T>(
     private val mapping: BiDiMapping<String, T>
 ) {
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T? {
-        return mapping(locator.inputValue())
+        return locator.inputValue()
+            .takeIf { it.isNotEmpty() }
+            ?.let(mapping::invoke)
     }
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {

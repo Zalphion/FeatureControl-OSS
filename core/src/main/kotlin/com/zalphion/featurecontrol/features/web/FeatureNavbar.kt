@@ -4,7 +4,7 @@ import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.web.deleteModal
-import com.zalphion.featurecontrol.web.modalButton
+import com.zalphion.featurecontrol.web.modalTextButton
 import com.zalphion.featurecontrol.web.moreMenu
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
@@ -51,7 +51,7 @@ fun FlowContent.featureNavbar(
                     moreMenu(feature.key) { dropdownId ->
                         li {
                             val deleteModalId = deleteModal(feature.key.value, feature.uri())
-                            modalButton(
+                            modalTextButton(
                                 label = "Delete Feature",
                                 icon = "icon: trash",
                                 modalId = deleteModalId,
@@ -68,15 +68,27 @@ fun FlowContent.featureNavbar(
 
     ul("uk-subnav uk-subnav-pill uk-margin-remove-top") {
         li {
-            if (selected == null) classes + "uk-active"
+            if (selected == null) {
+                classes += "uk-active"
+            }
+
             a(feature.uri().toString()) {
+                if (selected == null) {
+                    attributes["aria-current"] = "page"
+                }
                 +"General"
             }
         }
         for (environment in application.environments) {
             li {
-                if (selected == environment) classes + "uk-active"
+                if (selected == environment.name) {
+                    classes += "uk-active"
+                }
+
                 a(feature.uri(environment.name).toString()) {
+                    if (selected == environment.name) {
+                        attributes["aria-current"] = "page"
+                    }
                     +environment.name.value
                 }
             }

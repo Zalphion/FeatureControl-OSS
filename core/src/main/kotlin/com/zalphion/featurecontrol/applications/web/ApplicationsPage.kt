@@ -11,7 +11,7 @@ import com.zalphion.featurecontrol.web.NavBar
 import com.zalphion.featurecontrol.web.PageSpec
 import com.zalphion.featurecontrol.web.deleteModal
 import com.zalphion.featurecontrol.web.modalIconButton
-import com.zalphion.featurecontrol.web.modalButton
+import com.zalphion.featurecontrol.web.modalTextButton
 import com.zalphion.featurecontrol.web.moreMenu
 import com.zalphion.featurecontrol.web.navbar
 import com.zalphion.featurecontrol.web.pageSkeleton
@@ -314,7 +314,7 @@ private fun FlowContent.applicationNavBar(
                         li {
                             val updateModalId = "application_update_${application.appId}"
                             core.render(this, UpdateApplicationModalComponent(application, updateModalId))
-                            modalButton(
+                            modalTextButton(
                                 label = "Update Application",
                                 modalId = updateModalId,
                                 icon = "icon: file-edit",
@@ -322,7 +322,7 @@ private fun FlowContent.applicationNavBar(
                         }
                         li {
                             val deleteModalId = deleteModal(application.appName.value, application.uri())
-                            modalButton(
+                            modalTextButton(
                                 label = "Delete Application",
                                 icon = "icon: trash",
                                 modalId = deleteModalId,

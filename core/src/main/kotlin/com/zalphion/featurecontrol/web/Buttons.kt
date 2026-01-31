@@ -20,7 +20,9 @@ fun FlowContent.modalIconButton(
     attrs: BUTTON.() -> Unit = {}
 ) {
     button(type = ButtonType.button, classes = "uk-icon-button uk-button-default") {
+        attributes["aria-haspopup"] = "dialog"
         attrs()
+
         attributes["uk-tooltip"] = tooltip
         attributes["aria-label"] = tooltip // icon-only means we need an assistive label
         onClick = "${if (dropdownToCloseId == null) "" else "UIkit.dropdown('#$dropdownToCloseId').hide(true); "}UIkit.modal('#$modalId').show()"
@@ -30,15 +32,18 @@ fun FlowContent.modalIconButton(
     }
 }
 
-fun FlowContent.modalButton(
+fun FlowContent.modalTextButton(
     label: String,
+    classes: String = "uk-button uk-button-text uk-text-muted uk-margin-xsmall",
     modalId: String,
     icon: String? = null,
     dropdownToCloseId: String? = null,  // dropdown to close when clicked
     attrs: BUTTON.() -> Unit = {}
 ) {
-    button(type = ButtonType.button, classes = "uk-button uk-button-text uk-text-muted uk-margin-xsmall") {
+    button(type = ButtonType.button, classes = classes) {
+        attributes["aria-haspopup"] = "dialog"
         attrs()
+
         onClick = "${if (dropdownToCloseId == null) "" else "UIkit.dropdown('#$dropdownToCloseId').hide(true); "}UIkit.modal('#$modalId').show()"
         if (icon != null) {
             span("uk-margin-small-right") {

@@ -8,7 +8,6 @@ import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.web.toCheckboxProperty
 import com.zalphion.featurecontrol.web.toInputProperty
 import com.zalphion.featurecontrol.web.waitForAll
-import org.http4k.lens.StringBiDiMappings
 
 class FeatureEditUi(private val section: Locator) {
 

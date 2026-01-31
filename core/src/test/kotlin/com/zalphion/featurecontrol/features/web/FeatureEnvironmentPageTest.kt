@@ -22,6 +22,9 @@ import com.zalphion.featurecontrol.web.asUser
 import com.zalphion.featurecontrol.web.playwright
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -76,5 +79,101 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
             .applications.select(app.appName)
             .application.select(emptyFeature.key)
             .featureNav.environments.shouldBeEmpty()
+    }
+
+    @Test
+    fun `show environment`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user)
+            .applications.select(app.appName)
+            .application.select(feature.key)
+            .featureNav.select(devName) { page ->
+                page.uriEnvironment shouldBe devName
+                page.featureNav.selected shouldBe devName
+                page.variants.keys.shouldContainExactlyInAnyOrder(old, new)
+
+                page.variants[old].shouldNotBeNull().also { variant ->
+                    variant.name shouldBe old
+                    variant.weight shouldBe null
+                    variant.subjectIdsModal {
+                        it.subjectIds.shouldBeEmpty()
+                    }
+                }
+
+                page.variants[new].shouldNotBeNull().also { variant ->
+                    variant.name shouldBe new
+                    variant.weight shouldBe Weight.of(1)
+                    variant.subjectIdsModal {
+                        it.subjectIds.shouldBeEmpty()
+                    }
+                }
+            }.featureNav.select(prodName) { page ->
+                page.uriEnvironment shouldBe prodName
+                page.featureNav.selected shouldBe prodName
+                page.variants.keys.shouldContainExactlyInAnyOrder(old, new)
+
+                page.variants[old].shouldNotBeNull().also { variant ->
+                    variant.name shouldBe old
+                    variant.weight shouldBe Weight.of(1)
+                    variant.subjectIdsModal {
+                        it.subjectIds.shouldContainExactlyInAnyOrder(subject1)
+                    }
+                }
+
+                page.variants[new].shouldNotBeNull().also { variant ->
+                    variant.name shouldBe new
+                    variant.weight shouldBe Weight.of(2)
+                    variant.subjectIdsModal {
+                        it.subjectIds.shouldContainExactlyInAnyOrder(subject2)
+                    }
+                }
+            }
+    }
+
+    @Test
+    fun `update environment`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user)
+            .applications.select(app.appName)
+            .application.select(feature.key)
+            .featureNav.select(devName) { page ->
+                page.variants[old].shouldNotBeNull().also { variant ->
+                    variant.name shouldBe old
+                    variant.weight = Weight.of(9001)
+                    variant.subjectIdsModal { modal ->
+                        modal.subjectIds = listOf(subject1, subject2)
+                    }
+                }
+            }.update { result ->
+                result.featureNav.selected shouldBe devName
+                result.variants[old].shouldNotBeNull().also { variant ->
+                    variant.name shouldBe old
+                    variant.weight shouldBe Weight.of(9001)
+                    variant.subjectIdsModal { modal ->
+                        modal.subjectIds.shouldContainExactlyInAnyOrder(subject1, subject2)
+                    }
+                }
+            }
+    }
+
+    @Test
+    fun `reset environment`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user)
+            .applications.select(app.appName)
+            .application.select(feature.key)
+            .featureNav.select(prodName) { page ->
+                page.variants[old].shouldNotBeNull().also { variant ->
+                    variant.weight = Weight.of(9001)
+                    variant.subjectIdsModal { modal ->
+                        modal.subjectIds = listOf(subject1, subject2)
+                    }
+                }
+            }.reset { result ->
+                result.featureNav.selected shouldBe prodName
+                result.variants[old].shouldNotBeNull().also { variant ->
+                    variant.weight shouldBe Weight.of(1)
+                    variant.subjectIdsModal { modal ->
+                        modal.subjectIds.shouldContainExactlyInAnyOrder(subject1)
+                    }
+                }
+            }
     }
 }

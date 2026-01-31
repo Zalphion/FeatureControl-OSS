@@ -11,7 +11,7 @@ import com.zalphion.featurecontrol.web.waitForAll
 
 private val urlRegex = ".*/applications/([^/]+)/config.*".toRegex()
 
-class ConfigSpecPageUi(private val page: Page) {
+class ConfigSpecPage(private val page: Page) {
 
     init {
         assertThat(page).hasURL(urlRegex.toPattern())
@@ -33,18 +33,18 @@ class ConfigSpecPageUi(private val page: Page) {
         return properties.last().also(block)
     }
 
-    fun update(block: (ConfigSpecPageUi) -> Unit = {}): ConfigSpecPageUi {
+    fun update(block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
         page.getByRole(AriaRole.MAIN)
             .getElement(AriaRole.BUTTON, "Update")
             .click()
-        return ConfigSpecPageUi(page).also(block)
+        return ConfigSpecPage(page).also(block)
     }
 
-    fun reset(block: (ConfigSpecPageUi) -> Unit = {}): ConfigSpecPageUi {
+    fun reset(block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
         page.getByRole(AriaRole.MAIN)
             .getElement(AriaRole.BUTTON, "Reset")
             .click()
 
-        return ConfigSpecPageUi(page).also(block)
+        return ConfigSpecPage(page).also(block)
     }
 }

@@ -8,7 +8,7 @@ import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.NavBar
 import com.zalphion.featurecontrol.web.PageLink
 import com.zalphion.featurecontrol.web.PageSpec
-import com.zalphion.featurecontrol.web.modalButton
+import com.zalphion.featurecontrol.web.modalTextButton
 import com.zalphion.featurecontrol.web.invitationsUri
 import com.zalphion.featurecontrol.web.membersUri
 import com.zalphion.featurecontrol.web.moreMenu
@@ -108,7 +108,7 @@ private fun FlowContent.teamNavBar(team: Team) {
                     moreMenu(team.teamId) { dropdownId ->
                         li {
                             val updateModalId = createUpdateTeamModal(team)
-                            modalButton(
+                            modalTextButton(
                                 label = "Rename",
                                 icon = "icon: file-edit",
                                 modalId = updateModalId,

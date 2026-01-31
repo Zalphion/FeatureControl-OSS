@@ -11,11 +11,7 @@ class DeleteModalUi<Name: StringValue, UI: Any>(
     private val modal: Locator,
     private val nameFactory: StringValueFactory<Name>,
     private val newPage: (Page) -> UI
-) {
-
-    init {
-        assertThat(modal).isVisible()
-    }
+): ModalUi(modal) {
 
     val name: Name = modal
         .getByRole(AriaRole.HEADING, Locator.GetByRoleOptions().setLevel(2))

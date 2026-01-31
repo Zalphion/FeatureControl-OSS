@@ -65,3 +65,8 @@ inline fun TEMPLATE.tr(classes : String? = null, crossinline block : TR.() -> Un
 inline fun TEMPLATE.li(classes : String? = null, crossinline block : LI.() -> Unit = {}) {
     LI(attributesMapOf("class", classes), consumer).visit(block)
 }
+
+data class AlpineEvent(
+    val eventId: String,
+    val dataKey: String
+)

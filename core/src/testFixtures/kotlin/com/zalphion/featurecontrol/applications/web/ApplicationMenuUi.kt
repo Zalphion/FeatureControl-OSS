@@ -7,7 +7,7 @@ import com.zalphion.featurecontrol.web.DeleteModalUi
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.getModal
 
-class ApplicationMenuComponent(private val section: Locator, private val appName: AppName) {
+class ApplicationMenuUi(private val section: Locator, private val appName: AppName) {
 
     fun update(block: (ApplicationCreateUpdateUi) -> Unit = {}): ApplicationCreateUpdateUi {
         section.getElement(AriaRole.BUTTON, "Update Application").click()

@@ -7,8 +7,9 @@ import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.waitForAll
+import io.kotest.matchers.shouldBe
 
-class FeatureNavComponent(private val locator: Locator, private val featureKey: FeatureKey) {
+class FeatureNavUi(private val locator: Locator, private val featureKey: FeatureKey) {
 
     init {
         PlaywrightAssertions.assertThat(locator).isVisible()
@@ -19,7 +20,13 @@ class FeatureNavComponent(private val locator: Locator, private val featureKey: 
         .getByRole(AriaRole.LINK)
         .filter(Locator.FilterOptions().setHasNotText("General"))
         .waitForAll()
-        .map { EnvironmentName.parse(it.innerText().trim()) }
+        .map { EnvironmentName.parse(it.textContent().trim()) }
+
+    val selected: EnvironmentName? get() = locator
+        .locator("a[aria-current='page']")
+        .first()
+        .takeIf { it.count() > 0 }
+        ?.let { EnvironmentName.parse(it.textContent().trim()) }
 
     fun selectGeneral(block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName("General")).click()
@@ -28,7 +35,10 @@ class FeatureNavComponent(private val locator: Locator, private val featureKey: 
 
     fun select(environment: EnvironmentName, block: (FeatureEnvironmentPage) -> Unit = {}): FeatureEnvironmentPage {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName(environment.value)).click()
-        return FeatureEnvironmentPage(locator.page()).also(block)
+        return FeatureEnvironmentPage(locator.page())
+            .also { it.uriEnvironment shouldBe environment }
+            .also { it.featureNav.selected shouldBe environment }
+            .also(block)
     }
 
     fun more(block: (FeatureMenuUi) -> Unit = {}): FeatureMenuUi {

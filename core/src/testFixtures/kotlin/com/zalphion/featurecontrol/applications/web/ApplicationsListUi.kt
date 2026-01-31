@@ -6,19 +6,19 @@ import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.web.getElement
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import com.zalphion.featurecontrol.config.web.ConfigSpecPageUi
+import com.zalphion.featurecontrol.config.web.ConfigSpecPage
 import com.zalphion.featurecontrol.web.getModal
 import com.zalphion.featurecontrol.web.waitForAll
 
-open class ApplicationsListComponent(private val section: Locator) {
+open class ApplicationsListUi(private val section: Locator) {
 
     init {
         assertThat(section.getByRole(AriaRole.HEADING, Locator.GetByRoleOptions().setLevel(2))).isVisible()
     }
 
-    fun select(appName: AppName, block: (ConfigSpecPageUi) -> Unit = {}): ConfigSpecPageUi {
+    fun select(appName: AppName, block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
         section.getElement(AriaRole.LINK, appName.value).click()
-        return ConfigSpecPageUi(section.page()).also(block)
+        return ConfigSpecPage(section.page()).also(block)
     }
 
     fun new(block: (ApplicationCreateUpdateUi) -> Unit): ApplicationCreateUpdateUi {
@@ -44,7 +44,7 @@ open class ApplicationsListComponent(private val section: Locator) {
         ?.let(AppName::parse)
 }
 
-fun Page.applicationsList(): ApplicationsListComponent {
+fun Page.applicationsList(): ApplicationsListUi {
     val section = getByRole(AriaRole.COMPLEMENTARY, Page.GetByRoleOptions().setName("Applications Bar"))
-    return ApplicationsListComponent(section)
+    return ApplicationsListUi(section)
 }

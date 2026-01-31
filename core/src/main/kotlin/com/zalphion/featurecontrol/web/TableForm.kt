@@ -7,7 +7,6 @@ import kotlinx.html.InputType
 import kotlinx.html.button
 import kotlinx.html.classes
 import kotlinx.html.div
-import kotlinx.html.h3
 import kotlinx.html.h5
 import kotlinx.html.input
 import kotlinx.html.option
@@ -126,18 +125,26 @@ interface TableElementSchema {
         }
     }
 
-    data class Tags(
+    data class Modal(
         override val label: String,
         override val key: String?,
+        val modalId: String,
+        val dispatchEventId: String,
         override val headerClasses: String? = null,
         override val headerStyles: Map<String, String>? = null,
     ): TableElementSchema {
-        override val default = null
+        override val default = ""
 
-        override fun renderInternal(flow: FlowContent, block: (HTMLTag) -> Unit) = flow.tagBuilder(
-            key = if (key == null) "element" else "element.$key",
-            prompt = label
-        )
+        override fun renderInternal(flow: FlowContent, block: (HTMLTag) -> Unit) {
+            flow.button(type = ButtonType.button, classes = "uk-button uk-button-default") {
+                val fullKey = if (key == null) "element" else "element.$key"
+
+                attributes["aria-haspopup"] = "dialog"
+                attributes["aria-label"] = label
+                attributes["x-text"] = $$"`$$label (${$$fullKey.length})`"
+                onClick($$"$dispatch('$$dispatchEventId', $$fullKey); $nextTick(() => UIkit.modal('#$$modalId').show())")
+            }
+        }
     }
 }
 
@@ -192,6 +199,13 @@ fun <Element: Any> FlowContent.tableForm(
                                 attributes["aria-label"] = "Remove $rowAriaLabel"
                                 attributes["uk-icon"] = "trash"
                                 onClick("$inputName.splice(index, 1)")
+                            }
+                        }
+                    }
+                    if (debug) {
+                        td {
+                            p {
+                                attributes["x-text"] = "JSON.stringify(element, null, 2)"
                             }
                         }
                     }
