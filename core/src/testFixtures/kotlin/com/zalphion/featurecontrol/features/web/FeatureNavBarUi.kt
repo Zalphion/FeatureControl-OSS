@@ -9,13 +9,13 @@ import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.shouldBe
 
-class FeatureNavUi(private val locator: Locator, private val featureKey: FeatureKey) {
+class FeatureNavBarUi(private val locator: Locator, private val featureKey: FeatureKey) {
 
     init {
         PlaywrightAssertions.assertThat(locator).isVisible()
     }
 
-    val environments get() = locator
+    val options get() = locator
         .locator("uk-subnav")
         .getByRole(AriaRole.LINK)
         .filter(Locator.FilterOptions().setHasNotText("General"))
@@ -28,16 +28,16 @@ class FeatureNavUi(private val locator: Locator, private val featureKey: Feature
         .takeIf { it.count() > 0 }
         ?.let { EnvironmentName.parse(it.textContent().trim()) }
 
-    fun selectGeneral(block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
+    fun selectGeneral(block: (FeaturePage) -> Unit = {}): FeaturePage {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName("General")).click()
-        return FeaturePageUi(locator.page()).also(block)
+        return FeaturePage(locator.page()).also(block)
     }
 
     fun select(environment: EnvironmentName, block: (FeatureEnvironmentPage) -> Unit = {}): FeatureEnvironmentPage {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName(environment.value)).click()
         return FeatureEnvironmentPage(locator.page())
             .also { it.uriEnvironment shouldBe environment }
-            .also { it.featureNav.selected shouldBe environment }
+            .also { it.environments.selected shouldBe environment }
             .also(block)
     }
 

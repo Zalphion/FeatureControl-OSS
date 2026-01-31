@@ -6,6 +6,7 @@ import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.web.deleteModal
 import com.zalphion.featurecontrol.web.modalTextButton
 import com.zalphion.featurecontrol.web.moreMenu
+import com.zalphion.featurecontrol.web.subNavLinks
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.a
@@ -66,32 +67,11 @@ fun FlowContent.featureNavbar(
         }
     }
 
-    ul("uk-subnav uk-subnav-pill uk-margin-remove-top") {
-        li {
-            if (selected == null) {
-                classes += "uk-active"
-            }
-
-            a(feature.uri().toString()) {
-                if (selected == null) {
-                    attributes["aria-current"] = "page"
-                }
-                +"General"
-            }
-        }
-        for (environment in application.environments) {
-            li {
-                if (selected == environment.name) {
-                    classes += "uk-active"
-                }
-
-                a(feature.uri(environment.name).toString()) {
-                    if (selected == environment.name) {
-                        attributes["aria-current"] = "page"
-                    }
-                    +environment.name.value
-                }
-            }
-        }
-    }
+    subNavLinks(
+        options = listOf(
+            "General" to feature.uri(),
+            *application.environments.map { it.name.value to feature.uri(it.name) }.toTypedArray()
+        ),
+        selected = selected?.value ?: "General"
+    )
 }

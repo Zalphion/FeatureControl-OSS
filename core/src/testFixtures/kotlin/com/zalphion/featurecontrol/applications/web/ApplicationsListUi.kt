@@ -9,6 +9,7 @@ import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.zalphion.featurecontrol.config.web.ConfigSpecPage
 import com.zalphion.featurecontrol.web.getModal
 import com.zalphion.featurecontrol.web.waitForAll
+import io.kotest.matchers.shouldBe
 
 open class ApplicationsListUi(private val section: Locator) {
 
@@ -18,7 +19,9 @@ open class ApplicationsListUi(private val section: Locator) {
 
     fun select(appName: AppName, block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
         section.getElement(AriaRole.LINK, appName.value).click()
-        return ConfigSpecPage(section.page()).also(block)
+        return ConfigSpecPage(section.page())
+            .also { it.application.name shouldBe appName }
+            .also(block)
     }
 
     fun new(block: (ApplicationCreateUpdateUi) -> Unit): ApplicationCreateUpdateUi {

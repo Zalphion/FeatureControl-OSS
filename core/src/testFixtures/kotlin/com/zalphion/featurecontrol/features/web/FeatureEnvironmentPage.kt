@@ -33,7 +33,7 @@ class FeatureEnvironmentPage(private val page: Page) {
 
     val applications get() = page.applicationsList()
     val application get() = page.application()
-    val featureNav = FeatureNavUi(page.getByRole(AriaRole.MAIN).getByRole(AriaRole.NAVIGATION), uriFeatureKey)
+    val environments = FeatureNavBarUi(page.getByRole(AriaRole.MAIN).getByRole(AriaRole.NAVIGATION), uriFeatureKey)
 
     val variants = page
         .getByRole(AriaRole.MAIN)

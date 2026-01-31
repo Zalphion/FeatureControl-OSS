@@ -10,8 +10,6 @@ data class Property(
     val type: PropertyType,
 )
 
-fun Property.toValue(value: String) = PropertyValue(type, value)
-
 class PropertyKey private constructor(value: String): StringValue(value), ComparableValue<PropertyKey, String> {
     companion object: StringValueFactory<PropertyKey>(::PropertyKey, keyValidation)
 }

@@ -78,7 +78,7 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(emptyFeature.key)
-            .featureNav.environments.shouldBeEmpty()
+            .environments.options.shouldBeEmpty()
     }
 
     @Test
@@ -86,9 +86,9 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(feature.key)
-            .featureNav.select(devName) { page ->
+            .environments.select(devName) { page ->
                 page.uriEnvironment shouldBe devName
-                page.featureNav.selected shouldBe devName
+                page.environments.selected shouldBe devName
                 page.variants.keys.shouldContainExactlyInAnyOrder(old, new)
 
                 page.variants[old].shouldNotBeNull().also { variant ->
@@ -106,9 +106,9 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
                         it.subjectIds.shouldBeEmpty()
                     }
                 }
-            }.featureNav.select(prodName) { page ->
+            }.environments.select(prodName) { page ->
                 page.uriEnvironment shouldBe prodName
-                page.featureNav.selected shouldBe prodName
+                page.environments.selected shouldBe prodName
                 page.variants.keys.shouldContainExactlyInAnyOrder(old, new)
 
                 page.variants[old].shouldNotBeNull().also { variant ->
@@ -134,7 +134,7 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(feature.key)
-            .featureNav.select(devName) { page ->
+            .environments.select(devName) { page ->
                 page.variants[old].shouldNotBeNull().also { variant ->
                     variant.name shouldBe old
                     variant.weight = Weight.of(9001)
@@ -143,7 +143,7 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
                     }
                 }
             }.update { result ->
-                result.featureNav.selected shouldBe devName
+                result.environments.selected shouldBe devName
                 result.variants[old].shouldNotBeNull().also { variant ->
                     variant.name shouldBe old
                     variant.weight shouldBe Weight.of(9001)
@@ -159,7 +159,7 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(feature.key)
-            .featureNav.select(prodName) { page ->
+            .environments.select(prodName) { page ->
                 page.variants[old].shouldNotBeNull().also { variant ->
                     variant.weight = Weight.of(9001)
                     variant.subjectIdsModal { modal ->
@@ -167,7 +167,7 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
                     }
                 }
             }.reset { result ->
-                result.featureNav.selected shouldBe prodName
+                result.environments.selected shouldBe prodName
                 result.variants[old].shouldNotBeNull().also { variant ->
                     variant.weight shouldBe Weight.of(1)
                     variant.subjectIdsModal { modal ->

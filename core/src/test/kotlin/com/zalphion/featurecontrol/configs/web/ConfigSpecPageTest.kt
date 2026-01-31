@@ -7,15 +7,21 @@ import com.zalphion.featurecontrol.configs.ConfigSpec
 import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.create
 import com.zalphion.featurecontrol.createApplication
+import com.zalphion.featurecontrol.dev
+import com.zalphion.featurecontrol.devName
 import com.zalphion.featurecontrol.idp1Email1
 import com.zalphion.featurecontrol.numberProperty
+import com.zalphion.featurecontrol.prod
+import com.zalphion.featurecontrol.prodName
 import com.zalphion.featurecontrol.secretProperty
 import com.zalphion.featurecontrol.strProperty
 import com.zalphion.featurecontrol.web.asUser
 import com.zalphion.featurecontrol.web.playwright
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Test
@@ -27,13 +33,20 @@ class ConfigSpecPageTest: CoreTestDriver() {
     val playwright = playwright()
 
     private val member = users.create(idp1Email1).shouldBeSuccess()
-    private val app = createApplication(member, appName1)
+    private val app = createApplication(
+        principal = member,
+        appName = appName1,
+        environments = listOf(dev, prod)
+    )
 
     @Test
     fun `no properties`(browser: Http4kBrowser) {
         browser.asUser(core, member.user)
-            .applications.select(app.appName)
-            .properties.shouldBeEmpty()
+            .applications.select(app.appName) { page ->
+                page.environments.options.shouldContainExactly(devName, prodName)
+                page.environments.selected.shouldBeNull()
+                page.properties.shouldBeEmpty()
+            }
     }
 
     @Test

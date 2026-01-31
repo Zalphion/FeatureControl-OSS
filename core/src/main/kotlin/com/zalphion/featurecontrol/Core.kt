@@ -26,6 +26,7 @@ import com.zalphion.featurecontrol.configs.ConfigStorage
 import com.zalphion.featurecontrol.configs.dto.createCoreConfigEnvironmentDataLens
 import com.zalphion.featurecontrol.configs.dto.createCoreConfigSpecDataLens
 import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentComponent
+import com.zalphion.featurecontrol.configs.web.ConfigNavBarComponent
 import com.zalphion.featurecontrol.configs.web.ConfigSpecComponent
 import com.zalphion.featurecontrol.configs.web.httpGetConfigEnvironment
 import com.zalphion.featurecontrol.configs.web.httpGetConfigSpec
@@ -207,7 +208,8 @@ class Core internal constructor(
         ConfigEnvironmentComponent.core(this).toContainer(),
         ApplicationCardComponent.core().toContainer(),
         ConfigCardComponent.core().toContainer(),
-        FeatureCardComponent.core().toContainer()
+        FeatureCardComponent.core().toContainer(),
+        ConfigNavBarComponent.core().toContainer()
     )})
 
     private val plugins = pluginFactories.map { it.create(this) }

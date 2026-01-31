@@ -1,7 +1,6 @@
 package com.zalphion.featurecontrol.web
 
 import com.microsoft.playwright.Locator
-import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import org.http4k.lens.BiDiMapping
 import kotlin.reflect.KProperty
@@ -10,10 +9,6 @@ class ListLocatorProperty<T: Any>(
     private val locator: Locator,
     private val mapping: BiDiMapping<String, T>
 ) {
-    init {
-        PlaywrightAssertions.assertThat(locator).isVisible()
-    }
-
     operator fun getValue(thisRef: Any?, property: KProperty<*>): List<T> {
         return locator.getByRole(AriaRole.LISTITEM)
             .waitForAll()

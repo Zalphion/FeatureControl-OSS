@@ -16,7 +16,10 @@ import kotlinx.html.InputType
 import kotlinx.html.TD
 import kotlinx.html.div
 import kotlinx.html.form
+import kotlinx.html.h5
 import kotlinx.html.input
+import kotlinx.html.option
+import kotlinx.html.select
 import kotlinx.html.span
 import kotlinx.html.style
 import kotlinx.html.table
@@ -36,19 +39,25 @@ class ConfigEnvironmentComponent(
     companion object {
         fun core(
             core: Core,
-            navbar: FlowContent.(ConfigEnvironmentComponent) -> Unit = {},
             extraContent: FlowContent.(ConfigEnvironmentComponent) -> Unit = {}
         ) = Component<ConfigEnvironmentComponent> { flow, data ->
             val environment = data.environment
             val spec = data.spec
 
-            flow.navbar(data)
+            core.render(flow, ConfigNavBarComponent(data.application, data.environment))
 
-            // TODO tableForm
+            val dto = spec.properties.mapValues { (key, spec) ->
+                val rawValue = environment.values[key]
+                when(spec.type) {
+                    PropertyType.Secret -> if (rawValue == null) null else "********"
+                    else -> rawValue
+                }
+            }
+
             flow.form(environment.uri().toString(), method = FormMethod.post) {
                 // need to use the keys from the spec, because the environment may not have all the keys filled
                 attributes["x-data"] = """{
-                    values: ${spec.properties.mapValues { environment.values[it.key]?.value }.let(core.json::asFormatString)}
+                    values: ${core.json.asFormatString(dto)}
                 }""".trimIndent()
 
                 input(InputType.hidden, name = "values") {
@@ -67,7 +76,7 @@ class ConfigEnvironmentComponent(
                         for ((key, spec) in spec.properties.entries.sortedBy { it.key }) {
                             tr {
                                 td {
-                                    +key.value
+                                    h5 { +key.value }
                                     if (spec.description.isNotBlank()) {
                                         span("uk-margin-small-left") {
                                             style = "color: #03a9fc"
@@ -95,6 +104,7 @@ class ConfigEnvironmentComponent(
 private fun TD.valueInput(key: PropertyKey, type: PropertyType) {
     fun INPUT.configure() {
         attributes["x-model"] = "values['$key']"
+        attributes["aria-label"] = "Value"
         placeholder = "Value"
     }
 
@@ -102,8 +112,18 @@ private fun TD.valueInput(key: PropertyKey, type: PropertyType) {
         PropertyType.Number -> input(InputType.number, classes = "uk-input") {
             configure()
         }
-        PropertyType.Boolean -> input(InputType.checkBox, classes = "uk-checkbox") {
-            configure()
+        PropertyType.Boolean -> select("uk-select") {
+            attributes["x-model"] = "values['$key']"
+            attributes["aria-label"] = "Value"
+            option { }
+            option {
+                value = "true"
+                +"True"
+            }
+            option {
+                value = "false"
+                +"False"
+            }
         }
         PropertyType.String -> input(InputType.text, classes = "uk-input") {
             configure()

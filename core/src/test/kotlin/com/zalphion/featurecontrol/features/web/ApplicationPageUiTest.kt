@@ -66,7 +66,7 @@ class ApplicationPageUiTest: CoreTestDriver() {
                 page.applications.selected shouldBe appName1
 
                 page.application.name shouldBe appName1
-                createdId = page.appId
+                createdId = page.uriAppId
             }
         }
 
@@ -104,7 +104,7 @@ class ApplicationPageUiTest: CoreTestDriver() {
             page.applications.select(app1.appName) { page ->
                 page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
                 page.applications.selected shouldBe app1.appName
-                page.appId shouldBe app1.appId
+                page.uriAppId shouldBe app1.appId
                 page.application.name shouldBe app1.appName
             }
         }

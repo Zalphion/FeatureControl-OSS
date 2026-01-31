@@ -8,7 +8,7 @@ import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.config.web.ConfigSpecPage
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.web.FeatureCreateUI
-import com.zalphion.featurecontrol.features.web.FeaturePageUi
+import com.zalphion.featurecontrol.features.web.FeaturePage
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.getModal
 import com.zalphion.featurecontrol.web.waitForAll
@@ -29,7 +29,7 @@ class ApplicationUi(private val section: Locator) {
         return FeatureCreateUI(modal).also(block)
     }
 
-    fun select(featureKey: FeatureKey, block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
+    fun select(featureKey: FeatureKey, block: (FeaturePage) -> Unit = {}): FeaturePage {
         section
             .getByRole(AriaRole.LINK)
             .filter(Locator.FilterOptions().setHasText("Feature"))
@@ -39,7 +39,7 @@ class ApplicationUi(private val section: Locator) {
             .shouldNotBeNull()
             .click()
 
-        return FeaturePageUi(section.page()).also(block)
+        return FeaturePage(section.page()).also(block)
     }
 
     fun config(block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {

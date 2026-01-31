@@ -14,7 +14,7 @@ class SelectLocatorProperty<T>(
     }
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
-        val option = SelectOption().setLabel(value?.let(mapping::invoke) ?: "")
+        val option = SelectOption().setValue(value?.let(mapping::invoke) ?: "")
         locator.selectOption(option)
     }
 }

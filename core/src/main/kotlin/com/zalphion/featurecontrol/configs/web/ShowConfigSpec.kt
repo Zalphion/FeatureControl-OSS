@@ -9,56 +9,51 @@ import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.TableElementSchema
 import com.zalphion.featurecontrol.web.tableForm
 import com.zalphion.featurecontrol.web.uri
+import kotlinx.html.FormMethod
 import kotlinx.html.InputType
+import kotlinx.html.form
 
 class ConfigSpecComponent(val application: Application, val spec: ConfigSpec) {
     companion object {
         fun core(core: Core) = Component<ConfigSpecComponent> { flow, data ->
-            flow.coreConfigNavBar(data.application, null)
-            flow.tableForm(
-                inputName = "properties",
-                rowAriaLabel = "Property",
-                schema = listOf(
-                    TableElementSchema.Input(
-                        label = "Key",
-                        type = InputType.text,
-                        key = "key",
-                        placeholder = "Key",
-                        headerClasses = "uk-width-medium",
-                        required = true
-                    ),
-                    TableElementSchema.Select(
-                        label = "Type",
-                        key = "type",
-                        required = true,
-                        headerClasses = "uk-width-small",
-                        options = PropertyTypeDto.entries.map { it.toString() },
-                        default = PropertyTypeDto.String.toString()
-                    ),
-//            TableElementSchema.DynamicInput(
-//                label = "Default", key = "default", required = false,
-//                typeExpression = """
-//                    element.type === '${PropertyTypeDto.Boolean}' ? 'checkbox' :
-//                    (element.type === '${PropertyTypeDto.Number}' ? 'number' :
-//                    (element.type === '${PropertyTypeDto.Secret}' ? 'password' :
-//                    'text'))
-//                """.trimIndent(),
-//                headerClasses = "uk-width-medium"
-//            ),
-                    TableElementSchema.Input(
-                        label = "Description",
-                        type = InputType.text,
-                        key = "description",
-                        placeholder = "Description",
-                        required = false,
-                        headerClasses = "uk-width-large"
-                    ),
-                ),
-                elements = data.spec.properties.map { it.value.toDto(it.key) },
-                mapper = core.json.asBiDiMapping()
-            )
+            core.render(flow, ConfigNavBarComponent(data.application, null))
 
-            flow.updateResetButtons("Update", data.spec.uri())
+            flow.form(method = FormMethod.post, action = data.spec.uri().toString()) {
+                tableForm(
+                    inputName = "properties",
+                    rowAriaLabel = "Property",
+                    schema = listOf(
+                        TableElementSchema.Input(
+                            label = "Key",
+                            type = InputType.text,
+                            key = "key",
+                            placeholder = "Key",
+                            headerClasses = "uk-width-medium",
+                            required = true
+                        ),
+                        TableElementSchema.Select(
+                            label = "Type",
+                            key = "type",
+                            required = true,
+                            headerClasses = "uk-width-small",
+                            options = PropertyTypeDto.entries.map { it.toString() },
+                            default = PropertyTypeDto.String.toString()
+                        ),
+                        TableElementSchema.Input(
+                            label = "Description",
+                            type = InputType.text,
+                            key = "description",
+                            placeholder = "Description",
+                            required = false,
+                            headerClasses = "uk-width-large"
+                        ),
+                    ),
+                    elements = data.spec.properties.map { it.value.toDto(it.key) },
+                    mapper = core.json.asBiDiMapping()
+                )
+
+                updateResetButtons("Update", data.spec.uri())
+            }
         }
     }
 }

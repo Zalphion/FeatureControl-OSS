@@ -98,12 +98,12 @@ class ConfigStorageTest: CoreTestDriver() {
         val values = ConfigEnvironment(
             teamId = application1.teamId,
             appId = application1.appId,
-            environmentName = devName,
+            name = devName,
             values = mapOf(
-                strProperty.first to PropertyValue(PropertyType.String, "foo"),
-                numberProperty.first to PropertyValue(PropertyType.Number, "123"),
-                booleanProperty.first to PropertyValue(PropertyType.Boolean, "true"),
-                secretProperty.first to PropertyValue(PropertyType.Secret, encryption.encrypt("lolcats").decodeToString()),
+                strProperty.first to "foo",
+                numberProperty.first to "123",
+                booleanProperty.first to "true",
+                secretProperty.first to encryption.encrypt("lolcats").decodeToString(),
             )
         ).also(testObj::plusAssign)
 
@@ -121,16 +121,16 @@ class ConfigStorageTest: CoreTestDriver() {
         val original = ConfigEnvironment(
             teamId = application1.teamId,
             appId = application1.appId,
-            environmentName = devName,
+            name = devName,
             values = mapOf(
-                strProperty.first to PropertyValue(PropertyType.String, "foo"),
+                strProperty.first to "foo",
             )
         ).also(testObj::plusAssign)
 
         val updated = original.copy(
             values = mapOf(
-                numberProperty.first to PropertyValue(PropertyType.Number, "123"),
-                booleanProperty.first to PropertyValue(PropertyType.Boolean, "true"),
+                numberProperty.first to "123",
+                booleanProperty.first to "true",
             )
         ).also(testObj::plusAssign)
 
@@ -153,9 +153,9 @@ class ConfigStorageTest: CoreTestDriver() {
         ConfigEnvironment(
             teamId = application1.teamId,
             appId = application1.appId,
-            environmentName = devName,
+            name = devName,
             values = mapOf(
-                strProperty.first to PropertyValue(PropertyType.String, "foo")
+                strProperty.first to "foo"
             )
         )
 
@@ -181,9 +181,9 @@ class ConfigStorageTest: CoreTestDriver() {
         ConfigEnvironment(
             teamId = application1.teamId,
             appId = application1.appId,
-            environmentName = devName,
+            name = devName,
             values = mapOf(
-                strProperty.first to PropertyValue(PropertyType.String, "foo")
+                strProperty.first to "foo"
             )
         ).also(testObj::plusAssign)
 

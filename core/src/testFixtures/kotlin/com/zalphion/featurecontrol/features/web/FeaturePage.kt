@@ -15,7 +15,7 @@ import com.zalphion.featurecontrol.web.getModal
 
 private val urlRegex = ".*applications/([^/]+)/features/([^/]+).*".toRegex()
 
-class FeaturePageUi(private val page: Page) {
+class FeaturePage(private val page: Page) {
 
     init {
         PlaywrightAssertions.assertThat(page).hasURL(urlRegex.toPattern())
@@ -30,17 +30,17 @@ class FeaturePageUi(private val page: Page) {
     val applications = page.applicationsList()
     val application = page.application()
 
-    val featureNav = FeatureNavUi(main.getByRole(AriaRole.NAVIGATION), featureKey)
-    val featureEdit = FeatureEditUi(main)
+    val environments = FeatureNavBarUi(main.getByRole(AriaRole.NAVIGATION), featureKey)
+    val edit = FeatureEditUi(main)
 
-    fun update(block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
+    fun update(block: (FeaturePage) -> Unit = {}): FeaturePage {
         main.getElement(AriaRole.BUTTON, "Update").click()
-        return FeaturePageUi(page).also(block)
+        return FeaturePage(page).also(block)
     }
 
-    fun reset(block: (FeaturePageUi) -> Unit = {}): FeaturePageUi {
+    fun reset(block: (FeaturePage) -> Unit = {}): FeaturePage {
         main.getElement(AriaRole.BUTTON, "Reset").click()
-        return FeaturePageUi(page).also(block)
+        return FeaturePage(page).also(block)
     }
 }
 

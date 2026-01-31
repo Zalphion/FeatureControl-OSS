@@ -18,7 +18,7 @@ class ConfigStorage private constructor(
     operator fun get(appId: AppId, environmentName: EnvironmentName): ConfigEnvironment? = environments[appId, environmentName]?.toModel()
 
     operator fun plusAssign(config: ConfigSpec) = specs.save(config.teamId, config.appId, config.toStored())
-    operator fun plusAssign(environment: ConfigEnvironment) = environments.save(environment.appId, environment.environmentName, environment.toStored())
+    operator fun plusAssign(environment: ConfigEnvironment) = environments.save(environment.appId, environment.name, environment.toStored())
 
     fun delete(teamId: TeamId, appId: AppId) = specs.delete(teamId, appId)
     fun delete(appId: AppId, environmentName: EnvironmentName) = environments.delete(appId, environmentName)
@@ -70,13 +70,7 @@ data class StoredConfigEnvironment(
     val teamId: TeamId,
     val appId: AppId,
     val environmentName: EnvironmentName,
-    val values: Map<PropertyKey, StoredPropertyValue>
-)
-
-@JsonSerializable
-data class StoredPropertyValue(
-    val type: StoredPropertyType,
-    val value: String
+    val values: Map<PropertyKey, String>
 )
 
 private fun ConfigSpec.toStored() = StoredConfigSpec(
@@ -104,25 +98,15 @@ private fun StoredConfigSpec.toModel() = ConfigSpec(
 fun ConfigEnvironment.toStored() = StoredConfigEnvironment(
     teamId = teamId,
     appId = appId,
-    environmentName = environmentName,
-    values = values.mapValues { (_, value) ->
-        StoredPropertyValue(
-            type = value.type.toStored(),
-            value = value.value
-        )
-    }
+    environmentName = name,
+    values = values
 )
 
 fun StoredConfigEnvironment.toModel() = ConfigEnvironment(
     teamId = teamId,
     appId = appId,
-    environmentName = environmentName,
-    values = values.mapValues { (_, value) ->
-        PropertyValue(
-            type = value.type.toModel(),
-            value = value.value
-        )
-    }
+    name = environmentName,
+    values = values
 )
 
 private fun PropertyType.toStored() = when(this) {

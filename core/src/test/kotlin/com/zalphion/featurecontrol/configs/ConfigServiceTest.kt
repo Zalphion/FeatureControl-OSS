@@ -153,10 +153,10 @@ class ConfigServiceTest: CoreTestDriver() {
                 ConfigEnvironment(
                     teamId = app1.teamId,
                     appId = app1.appId,
-                    environmentName = devName,
+                    name = devName,
                     values = mapOf(
-                        PropertyKey.parse("str") to PropertyValue(PropertyType.String,"lolcats"),
-                        PropertyKey.parse("num") to PropertyValue(PropertyType.Number, "123")
+                        PropertyKey.parse("str") to "lolcats",
+                        PropertyKey.parse("num") to "123"
                     )
                 )
             )
@@ -164,10 +164,10 @@ class ConfigServiceTest: CoreTestDriver() {
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
-            environmentName = devName,
+            name = devName,
             values = mapOf(
-                PropertyKey.parse("str") to PropertyValue(PropertyType.String,"lolcats"),
-                PropertyKey.parse("num") to PropertyValue(PropertyType.Number, "123")
+                PropertyKey.parse("str") to "lolcats",
+                PropertyKey.parse("num") to "123"
             )
         )
     }
@@ -183,10 +183,10 @@ class ConfigServiceTest: CoreTestDriver() {
         core.configs += ConfigEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
-            environmentName = devName,
+            name = devName,
             values = mapOf(
-                PropertyKey.parse("str") to PropertyValue(PropertyType.String,"foo"),
-                PropertyKey.parse("num") to PropertyValue(PropertyType.Number, "123")
+                PropertyKey.parse("str") to "foo",
+                PropertyKey.parse("num") to "123"
             )
         )
 
@@ -203,9 +203,9 @@ class ConfigServiceTest: CoreTestDriver() {
                 ConfigEnvironment(
                     teamId = app1.teamId,
                     appId = app1.appId,
-                    environmentName = devName,
+                    name = devName,
                     values = mapOf(
-                        PropertyKey.parse("num") to PropertyValue(PropertyType.Number, "456")
+                        PropertyKey.parse("num") to "456"
                     )
                 )
             )
@@ -213,9 +213,9 @@ class ConfigServiceTest: CoreTestDriver() {
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
-            environmentName = devName,
+            name = devName,
             values = mapOf(
-                PropertyKey.parse("num") to PropertyValue(PropertyType.Number, "456")
+                PropertyKey.parse("num") to "456"
             )
         )
     }
@@ -238,7 +238,7 @@ class ConfigServiceTest: CoreTestDriver() {
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
-            environmentName = devName,
+            name = devName,
             values = emptyMap()
         )
     }
@@ -261,9 +261,9 @@ class ConfigServiceTest: CoreTestDriver() {
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
-            environmentName = devName,
+            name = devName,
             values = mapOf(
-                strProperty.first to PropertyValue(PropertyType.String, "lol")
+                strProperty.first to "lol"
             )
         )
     }
@@ -286,9 +286,9 @@ class ConfigServiceTest: CoreTestDriver() {
         core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
-            environmentName = devName,
+            name = devName,
             values = mapOf(
-                secretProperty.first to PropertyValue(PropertyType.Secret, "80c39b4246a0310e7a82df2078faa483f4069f8ab673797e7c9514d1be7c0b")
+                secretProperty.first to "80c39b4246a0310e7a82df2078faa483f4069f8ab673797e7c9514d1be7c0b"
             )
         )
     }

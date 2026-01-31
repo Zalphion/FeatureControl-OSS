@@ -51,26 +51,6 @@ interface TableElementSchema {
         }
     }
 
-    data class DynamicInput(
-        override val label: String,
-        override val key: String?,
-        val typeExpression: String, // dynamic type for alpine.js (operating on an `element` arg)
-        override val default: String? = null,
-        val required: Boolean = true,
-        val placeholder: String? = null,
-        override val headerClasses: String? = null,
-        override val headerStyles: Map<String, String>? = null,
-    ): TableElementSchema {
-        override fun renderInternal(flow: FlowContent, block: (HTMLTag) -> Unit) = flow.input {
-            attributes["x-model"] = if (key == null) "element" else "element.$key"
-            attributes[":type"] = typeExpression
-            attributes[":class"] =  $$"['checkbox', 'radio'].includes($el.type) ? 'uk-checkbox' : 'uk-input'"
-            this@DynamicInput.placeholder?.let { attributes["placeholder"] = it }
-            if (required) { attributes["required"] = "" }
-            block(this)
-        }
-    }
-
     data class Input(
         override val label: String,
         override val key: String?,
@@ -108,12 +88,10 @@ interface TableElementSchema {
 
             block(this)
 
-            if (default == null) {
-                option("uk-text-muted") {
-                    disabled = true
-                    selected = true
-                    +"-$label-"
-                }
+            option("uk-text-muted") {
+                disabled = true
+                selected = default == null
+                +this@Select.label
             }
 
             for (option in options) {

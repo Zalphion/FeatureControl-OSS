@@ -24,7 +24,7 @@ import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
-class FeaturePageUiTest: CoreTestDriver() {
+class FeaturePageTest: CoreTestDriver() {
 
     @RegisterExtension
     val playwright = playwright()
@@ -59,8 +59,8 @@ class FeaturePageUiTest: CoreTestDriver() {
             }.submit { result ->
                 result.application.selectedFeature shouldBe featureKey1
                 result.featureKey shouldBe featureKey1
-                result.featureEdit.description shouldBe "cool stuff"
-                result.featureEdit.variants.map { it.name }.shouldContainExactly(old, new)
+                result.edit.description shouldBe "cool stuff"
+                result.edit.variants.map { it.name }.shouldContainExactly(old, new)
             }
 
         core.features[app.appId, featureKey1] shouldBe Feature(
@@ -89,7 +89,7 @@ class FeaturePageUiTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(feature2.key) { page ->
-                page.featureEdit.let { feature ->
+                page.edit.let { feature ->
                     feature.description = "really cool stuff"
                     feature.variants
                         .find { it.name == old }
@@ -105,8 +105,8 @@ class FeaturePageUiTest: CoreTestDriver() {
             }.update { page ->
                 page.application.features.shouldContainExactly(feature1.key, feature2.key)
                 page.featureKey shouldBe featureKey2
-                page.featureEdit.description shouldBe "really cool stuff"
-                page.featureEdit.variants.map { it.name }.shouldContainExactly(old, new)
+                page.edit.description shouldBe "really cool stuff"
+                page.edit.variants.map { it.name }.shouldContainExactly(old, new)
             }
 
         core.features[app.appId, feature2.key] shouldBe feature2.copy(
@@ -129,12 +129,12 @@ class FeaturePageUiTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(feature.key) { page ->
-                page.featureEdit.variants
+                page.edit.variants
                     .find { it.name == old }
                     .shouldNotBeNull()
                     .remove() // 'new' variant should be selected automatically
             }.update { page ->
-                page.featureEdit.variants.map { it.name }.shouldContainExactly(new)
+                page.edit.variants.map { it.name }.shouldContainExactly(new)
             }
 
         core.features[app.appId, feature.key] shouldBe feature.copy(
@@ -151,7 +151,7 @@ class FeaturePageUiTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(feature2.key)
-            .featureNav.more().delete().confirm { page ->
+            .environments.more().delete().confirm { page ->
                 page.application.name shouldBe app.appName
                 page.application.selectedFeature.shouldBeNull()
                 page.application.features.shouldContainExactly(feature1.key)
@@ -171,17 +171,17 @@ class FeaturePageUiTest: CoreTestDriver() {
         browser.asUser(core, member.user)
             .applications.select(app.appName)
             .application.select(feature.key) { page ->
-                page.featureEdit.description = "foobar"
-                page.featureEdit.newVariant { variant ->
+                page.edit.description = "foobar"
+                page.edit.newVariant { variant ->
                     variant.name = Variant.parse("new-stuff")
                 }
-                page.featureEdit.variants
+                page.edit.variants
                     .find { it.name == old }
                     .shouldNotBeNull()
                     .description = "old stuff"
             }.reset { result ->
-                result.featureEdit.description shouldBe "lolcats"
-                result.featureEdit.variants
+                result.edit.description shouldBe "lolcats"
+                result.edit.variants
                     .map { it.name to it.description }
                     .shouldContainExactly(old to "old", new to "new")
             }

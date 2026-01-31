@@ -5,6 +5,7 @@ import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.events.localEventBus
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
+import com.zalphion.featurecontrol.plugins.toFactory
 import com.zalphion.featurecontrol.plugins.webjars
 import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
@@ -52,7 +53,6 @@ abstract class CoreTestDriver(
             apiKeysStorageName = "api_keys",
             invitationRetention = Duration.ofDays(1),
         ),
-
         plugins = listOf(
             *plugins.toTypedArray(),
             Plugin.webjars(),

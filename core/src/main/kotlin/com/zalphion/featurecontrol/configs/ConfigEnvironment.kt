@@ -7,11 +7,6 @@ import com.zalphion.featurecontrol.teams.TeamId
 data class ConfigEnvironment(
     val teamId: TeamId,
     val appId: AppId,
-    val environmentName: EnvironmentName,
-    val values: Map<PropertyKey, PropertyValue>
-)
-
-data class PropertyValue(
-    val type: PropertyType,
-    val value: String
+    val name: EnvironmentName,
+    val values: Map<PropertyKey, String>
 )

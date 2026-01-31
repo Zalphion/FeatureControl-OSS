@@ -83,7 +83,7 @@ class UpdateConfigEnvironment(
                 PropertyType.Secret -> encryption.encrypt(value.trim()).toHexString() // TODO should derive a key per app/env
                 else -> value.trim()
             }
-            if (processedValue.isNotBlank()) key to property.toValue(processedValue) else null
+            if (processedValue.isNotBlank()) key to processedValue else null
         }.toMap()
 
         return (application to ConfigEnvironment(teamId, appId, environmentName, newValues)).asSuccess()
