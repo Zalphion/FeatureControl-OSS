@@ -21,9 +21,11 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.http4k.playwright.Http4kBrowser
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
+@Tag("playwright")
 class FeaturePageTest: CoreTestDriver() {
 
     @RegisterExtension

@@ -31,7 +31,11 @@ allprojects {
     version = "latest-SNAPSHOT"
 
     tasks.test {
-        useJUnitPlatform()
+        useJUnitPlatform {
+            if (System.getenv("FAST") == "true") {
+                excludeTags("playwright")
+            }
+        }
     }
 
     kotlin {

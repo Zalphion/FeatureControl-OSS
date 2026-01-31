@@ -25,10 +25,12 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.http4k.playwright.Http4kBrowser
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
-class ApplicationPageUiTest: CoreTestDriver() {
+@Tag("playwright")
+class ApplicationPageTest: CoreTestDriver() {
 
     @RegisterExtension
     val playwright = playwright()
