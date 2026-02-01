@@ -28,5 +28,5 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: Gradle Tests
-          path: build/test-results/test/*.xml
+          path: '**/build/test-results/test/*.xml'
           reporter: java-junit
