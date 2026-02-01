@@ -1,8 +1,8 @@
 [versions]
 
 junit = "6.0.2"
-kotest = "6.1.0"
-forkhandles = "2.25.0.0"
+kotest = "6.1.1"
+forkhandles = "2.25.1.0"
 http4k = "6.26.1.0"
 kotshi = "4.0.0"
 tinylog = "2.7.0"
