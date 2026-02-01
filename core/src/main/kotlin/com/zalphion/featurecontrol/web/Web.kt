@@ -34,7 +34,6 @@ const val INDEX_PATH = "/"
 const val LOGIN_PATH = "/login"
 const val REDIRECT_PATH = "/oauth2/redirect"
 const val LOGOUT_PATH = "/logout"
-const val USER_SETTINGS_PATH = "/user-settings"
 
 // TODO replace this with a lens
 const val SESSION_COOKIE_NAME = "feature_control_session"

@@ -18,7 +18,6 @@ data class PageSpec(val name: String, val icon: String) {
         val features = PageSpec("Features", "icon: cog")
         val config = PageSpec("Config", "icon: file-text")
         val members = PageSpec("Members", "icon: users")
-        val invitations = PageSpec("Invitations", "icon: users")
     }
 }
 data class PageLink(
@@ -31,8 +30,6 @@ data class PageLink(
 fun teamUri(teamId: TeamId) = Uri.of("/teams/$teamId")
 fun membersUri(teamId: TeamId) = teamUri(teamId).appendToPath("members")
 fun membersUri(teamId: TeamId, userId: UserId) = membersUri(teamId).appendToPath(userId.value)
-fun invitationsUri(teamId: TeamId) = teamUri(teamId).appendToPath("invitations")
-fun invitationsUri(teamId: TeamId, userId: UserId) = invitationsUri(teamId).appendToPath(userId.value)
 fun applicationsUri(teamId: TeamId) = teamUri(teamId).appendToPath("applications")
 fun applicationUri(teamId: TeamId, appId: AppId) = teamUri(teamId).appendToPath("/applications/$appId")
 

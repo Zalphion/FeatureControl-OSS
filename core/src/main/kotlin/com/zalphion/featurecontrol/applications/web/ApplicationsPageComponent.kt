@@ -54,7 +54,7 @@ import kotlinx.html.style
 import kotlinx.html.ul
 import kotlin.collections.plus
 
-data class ApplicationsPage<A, I, E>(
+data class ApplicationsPageComponent<A, I, E>(
     val navBar: NavBar<MemberDetails>,
     val applications: List<Application>,
     val features: List<Feature>,
@@ -67,7 +67,7 @@ data class ApplicationsPage<A, I, E>(
     companion object {
         fun forTeam(
             core: Core, permissions: Permissions<User>, teamId: TeamId
-        ): Result4k<ApplicationsPage<Application?, Void?, Void?>, AppError> {
+        ): Result4k<ApplicationsPageComponent<Application?, Void?, Void?>, AppError> {
             val navBar = NavBar
                 .get(core, permissions, teamId, PageSpec.applications)
                 .onFailure { return it }
@@ -77,7 +77,7 @@ data class ApplicationsPage<A, I, E>(
                 .onFailure { return it }
                 .toList()
 
-            return ApplicationsPage<Application?, Void?, Void?>(
+            return ApplicationsPageComponent<Application?, Void?, Void?>(
                 navBar = navBar,
                 applications = applications,
                 selectedApplication = null,
@@ -89,7 +89,7 @@ data class ApplicationsPage<A, I, E>(
 
         fun forConfigSpec(
             core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId
-        ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment?>, AppError> {
+        ): Result4k<ApplicationsPageComponent<Application, ConfigSpec, ConfigEnvironment?>, AppError> {
             val application = GetApplication(teamId, appId)
                 .invoke(permissions, core)
                 .onFailure { return it }
@@ -112,7 +112,7 @@ data class ApplicationsPage<A, I, E>(
                 .get(core, permissions, application.teamId, PageSpec.applications)
                 .onFailure { return it }
 
-            return ApplicationsPage<Application, ConfigSpec, ConfigEnvironment?>(
+            return ApplicationsPageComponent<Application, ConfigSpec, ConfigEnvironment?>(
                 navBar = navBar,
                 applications = applications,
                 selectedApplication = application,
@@ -128,13 +128,13 @@ data class ApplicationsPage<A, I, E>(
             teamId: TeamId,
             appId: AppId,
             environmentName: EnvironmentName
-        ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment>, AppError> {
+        ): Result4k<ApplicationsPageComponent<Application, ConfigSpec, ConfigEnvironment>, AppError> {
             val model = forConfigSpec(core, permissions, teamId, appId).onFailure { return it }
             val environment = GetConfigEnvironment(teamId, appId, environmentName)
                 .invoke(permissions, core)
                 .onFailure { return it }
 
-            return ApplicationsPage(
+            return ApplicationsPageComponent(
                 navBar = model.navBar,
                 applications = model.applications,
                 features = model.features,
@@ -146,12 +146,12 @@ data class ApplicationsPage<A, I, E>(
 
         fun forFeature(
             core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey
-        ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment?>, AppError> {
+        ): Result4k<ApplicationsPageComponent<Application, Feature, FeatureEnvironment?>, AppError> {
             val model = forConfigSpec(core, permissions, teamId, appId).onFailure { return it }
 
             val feature = model.features.find { it.key == featureKey } ?: return featureNotFound(appId, featureKey).asFailure()
 
-            return ApplicationsPage<Application, Feature, FeatureEnvironment?>(
+            return ApplicationsPageComponent<Application, Feature, FeatureEnvironment?>(
                 navBar = model.navBar,
                 applications = model.applications,
                 features = model.features,
@@ -163,13 +163,13 @@ data class ApplicationsPage<A, I, E>(
 
         fun forFeatureEnvironment(
             core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName
-        ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment>, AppError> {
+        ): Result4k<ApplicationsPageComponent<Application, Feature, FeatureEnvironment>, AppError> {
             val model = forFeature(core, permissions, teamId, appId, featureKey).onFailure { return it }
             val environment = model.selectedApplication.getOrFail(environmentName)
                 .map { model.selectedItem[environmentName] }
                 .onFailure { return it }
 
-            return ApplicationsPage(
+            return ApplicationsPageComponent(
                 navBar = model.navBar,
                 applications = model.applications,
                 features = model.features,
@@ -181,7 +181,7 @@ data class ApplicationsPage<A, I, E>(
     }
 }
 
-fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
+fun <A: Application?, I, E> ApplicationsPageComponent<A, I, E>.render(
     core: Core,
     messages: List<FlashMessageDto>,
     selectedFeature: FeatureKey?,
@@ -328,7 +328,7 @@ private fun FlowContent.applicationNavBar(
                                 modalId = deleteModalId,
                                 dropdownToCloseId = dropdownId
                             ) {
-                                classes + "uk-text-danger"
+                                classes += "uk-text-danger"
                             }
                         }
                     }

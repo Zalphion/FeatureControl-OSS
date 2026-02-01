@@ -45,7 +45,7 @@ fun FlowContent.createUpdateTeamModal(team: Team?): String {
 
                     p {
                         + if (team == null) {
-                            "Create a new team to organize your applications and control access to users.  Each team is billed separately."
+                            "Create a new team to organize your applications and control access to users."
                         } else {
                             "Update ${team.teamName}"
                         }

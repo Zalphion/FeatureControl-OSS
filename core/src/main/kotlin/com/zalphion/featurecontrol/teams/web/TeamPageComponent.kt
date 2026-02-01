@@ -9,7 +9,6 @@ import com.zalphion.featurecontrol.web.NavBar
 import com.zalphion.featurecontrol.web.PageLink
 import com.zalphion.featurecontrol.web.PageSpec
 import com.zalphion.featurecontrol.web.modalTextButton
-import com.zalphion.featurecontrol.web.invitationsUri
 import com.zalphion.featurecontrol.web.membersUri
 import com.zalphion.featurecontrol.web.moreMenu
 import com.zalphion.featurecontrol.web.navbar
@@ -39,7 +38,7 @@ import kotlinx.html.ul
 import kotlin.collections.plus
 import kotlin.collections.set
 
-data class TeamPage(
+data class TeamPageComponent(
     val navBar: NavBar<out MemberDetails?>,
     val team: MemberDetails,
     val pages: List<PageLink>
@@ -47,16 +46,15 @@ data class TeamPage(
     val filterModel = "team_element_filter"
 
     companion object {
-        fun create(core: Core, permissions: Permissions<User>, teamId: TeamId, selected: PageSpec?): Result4k<TeamPage, AppError> {
+        fun create(core: Core, permissions: Permissions<User>, teamId: TeamId, selected: PageSpec?): Result4k<TeamPageComponent, AppError> {
             val navBar = NavBar.get(core, permissions, teamId, selected).onFailure { return it }
             val team = navBar.memberships.find { (_, _, team) -> team.teamId == teamId } ?: return memberNotFound(teamId, permissions.principal.userId).asFailure()
 
-            return TeamPage(
+            return TeamPageComponent(
                 navBar = navBar,
                 team = team,
                 pages = listOf(
                     PageLink(PageSpec.members, membersUri(teamId)),
-                    PageLink(PageSpec.invitations, invitationsUri(teamId))
                 )
             ).asSuccess()
         }
@@ -64,9 +62,9 @@ data class TeamPage(
 }
 
 fun Core.teamPage(
-    model: TeamPage,
+    model: TeamPageComponent,
     messages: List<FlashMessageDto>,
-    content: FlowContent.(TeamPage) -> Unit
+    content: FlowContent.(TeamPageComponent) -> Unit
 ) = pageSkeleton(messages, "Manage Team") {
     navbar(model.navBar)
 
@@ -127,7 +125,7 @@ private fun FlowContent.iconButton(page: PageLink, selected: Boolean) {
         button(type = ButtonType.button, classes = "uk-button uk-button-large uk-width-1-1") {
             if (page.tooltip != null) attributes["uk-tooltip"] = page.tooltip
             if (!page.enabled) attributes["disabled"] = ""
-            classes + if (selected) "uk-button-primary" else "uk-button-default"
+            classes += if (selected) "uk-button-primary" else "uk-button-default"
             style = "padding-bottom: 10px; padding-top: 10px; margin-top: 10px; margin-bottom: 10px;"
 
             span("uk-margin-small-right") {

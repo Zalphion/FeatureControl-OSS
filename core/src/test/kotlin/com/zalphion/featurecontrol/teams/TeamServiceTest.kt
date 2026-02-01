@@ -11,7 +11,7 @@ import com.zalphion.featurecontrol.idp2Email1
 import com.zalphion.featurecontrol.invoke
 import com.zalphion.featurecontrol.memberAlreadyExists
 import com.zalphion.featurecontrol.memberNotFound
-import com.zalphion.featurecontrol.members.CreateMember
+import com.zalphion.featurecontrol.members.InviteUser
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberCreateData
 import com.zalphion.featurecontrol.members.MemberDetails
@@ -26,7 +26,6 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import java.time.Duration
 
 class TeamServiceTest: CoreTestDriver() {
 
@@ -62,7 +61,7 @@ class TeamServiceTest: CoreTestDriver() {
         val (_, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
         val otherUser = users.create(idp1Email2).shouldBeSuccess().user
 
-        val memberDetails = CreateMember(
+        val memberDetails = InviteUser(
             teamId = myTeam.teamId,
             sender = myUser.userId,
             data = MemberCreateData(otherUser.emailAddress, emptyMap())
@@ -75,7 +74,7 @@ class TeamServiceTest: CoreTestDriver() {
                 teamId = myTeam.teamId,
                 userId = otherUser.userId,
                 invitedBy = myUser.userId,
-                invitationExpiresOn = time + Duration.ofDays(1),
+                invitationExpiresOn = time + invitationRetention,
                 extensions = emptyMap()
             ),
             user = otherUser,
@@ -91,7 +90,7 @@ class TeamServiceTest: CoreTestDriver() {
         val (_, myUser, _) = users.create(idp1Email1).shouldBeSuccess()
         val otherTeam = users.create(idp1Email2).shouldBeSuccess().team
 
-        CreateMember(otherTeam.teamId, myUser.userId, MemberCreateData(idp1Email2, emptyMap()))
+        InviteUser(otherTeam.teamId, myUser.userId, MemberCreateData(idp1Email2, emptyMap()))
             .invoke(myUser, core)
             .shouldBeFailure(forbidden)
     }
@@ -100,7 +99,7 @@ class TeamServiceTest: CoreTestDriver() {
     fun `invite user - cannot invite self`() {
         val (myMember, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
 
-        CreateMember(myTeam.teamId, myUser.userId, MemberCreateData(myUser.emailAddress, emptyMap()))
+        InviteUser(myTeam.teamId, myUser.userId, MemberCreateData(myUser.emailAddress, emptyMap()))
             .invoke(myUser, core)
             .shouldBeFailure(memberAlreadyExists(myMember))
     }
@@ -112,7 +111,7 @@ class TeamServiceTest: CoreTestDriver() {
         val otherUser = users.create(idp1Email2).shouldBeSuccess().user
         val otherMember = otherUser.addTo(core, myTeam)
 
-        CreateMember(myTeam.teamId, myUser.userId, MemberCreateData(otherUser.emailAddress, emptyMap()))
+        InviteUser(myTeam.teamId, myUser.userId, MemberCreateData(otherUser.emailAddress, emptyMap()))
             .invoke(myUser, core)
             .shouldBeFailure(memberAlreadyExists(otherMember))
     }

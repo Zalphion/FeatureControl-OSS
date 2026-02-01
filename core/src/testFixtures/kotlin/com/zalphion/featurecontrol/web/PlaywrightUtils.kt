@@ -8,16 +8,24 @@ import com.microsoft.playwright.options.Cookie
 import com.microsoft.playwright.options.LoadState
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.CoreTestDriver
-import com.zalphion.featurecontrol.applications.web.ApplicationsPageUi
+import com.zalphion.featurecontrol.applications.web.ApplicationsPage
 import com.zalphion.featurecontrol.auth.web.createSessionCookie
+import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.users.User
+import io.kotest.matchers.nulls.shouldNotBeNull
+import org.http4k.core.extend
 import org.http4k.playwright.Http4kBrowser
 import org.http4k.playwright.LaunchPlaywrightBrowser
 import java.util.concurrent.TimeUnit
 
 private val ci = System.getenv("CI")?.toBoolean() == true
 
-fun Http4kBrowser.asUser(core: Core, user: User, block: (ApplicationsPageUi) -> Unit = {}): ApplicationsPageUi {
+fun Http4kBrowser.asUser(
+    core: Core,
+    user: User,
+    team: Team? = null,
+    block: (ApplicationsPage) -> Unit = {}
+): ApplicationsPage {
     val sessionCookie = core.createSessionCookie(user.userId)
 
     val context = newContext().apply {
@@ -31,10 +39,12 @@ fun Http4kBrowser.asUser(core: Core, user: User, block: (ApplicationsPageUi) -> 
         )
     }
 
+    val uri = if (team != null) baseUri.extend(applicationsUri(team.teamId)) else baseUri
+
     return try {
         context.newPage()
-            .apply { navigate(baseUri.toString()) }
-            .let(::ApplicationsPageUi)
+            .apply { navigate(uri.toString()) }
+            .let(::ApplicationsPage)
             .also(block)
     } catch (e: Exception) {
         e.printStackTrace(System.err)
@@ -69,4 +79,9 @@ fun Locator.waitForAll(): List<Locator> {
     page().waitForLoadState(LoadState.NETWORKIDLE)
     page().waitForSelector("body:not([x-cloak])") // Wait for Alpine to finish any initial DOM mutations.
     return all()
+}
+
+fun Locator.getControlled(): Locator {
+    val targetId = getAttribute("aria-controls").shouldNotBeNull()
+    return page().locator("#$targetId")
 }

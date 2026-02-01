@@ -21,9 +21,7 @@ import kotlinx.html.span
 import kotlinx.html.strong
 import org.http4k.core.Method
 
-private const val MODAL_ID_INVITE_MEMBERS = "inviteMembersModal"
-
-class InviteMemberModalComponent(val team: Team) {
+class InviteMemberModalComponent(val team: Team, val modalId: String) {
 
     companion object {
         fun core(
@@ -37,53 +35,49 @@ class InviteMemberModalComponent(val team: Team) {
 private fun FlowContent.createMemberModal(
     data: InviteMemberModalComponent,
     extraInputs: FlowContent.(InviteMemberModalComponent) -> Unit
-): String {
-    div("uk-modal uk-modal-container") {
-        id = MODAL_ID_INVITE_MEMBERS
+) = div("uk-modal uk-modal-container") {
+    id = data.modalId
 
-        div("uk-modal-dialog") {
-            form(method = FormMethod.post, action = membersUri(data.team.teamId).toString(), classes = "uk-form-horizontal") {
-                withRichMethod(Method.POST)
+    div("uk-modal-dialog") {
+        form(method = FormMethod.post, action = membersUri(data.team.teamId).toString(), classes = "uk-form-horizontal") {
+            withRichMethod(Method.POST)
 
-                div("uk-modal-header") {
-                    h2("uk-modal-title") { +"Invite Members" }
+            div("uk-modal-header") {
+                h2("uk-modal-title") { +"Invite Members" }
+            }
+
+            div("uk-modal-body") {
+                button(type = ButtonType.button, classes = "uk-modal-close-default") {
+                    attributes["uk-close"] = ""
                 }
 
-                div("uk-modal-body") {
-                    button(type = ButtonType.button, classes = "uk-modal-close-default") {
-                        attributes["uk-close"] = ""
+                p {
+                    + "Invite new members to "
+                    strong {
+                        + data.team.teamName.value
                     }
-
-                    p {
-                        + "Invite new members to "
-                        strong {
-                            + data.team.teamName.value
-                        }
-                    }
-
-                    div("uk-margin") {
-                        label("uk-form-label") {
-                            span {
-                                attributes["uk-icon"] = "icon: mail"
-                            }
-                            +"Email Address"
-                        }
-                        input(InputType.email, classes = "uk-input") {
-                            name = "emailAddress"
-                            required = true
-                            placeholder = "Email Address"
-                        }
-                    }
-
-                    extraInputs(data)
                 }
 
-                div("uk-modal-footer") {
-                    confirmCancelButtons("Send")
+                div("uk-margin") {
+                    label("uk-form-label") {
+                        span {
+                            attributes["uk-icon"] = "icon: mail"
+                        }
+                        +"Email Address"
+                    }
+                    input(InputType.email, classes = "uk-input") {
+                        name = "emailAddress"
+                        required = true
+                        placeholder = "Email Address"
+                    }
                 }
+
+                extraInputs(data)
+            }
+
+            div("uk-modal-footer") {
+                confirmCancelButtons("Send")
             }
         }
     }
-    return MODAL_ID_INVITE_MEMBERS
 }
-

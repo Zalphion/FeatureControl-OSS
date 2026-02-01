@@ -61,7 +61,6 @@ import com.zalphion.featurecontrol.members.web.acceptInvitation
 import com.zalphion.featurecontrol.members.web.createMember
 import com.zalphion.featurecontrol.members.web.deleteMember
 import com.zalphion.featurecontrol.members.web.resendInvitation
-import com.zalphion.featurecontrol.members.web.showInvitations
 import com.zalphion.featurecontrol.members.web.showMembers
 import com.zalphion.featurecontrol.members.web.updateMember
 import com.zalphion.featurecontrol.plugins.ComponentRegistry
@@ -84,7 +83,6 @@ import com.zalphion.featurecontrol.web.PageLink
 import com.zalphion.featurecontrol.web.PageSpec
 import com.zalphion.featurecontrol.web.REDIRECT_PATH
 import com.zalphion.featurecontrol.web.SESSION_COOKIE_NAME
-import com.zalphion.featurecontrol.web.USER_SETTINGS_PATH
 import com.zalphion.featurecontrol.web.appIdLens
 import com.zalphion.featurecontrol.web.applicationsUri
 import com.zalphion.featurecontrol.web.configUri
@@ -310,7 +308,8 @@ class Core internal constructor(
                 .let { request.flash()?.let(it::withFlash) ?: it }
                 .location(applicationsUri(team.teamId))
         },
-        USER_SETTINGS_PATH bind Method.GET to showUserSettings(),
+        "profile" bind Method.GET to showUserSettings(),
+        "invitations/$teamIdLens" bind Method.POST to acceptInvitation(),
         LOGOUT_PATH bind Method.POST to {
             it.toIndex().invalidateCookie(SESSION_COOKIE_NAME, path = INDEX_PATH)
         },
@@ -322,10 +321,19 @@ class Core internal constructor(
                     val teamId = teamIdLens(it)
                     Response(Status.FOUND).location(membersUri(teamId))
                 },
-                "/applications" bind routes(
+                "members" bind routes(listOf(
+                    Method.GET bind showMembers(),
+                    isRichDelete bind deleteMember(),
+                    isRichPut bind updateMember(),
+                    Method.POST bind createMember(),
+                    "$userIdLens" bind routes(listOf(
+                        Method.POST bind resendInvitation()
+                    ))
+                )),
+                "applications" bind routes(
                     Method.GET bind showApplications(),
                     Method.POST bind createApplication(),
-                    "/$appIdLens" bind routes(listOf(
+                    "$appIdLens" bind routes(listOf(
                         Method.GET bind { request ->
                             val teamId = teamIdLens(request)
                             val appId = appIdLens(request)
@@ -356,17 +364,6 @@ class Core internal constructor(
                         ))
                     ))
                 )
-            )),
-            "members" bind routes(listOf(
-                Method.GET bind showMembers(),
-                isRichDelete bind deleteMember(),
-                isRichPut bind updateMember(),
-                Method.POST bind createMember(),
-                "$userIdLens" bind Method.POST to acceptInvitation()
-            )),
-            "invitations" bind routes(listOf(
-                Method.GET bind showInvitations(),
-                "$userIdLens" bind Method.POST to resendInvitation()
             ))
         )
     ))

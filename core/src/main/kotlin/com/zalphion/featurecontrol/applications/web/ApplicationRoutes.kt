@@ -28,7 +28,7 @@ fun Core.showApplications(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
 
-    ApplicationsPage.forTeam(this, principal, teamId)
+    ApplicationsPageComponent.forTeam(this, principal, teamId)
         .map {
             it.render(
                 core = this,

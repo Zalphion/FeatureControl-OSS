@@ -116,7 +116,7 @@ fun FlowContent.navbar(model: NavBar<out MemberDetails?>) = with(model) {
 private fun UL.pageLink(page: PageLink, selectedPage: PageSpec?) {
     li {
         if (page.spec == selectedPage) {
-            classes + "uk-active"
+            classes += "uk-active"
         }
         a(page.uri.toString(), classes = "uk-navbar-item") {
             span("uk-icon uk-margin-xsmall-right") {
@@ -131,7 +131,7 @@ private fun FlowContent.userWidget(user: User) {
     button(type = ButtonType.button, classes = "uk-button uk-button-default uk-border-pill uk-padding-remove-left") {
         style = "padding-right: 10px;"
         avatarView(user.photoUrl, 40) {
-            classes + "uk-margin-small-right"
+            classes += "uk-margin-small-right"
         }
         +(user.userName ?: user.emailAddress.value)
         span {
@@ -149,7 +149,7 @@ private fun FlowContent.userWidget(user: User) {
 
         ul("uk-nav uk-navbar-dropdown-nav") {
             li {
-                a(USER_SETTINGS_PATH) {
+                a("/profile") {
                     span {
                         attributes["uk-icon"] = "icon: user"
                     }

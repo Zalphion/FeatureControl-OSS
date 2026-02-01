@@ -1,7 +1,7 @@
 package com.zalphion.featurecontrol.configs.web
 
 import com.zalphion.featurecontrol.Core
-import com.zalphion.featurecontrol.applications.web.ApplicationsPage
+import com.zalphion.featurecontrol.applications.web.ApplicationsPageComponent
 import com.zalphion.featurecontrol.applications.web.render
 import com.zalphion.featurecontrol.configs.UpdateConfigSpec
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
@@ -33,7 +33,7 @@ internal fun Core.httpGetConfigSpec(): HttpHandler = fn@{ request ->
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
 
-    ApplicationsPage.forConfigSpec(this, principal, teamId, appId)
+    ApplicationsPageComponent.forConfigSpec(this, principal, teamId, appId)
         .map { model ->
             model.render(
                 core = this,
@@ -69,7 +69,7 @@ internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
     val appId = appIdLens(request)
     val environmentName = environmentNameLens(request)
 
-    ApplicationsPage.forConfigEnvironment(this, principal, teamId, appId, environmentName)
+    ApplicationsPageComponent.forConfigEnvironment(this, principal, teamId, appId, environmentName)
         .map { model ->
             model.render(
                 core = this,

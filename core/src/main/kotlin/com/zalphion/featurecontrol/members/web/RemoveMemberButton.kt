@@ -14,7 +14,7 @@ fun FlowContent.removeMemberButton(details: MemberDetails) {
     )
 
     a("#", classes = "uk-icon-button") {
-        attributes["uk-icon"] = "icon: trash"
+        attributes["uk-icon"] = "icon: sign-out"
         attributes["uk-tooltip"] = "Remove from Team"
         onClick = "UIkit.modal('#$modalId').show()"
     }

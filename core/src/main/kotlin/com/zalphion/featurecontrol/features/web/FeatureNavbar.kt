@@ -58,7 +58,7 @@ fun FlowContent.featureNavbar(
                                 modalId = deleteModalId,
                                 dropdownToCloseId = dropdownId
                             ) {
-                                classes + "uk-text-danger"
+                                classes += "uk-text-danger"
                             }
                         }
                     }

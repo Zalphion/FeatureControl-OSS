@@ -97,7 +97,7 @@ class RemoveMember(val teamId: TeamId, val userId: UserId): ServiceAction<Member
     }
 }
 
-class CreateMember(
+class InviteUser(
     val teamId: TeamId,
     val sender: UserId,
     val data: MemberCreateData

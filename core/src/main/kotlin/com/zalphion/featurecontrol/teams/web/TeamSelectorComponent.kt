@@ -16,6 +16,9 @@ fun FlowContent.teamSelector(
 ) {
     button(type = ButtonType.button, classes = "uk-button uk-button-default uk-border-pill") {
         style = "padding-left: 10px; padding-right: 10px"
+        attributes["aria-label"] = "Team"
+        attributes["aria-controls"] = "team-menu"
+
         span("uk-margin-small-right") {
             attributes["uk-icon"] = "icon: users; ratio: 1.5"
         }
@@ -26,13 +29,19 @@ fun FlowContent.teamSelector(
     }
 
     div("uk-navbar-dropdown") {
+        id = "team-menu"
+        role = "menu"
+        attributes["aria-label"] = "Team Menu"
         attributes["uk-dropdown"] = "mode: click;"
 
         ul("uk-nav uk-navbar-dropdown-nav") {
             for (team in memberships) {
                 li {
-                    if (current?.team == team) classes + "uk-active"
+                    if (current?.team == team) {
+                        classes += "uk-active"
+                    }
                     a(applicationsUri(team.teamId).toString()) {
+                        role = "menuitem" // to keep these distinct from the items below the divider
                         +team.teamName.value
                     }
                 }
@@ -50,7 +59,10 @@ fun FlowContent.teamSelector(
             }
             li {
                 val createTeamModalId = createUpdateTeamModal(null)
-                a(classes = "navbar-item") {
+                a("#", classes = "navbar-item") {
+                    role = "button"
+                    attributes["aria-haspopup"] = "true"
+                    attributes["aria-controls"] = createTeamModalId
                     onClick = "UIkit.modal('#$createTeamModalId').show()"
                     span {
                         attributes["uk-icon"] = "icon: users"

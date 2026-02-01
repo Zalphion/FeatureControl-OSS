@@ -5,7 +5,9 @@ import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.teams.Team
-import com.zalphion.featurecontrol.web.invitationsUri
+import com.zalphion.featurecontrol.web.ariaLabel
+import com.zalphion.featurecontrol.web.membersUri
+import com.zalphion.featurecontrol.web.sanitizeSearchTerm
 import com.zalphion.featurecontrol.web.timestamp
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
@@ -53,16 +55,25 @@ class MembersComponent(
                         for (details in data.members) {
                             tr {
                                 if (data.filterModel != null) {
-                                    val searchTerms = "${details.user.userName}${details.user.emailAddress}".lowercase().replace("'", "\"")
-                                    attributes["x-show"] = "'$searchTerms'.toLowerCase().includes(filter.toLowerCase())"
+                                    val searchTerms = "${details.user.userName}${details.user.emailAddress}".sanitizeSearchTerm()
+                                    attributes["x-show"] = "'$searchTerms'.includes(${data.filterModel}.toLowerCase())"
                                 }
 
-                                td { +details.user.userName.orEmpty() }
+                                td {
+                                    ariaLabel = "Username"
+                                    +details.user.userName.orEmpty()
+                                }
 
-                                td { +details.user.emailAddress.value }
+                                td {
+                                    ariaLabel = "Email Address"
+                                    +details.user.emailAddress.value
+                                }
 
                                 // status
-                                td { memberStatus(details.member) }
+                                td {
+                                    ariaLabel = "Status"
+                                    memberStatus(details.member)
+                                }
 
                                 for (render in extraColumns.map { it.second }) {
                                     td { render(details) }
@@ -103,7 +114,7 @@ internal fun TD.memberStatus(member: Member) {
 }
 
 private fun FlowContent.resendInvitation(member: Member) {
-    form(method = FormMethod.post, action = invitationsUri(member.teamId, member.userId).toString()) {
+    form(method = FormMethod.post, action = membersUri(member.teamId, member.userId).toString()) {
         button(type = ButtonType.submit, classes = "uk-icon-button") {
             attributes["uk-icon"] = "icon: refresh"
             attributes["uk-tooltip"] = "Resend Invitation"

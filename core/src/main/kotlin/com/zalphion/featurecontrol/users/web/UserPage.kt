@@ -5,7 +5,6 @@ import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.NavBar
 import com.zalphion.featurecontrol.web.deleteModal
-import com.zalphion.featurecontrol.web.invitationsUri
 import com.zalphion.featurecontrol.web.membersUri
 import com.zalphion.featurecontrol.web.navbar
 import com.zalphion.featurecontrol.web.pageSkeleton
@@ -130,7 +129,7 @@ private fun FlowContent.invitations(
 }
 
 fun FlowContent.acceptInvitation(team: Team) {
-    form(invitationsUri(team.teamId).toString(), method = FormMethod.post) {
+    form("invitations/${team.teamId}", method = FormMethod.post) {
         withRichMethod(Method.POST)
         button(type = ButtonType.submit, classes = "uk-icon-button") {
             attributes["uk-icon"] = "icon: check"

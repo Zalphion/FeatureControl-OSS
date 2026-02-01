@@ -5,6 +5,7 @@ import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.users.User
+import com.zalphion.featurecontrol.web.ariaControls
 import com.zalphion.featurecontrol.web.searchBar
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
@@ -31,11 +32,13 @@ fun FlowContent.membersView(
 
         div("uk-navbar-left") {
             searchBar(FILTER_MODEL, "Search") {
-                classes + "uk-navbar-item"
+                classes += "uk-navbar-item"
             }
             div("uk-navbar-item") {
-                val modalId = core.render(this, InviteMemberModalComponent(team))
+                val modalId = "invite_member_modal_${team.teamId}"
+                core.render(this, InviteMemberModalComponent(team, modalId))
                 button(type = ButtonType.button, classes = "uk-button uk-button-primary") {
+                    ariaControls = modalId
                     onClick = "UIkit.modal('#$modalId').show()"
                     span {
                         attributes["uk-icon"] = "icon: mail"

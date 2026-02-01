@@ -24,6 +24,7 @@ import kotlin.random.Random
 abstract class CoreTestDriver(
     plugins: List<PluginFactory<*>> = emptyList(),
     storageDriver: StorageDriver = StorageDriver.memory(PageSize.of(2)),
+    val invitationRetention: Duration = Duration.ofHours(5),
     appSecret: AppSecret = AppSecret.of("secret")
 ) {
     var time: Instant = Instant.parse("2025-07-29T12:00:00Z")
@@ -51,7 +52,7 @@ abstract class CoreTestDriver(
             configsStorageName = "configs",
             configEnvironmentsTableName = "config_environments",
             apiKeysStorageName = "api_keys",
-            invitationRetention = Duration.ofDays(1),
+            invitationRetention = invitationRetention
         ),
         plugins = listOf(
             *plugins.toTypedArray(),
