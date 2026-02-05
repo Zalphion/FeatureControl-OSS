@@ -16,7 +16,6 @@ fun FlowContent.searchBar(modelName: String, prompt: String = "", content: FORM.
         input(InputType.search, classes = "uk-search-input") {
             attributes["x-model"] = modelName
             placeholder = prompt
-            attributes["aria-label"] = "Search"
         }
     }
 }

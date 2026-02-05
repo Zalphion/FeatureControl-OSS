@@ -3,7 +3,7 @@
 
 # Feature Control - OSS
 
-This is the fully FOSS (Free and Open Source Software) core of the Feature Control project.
+This is the FOSS (Free and Open Source Software) core of the Feature Control platform.
 
 > [!WARNING]
 > **Work in Progress**: This project is still under active development and is not yet ready for production use.

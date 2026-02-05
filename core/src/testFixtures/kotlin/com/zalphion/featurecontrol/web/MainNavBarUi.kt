@@ -4,7 +4,6 @@ import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.web.ApplicationsPage
-import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.teams.TeamName
 import com.zalphion.featurecontrol.teams.web.MembersPage
 
@@ -60,7 +59,7 @@ class CreateTeamUi(private val locator: Locator) {
 
     var name by locator
         .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Team Name"))
-        .toInputProperty(TeamName.toBiDiMapping())
+        .toInputProperty(TeamName)
 
     fun create(block: (MembersPage) -> Unit): MembersPage {
         locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Create")).click()

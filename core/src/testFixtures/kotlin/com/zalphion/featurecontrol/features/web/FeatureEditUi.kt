@@ -4,7 +4,6 @@ import com.microsoft.playwright.Locator
 import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.features.Variant
-import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.web.toCheckboxProperty
 import com.zalphion.featurecontrol.web.toInputProperty
 import com.zalphion.featurecontrol.web.waitForAll
@@ -34,7 +33,7 @@ class FeatureEditUi(private val section: Locator) {
 class VariantUi(private val section: Locator) {
     var name by section
         .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Name"))
-        .toInputProperty(Variant.toBiDiMapping())
+        .toInputProperty(Variant)
 
     var description by section
         .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Description"))

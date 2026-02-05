@@ -17,23 +17,23 @@ class MembersPage(private val page: Page) {
     var searchTerm by page
         .getByRole(AriaRole.MAIN)
         .getByRole(AriaRole.NAVIGATION)
-        .getByRole(AriaRole.SEARCH)
+        .getByPlaceholder("Search")
         .toInputProperty()
 
     val members get() = page
         .getByRole(AriaRole.MAIN)
-        .locator("tbody tr")
+        .locator("tbody tr:visible") // only pick rows that aren't hidden by the search filter
         .waitForAll()
-        .map(::MemberComponent)
+        .map(::MemberUi)
 
     fun inviteMember(block: (InviteMemberUi) -> Unit = {}) = page
-        .getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Invite Member"))
+        .getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Invite"))
         .also { it.click() }
         .let { InviteMemberUi(it.getControlled()) }
         .also(block)
 }
 
-class MemberComponent(private val locator: Locator) {
+class MemberUi(private val locator: Locator) {
     val username get() = locator
         .getByRole(AriaRole.CELL, Locator.GetByRoleOptions().setName("Username"))
         .textContent().trim()
@@ -59,10 +59,10 @@ class InviteMemberUi(private val locator: Locator) {
 
     var emailAddress by locator
         .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Email Address"))
-        .toInputProperty()
+        .toInputProperty(EmailAddress)
 
     fun send(block: (MembersPage) -> Unit = {}): MembersPage {
-        locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Send Invite")).click()
+        locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Send")).click()
         return MembersPage(locator.page()).also(block)
     }
 }

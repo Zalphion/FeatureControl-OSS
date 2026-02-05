@@ -66,7 +66,7 @@ class VariantEnvironmentUi(private val locator: Locator) {
 
     var weight by locator
         .getByRole(AriaRole.SPINBUTTON, Locator.GetByRoleOptions().setName("Weight"))
-        .toInputProperty(Weight.toBiDiMapping())
+        .toInputProperty(Weight)
 
     fun subjectIdsModal(block: (SubjectIdsModalUi) -> Unit) {
         locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Subject IDs")).click()

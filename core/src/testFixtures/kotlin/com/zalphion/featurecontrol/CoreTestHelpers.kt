@@ -77,7 +77,7 @@ fun CoreTestDriver.createFeature(
 
 fun UserService.create(
     emailAddress: EmailAddress,
-    userName: String = emailAddress.value,
+    userName: String? = null,
     photoUrl: Uri? = null,
 ) = create(UserCreateData(
     emailAddress = emailAddress,

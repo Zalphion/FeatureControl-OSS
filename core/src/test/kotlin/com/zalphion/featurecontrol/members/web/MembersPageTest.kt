@@ -1,11 +1,13 @@
 package com.zalphion.featurecontrol.members.web
 
 import com.zalphion.featurecontrol.CoreTestDriver
+import com.zalphion.featurecontrol.IDP1
 import com.zalphion.featurecontrol.addTo
 import com.zalphion.featurecontrol.create
 import com.zalphion.featurecontrol.idp1Email1
 import com.zalphion.featurecontrol.idp1Email2
 import com.zalphion.featurecontrol.idp1Email3
+import com.zalphion.featurecontrol.idp1Email4
 import com.zalphion.featurecontrol.idp2Email1
 import com.zalphion.featurecontrol.invoke
 import com.zalphion.featurecontrol.members.InviteUser
@@ -29,7 +31,7 @@ class MembersPageTest: CoreTestDriver() {
 
     private val member1 = users.create(idp1Email1, userName = "lolcats").shouldBeSuccess()
 
-    private val member2 = users.create(idp1Email2)
+    private val member2 = users.create(idp1Email2, userName = "user2")
         .shouldBeSuccess()
         .user.addTo(core, member1.team)
 
@@ -56,19 +58,61 @@ class MembersPageTest: CoreTestDriver() {
                     invitation.user.emailAddress
                 )
 
-                page.members.find { it.emailAddress == member1.user.emailAddress }.shouldNotBeNull().also { member ->
-                    member.username shouldBe member1.user.userName.shouldNotBeNull()
-                    member.active shouldBe true
-                    member.expires shouldBe null
+                page.members.find { it.emailAddress == member1.user.emailAddress } shouldNotBeNull {
+                    username shouldBe "lolcats"
+                    active shouldBe true
+                    expires shouldBe null
                 }
 
-                page.members.find { it.emailAddress == invitation.user.emailAddress }.shouldNotBeNull().also { member ->
-                    member.username shouldBe null
-                    member.active shouldBe false
-                    member.expires shouldBe time + invitationRetention
+                page.members.find { it.emailAddress == member2.userId.toEmailAddress() } shouldNotBeNull {
+                    username shouldBe "user2"
+                    active shouldBe true
+                    expires shouldBe null
+                }
+
+                page.members.find { it.emailAddress == member3.userId.toEmailAddress() } shouldNotBeNull {
+                    username shouldBe null
+                    active shouldBe true
+                    expires shouldBe null
+                }
+
+                page.members.find { it.emailAddress == invitation.user.emailAddress } shouldNotBeNull {
+                    username shouldBe null
+                    active shouldBe false
+                    expires shouldBe time + invitationRetention
                 }
             }
 
+        }
+    }
+
+    @Test
+    fun `search members`(browser: Http4kBrowser) {
+        browser.asUser(core, member1.user) { page ->
+            page.mainNavBar.openTeams().manageTeam { page ->
+                page.searchTerm = IDP1
+
+                page.members.map { it.emailAddress }.shouldContainExactlyInAnyOrder(
+                    idp1Email1, idp1Email2, idp1Email3
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `invite member`(browser: Http4kBrowser) {
+        browser.asUser(core, member1.user) { page ->
+            page.mainNavBar.openTeams().manageTeam { page ->
+                page.inviteMember { form ->
+                    form.emailAddress = idp1Email4
+                }.send { result ->
+                    result.members.find { it.emailAddress == idp1Email4 } shouldNotBeNull {
+                        username shouldBe null
+                        active shouldBe false
+                        expires shouldBe time + invitationRetention
+                    }
+                }
+            }
         }
     }
 }

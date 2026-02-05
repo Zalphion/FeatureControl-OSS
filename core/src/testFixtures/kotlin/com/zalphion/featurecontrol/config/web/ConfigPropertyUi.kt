@@ -6,7 +6,6 @@ import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.configs.web.ConfigPropertyDto
 import com.zalphion.featurecontrol.configs.web.PropertyTypeDto
-import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.web.toInputProperty
 import com.zalphion.featurecontrol.web.toSelectProperty
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -20,7 +19,7 @@ class ConfigPropertyUi(private val section: Locator) {
 
     var key by section
         .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Key"))
-        .toInputProperty(PropertyKey.toBiDiMapping())
+        .toInputProperty(PropertyKey)
 
     var type by section
         .getByRole(AriaRole.COMBOBOX, Locator.GetByRoleOptions().setName("Type"))
