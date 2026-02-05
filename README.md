@@ -1,4 +1,5 @@
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
+[![Reddit](https://img.shields.io/badge/featurecontrol-%23FF4500.svg?style=for-the-badge&logo=Reddit&logoColor=white)](https://reddit.com/r/featurecontrol)
 
 # Feature Control - OSS
 
