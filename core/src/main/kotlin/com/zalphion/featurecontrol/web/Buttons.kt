@@ -24,7 +24,7 @@ fun FlowContent.modalIconButton(
     attrs: BUTTON.() -> Unit = {}
 ) {
     button(type = ButtonType.button, classes = "uk-icon-button uk-button-default") {
-        attributes["aria-haspopup"] = "dialog"
+        ariaHasPopup = AriaHasPopup.Dialog
         attrs()
 
         attributes["uk-tooltip"] = tooltip
@@ -45,7 +45,7 @@ fun FlowContent.modalTextButton(
     attrs: BUTTON.() -> Unit = {}
 ) {
     button(type = ButtonType.button, classes = classes) {
-        attributes["aria-haspopup"] = "dialog"
+        ariaHasPopup = AriaHasPopup.Dialog
         attrs()
 
         onClick = "${if (dropdownToCloseId == null) "" else "UIkit.dropdown('#$dropdownToCloseId').hide(true); "}UIkit.modal('#$modalId').show()"

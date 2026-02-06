@@ -27,7 +27,7 @@ fun FlowContent.listBuilder(
     placeholderText: String?
 ) {
     ul("uk-list overflow-y-auto") {
-        attributes["aria-label"] = "$label List"
+        ariaLabel = "$label List"
 
         template {
             attributes["x-for"] = "(tag, index) in $alpineKey"
@@ -39,7 +39,7 @@ fun FlowContent.listBuilder(
                 }
                 button(type = ButtonType.button) {
                     onClick("$alpineKey.splice(index, 1)")
-                    attributes["aria-label"] = "Remove $label"
+                    ariaLabel = "Remove $label"
                     attributes["uk-icon"] = "icon: close"
                 }
             }
@@ -50,7 +50,7 @@ fun FlowContent.listBuilder(
             attributes["x-if"] = "$alpineKey.length === 0"
 
             li("uk-text-muted") {
-                attributes["aria-hidden"] = "true" // don't appear as a valid aria LIST_ITEM in tests
+                ariaHidden = true // don't appear as a valid aria LIST_ITEM in tests
                 +"No $label items..."
             }
         }
@@ -59,7 +59,7 @@ fun FlowContent.listBuilder(
     input(type = InputType.text, classes = "uk-input") {
         attributes["x-data"] = "{ temp: '' }"
         attributes["x-model"] = "temp"
-        attributes["aria-label"] = "Add $label"
+        ariaLabel = "Add $label"
         if (placeholderText != null) {
             placeholder = placeholderText
         }

@@ -22,7 +22,6 @@ import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.form
 import kotlinx.html.h3
-import kotlinx.html.main
 import kotlinx.html.nav
 import kotlinx.html.onClick
 import kotlinx.html.span
@@ -50,10 +49,8 @@ fun Core.userPage(
         topBar = { h3 { +navBar.permissions.principal.let { it.userName ?: it.emailAddress.value } }}
     )
 ) {
-    main("uk-width-expand uk-padding-small uk-overflow-auto") {
-        teams(this@userPage, navBar.memberships.filter { details -> details.member.active }, permissions)
-        invitations(navBar.memberships.filter { details -> !details.member.active }, permissions)
-    }
+    teams(this@userPage, navBar.memberships.filter { details -> details.member.active }, permissions)
+    invitations(navBar.memberships.filter { details -> !details.member.active }, permissions)
 }
 
 private fun FlowContent.teams(

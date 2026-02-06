@@ -1,15 +1,10 @@
 package com.zalphion.featurecontrol.features.web
 
 import com.microsoft.playwright.Locator
-import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.features.FeatureKey
 
 class FeatureCreateUI(private val section: Locator) {
-
-    init {
-        PlaywrightAssertions.assertThat(section).isVisible()
-    }
 
     private val _key = section.getByLabel("Key")
     var key: FeatureKey

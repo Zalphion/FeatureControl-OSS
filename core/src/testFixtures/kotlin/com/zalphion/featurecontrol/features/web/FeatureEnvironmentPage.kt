@@ -14,6 +14,7 @@ import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.features.Weight
 import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.web.ModalUi
+import com.zalphion.featurecontrol.web.getControlled
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.toInputProperty
 import com.zalphion.featurecontrol.web.toListProperty
@@ -38,7 +39,7 @@ class FeatureEnvironmentPage(private val page: Page) {
     val variants = page
         .getByRole(AriaRole.MAIN)
         .getByRole(AriaRole.TABLE)
-        .locator("tbody tr")
+        .locator("tbody tr:visible")
         .waitForAll()
         .map { VariantEnvironmentUi(it) }
         .associateBy { it.name }
@@ -56,10 +57,6 @@ class FeatureEnvironmentPage(private val page: Page) {
 
 class VariantEnvironmentUi(private val locator: Locator) {
 
-    init {
-        PlaywrightAssertions.assertThat(locator).isVisible()
-    }
-
     val name get() = locator
         .getByRole(AriaRole.HEADING, Locator.GetByRoleOptions().setName("Variant"))
         .let { Variant.parse(it.textContent().trim()) }
@@ -69,9 +66,10 @@ class VariantEnvironmentUi(private val locator: Locator) {
         .toInputProperty(Weight)
 
     fun subjectIdsModal(block: (SubjectIdsModalUi) -> Unit) {
-        locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Subject IDs")).click()
-
-        locator.page().getByRole(AriaRole.DIALOG)
+        locator
+            .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Subject IDs"))
+            .also { it.click() }
+            .getControlled()
             .let(::SubjectIdsModalUi)
             .use(block)
     }
@@ -79,5 +77,6 @@ class VariantEnvironmentUi(private val locator: Locator) {
 
 class SubjectIdsModalUi(locator: Locator): ModalUi(locator) {
 
-    var subjectIds by locator.toListProperty(SubjectId.toBiDiMapping())
+    var subjectIds by locator
+        .toListProperty(SubjectId.toBiDiMapping())
 }

@@ -117,9 +117,11 @@ interface TableElementSchema {
             flow.button(type = ButtonType.button, classes = "uk-button uk-button-default") {
                 val fullKey = if (key == null) "element" else "element.$key"
 
-                attributes["aria-haspopup"] = "dialog"
-                attributes["aria-label"] = label
+                ariaHasPopup = AriaHasPopup.Dialog
+                ariaLabel = label
+                ariaControls = modalId
                 attributes["x-text"] = $$"`$$label (${$$fullKey.length})`"
+
                 onClick($$"$dispatch('$$dispatchEventId', $$fullKey); $nextTick(() => UIkit.modal('#$$modalId').show())")
             }
         }

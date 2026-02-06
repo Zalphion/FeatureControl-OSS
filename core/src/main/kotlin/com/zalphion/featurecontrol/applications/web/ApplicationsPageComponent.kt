@@ -30,6 +30,8 @@ import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.ListFeatures
 import com.zalphion.featurecontrol.features.web.NewFeatureModalComponent
 import com.zalphion.featurecontrol.teams.Team
+import com.zalphion.featurecontrol.web.SideNav
+import com.zalphion.featurecontrol.web.ariaLabel
 import com.zalphion.featurecontrol.web.uri
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asFailure
@@ -38,16 +40,13 @@ import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import kotlinx.html.FlowContent
 import kotlinx.html.InputType
-import kotlinx.html.aside
 import kotlinx.html.classes
 import kotlinx.html.div
 import kotlinx.html.form
 import kotlinx.html.h2
 import kotlinx.html.input
 import kotlinx.html.li
-import kotlinx.html.main
 import kotlinx.html.nav
-import kotlinx.html.section
 import kotlinx.html.span
 import kotlinx.html.style
 import kotlinx.html.ul
@@ -188,10 +187,11 @@ fun <A: Application?, I, E> ApplicationsPageComponent<A, I, E>.render(
 ) = core.pageSkeleton(
     messages = messages,
     topNav = navBar,
-) {
-    div("uk-flex uk-height-viewport") {
-        aside("uk-width-medium uk-background-muted uk-padding-small uk-overflow-auto") {
-            attributes["aria-label"] = "Applications Bar"
+    sideNav = SideNav(
+        pages = emptyList(),
+        selected = null,
+        topBar = {
+            ariaLabel = "Applications Bar"
             attributes["x-data"] = "{ $filterModel: ''}"
             style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
 
@@ -211,39 +211,31 @@ fun <A: Application?, I, E> ApplicationsPageComponent<A, I, E>.render(
                 }
             }
         }
+    ),
+    innerNav = if (selectedApplication == null) null else {core: Core ->
+        attributes["aria-label"] = "Application Details"
+        attributes["x-data"] = "{ $filterModel: ''}"
+        style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
 
-        if (selectedApplication != null) {
-            section("uk-width-large uk-padding-small uk-overflow-auto") {
-                attributes["aria-label"] = "Application Details"
-                attributes["x-data"] = "{ $filterModel: ''}"
-                style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
+        applicationNavBar(core, selectedApplication, filterModel)
 
-                applicationNavBar(core, selectedApplication, filterModel)
+        core.render(this, ConfigCardComponent(
+            application = selectedApplication,
+            selected = selectedFeature == null,
+            filterModel = filterModel
+        ))
 
-                core.render(this, ConfigCardComponent(
-                    application = selectedApplication,
-                    selected = selectedFeature == null,
-                    filterModel = filterModel
-                ))
-
-                for (feature in features) {
-                    core.render(this, FeatureCardComponent(
-                        application = selectedApplication,
-                        feature = feature,
-                        selected = selectedFeature == feature.key,
-                        filterModel = filterModel
-                    ))
-                }
-            }
-
-            if (content != null) {
-                main("uk-width-expand uk-padding-small uk-overflow-auto") {
-                    content()
-                }
-            }
+        for (feature in features) {
+            core.render(this, FeatureCardComponent(
+                application = selectedApplication,
+                feature = feature,
+                selected = selectedFeature == feature.key,
+                filterModel = filterModel
+            ))
         }
-    }
-}
+    },
+    mainContent = { content?.invoke(this) }
+)
 
 private fun FlowContent.applicationsNavBar(
     core: Core,

@@ -28,7 +28,7 @@ class ConfigEnvironmentPage(private val page: Page) {
 
     val values get() = page
         .getByRole(AriaRole.MAIN)
-        .locator("tbody tr")
+        .locator("tbody tr:visible")
         .waitForAll()
         .map { ConfigValueUi(it) }
 

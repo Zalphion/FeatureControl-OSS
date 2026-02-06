@@ -16,7 +16,7 @@ fun FlowContent.modal(
     footer: (FlowContent.() -> Unit)?
 ) = div("uk-modal uk-modal-container") {
     id = modalId
-    attributes["x-cloak"] = ""
+
 
     if (event != null) {
         attributes["@${event.eventId}.window"] = $$"$${event.dataKey} = $event.detail"
@@ -24,6 +24,7 @@ fun FlowContent.modal(
     }
 
     div("uk-modal-dialog") {
+        attributes["x-cloak"] = ""
 
         div("uk-modal-header") {
             if (withCloseButton) {

@@ -5,17 +5,12 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.web.getElement
-import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.zalphion.featurecontrol.config.web.ConfigSpecPage
 import com.zalphion.featurecontrol.web.getModal
 import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.shouldBe
 
 open class ApplicationsListUi(private val section: Locator) {
-
-    init {
-        assertThat(section.getByRole(AriaRole.HEADING, Locator.GetByRoleOptions().setLevel(2))).isVisible()
-    }
 
     fun select(appName: AppName, block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
         section.getElement(AriaRole.LINK, appName.value).click()

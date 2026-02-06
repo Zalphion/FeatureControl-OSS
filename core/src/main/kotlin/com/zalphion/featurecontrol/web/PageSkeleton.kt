@@ -7,6 +7,7 @@ import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.APP_NAME
 import com.zalphion.featurecontrol.members.MemberDetails
 import kotlinx.html.FlowContent
+import kotlinx.html.SECTION
 import kotlinx.html.ScriptCrossorigin
 import kotlinx.html.aside
 import kotlinx.html.body
@@ -16,6 +17,7 @@ import kotlinx.html.html
 import kotlinx.html.link
 import kotlinx.html.main
 import kotlinx.html.script
+import kotlinx.html.section
 import kotlinx.html.stream.createHTML
 import kotlinx.html.style
 import kotlinx.html.title
@@ -26,6 +28,7 @@ fun Core.pageSkeleton(
     subTitle: String? = null,
     topNav: NavBar<out MemberDetails?>? = null,
     sideNav: SideNav? = null,
+    innerNav: (SECTION.(Core) -> Unit)? = null,
     mainContent: (FlowContent.(Core) -> Unit),
 ) = createHTML().html {
     head {
@@ -69,11 +72,19 @@ fun Core.pageSkeleton(
 
                     sideNav.topBar(this, this@pageSkeleton)
 
-                    div {
-                        for (page in sideNav.pages) {
-                            navButton(page, selected = page.spec == sideNav.selected)
+                    if (sideNav.pages.isNotEmpty()) {
+                        div {
+                            for (page in sideNav.pages) {
+                                navButton(page, selected = page.spec == sideNav.selected)
+                            }
                         }
                     }
+                }
+            }
+
+            if (innerNav != null) {
+                section("uk-width-large uk-padding-small uk-overflow-auto") {
+                    innerNav(this, this@pageSkeleton)
                 }
             }
 

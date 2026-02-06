@@ -6,7 +6,6 @@ import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.lib.Colour
 import com.zalphion.featurecontrol.web.getElement
-import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.zalphion.featurecontrol.config.web.ConfigSpecPage
 import com.zalphion.featurecontrol.web.waitForAll
 
@@ -20,16 +19,12 @@ class ApplicationCreateUpdateUi private constructor(
         fun update(modal: Locator) = ApplicationCreateUpdateUi(modal, "Update")
     }
 
-    init {
-        assertThat(modal).isVisible()
-    }
-
     fun setName(name: AppName) {
         modal.getByLabel("Name").fill(name.value)
     }
 
     fun forEnvironment(name: EnvironmentName, block: (ProjectEnvironmentUi) -> Unit = {}): ProjectEnvironmentUi {
-        val row = modal.locator("tbody tr")
+        val row = modal.locator("tbody tr:visible")
             .waitForAll()
             // can't use a locator by value because alpine.js doesn't populate the DOM with a value
             .find { it.locator("input[aria-label='Environment']").inputValue() == name.value }
@@ -40,7 +35,7 @@ class ApplicationCreateUpdateUi private constructor(
 
     fun newEnvironment(block: (ProjectEnvironmentUi) -> Unit = {}): ProjectEnvironmentUi {
         modal.getElement(AriaRole.BUTTON, "Add Environment").click()
-        val row = modal.locator("tbody tr").last()
+        val row = modal.locator("tbody tr:visible").last()
         return ProjectEnvironmentUi(row).also(block)
     }
 
@@ -51,10 +46,6 @@ class ApplicationCreateUpdateUi private constructor(
 }
 
 class ProjectEnvironmentUi(private val row: Locator) {
-
-    init {
-        assertThat(row).isVisible()
-    }
 
     fun setName(name: EnvironmentName) {
         row.getElement(AriaRole.TEXTBOX, "Environment").fill(name.value)

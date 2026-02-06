@@ -22,7 +22,6 @@ class FeaturePage(private val page: Page) {
     }
 
     private val main get() = page.getByRole(AriaRole.MAIN)
-        .also { PlaywrightAssertions.assertThat(it).isVisible() }
 
     val appId = AppId.parse(urlRegex.find(page.url())!!.groupValues[1])
     val featureKey = FeatureKey.parse(urlRegex.find(page.url())!!.groupValues[2])

@@ -8,6 +8,8 @@ import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.plugins.Component
+import com.zalphion.featurecontrol.web.ariaHasPopup
+import com.zalphion.featurecontrol.web.ariaLabel
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
@@ -104,7 +106,7 @@ class ConfigEnvironmentComponent(
 private fun TD.valueInput(key: PropertyKey, type: PropertyType) {
     fun INPUT.configure() {
         attributes["x-model"] = "values['$key']"
-        attributes["aria-label"] = "Value"
+        ariaLabel = "Value"
         placeholder = "Value"
     }
 
@@ -114,7 +116,7 @@ private fun TD.valueInput(key: PropertyKey, type: PropertyType) {
         }
         PropertyType.Boolean -> select("uk-select") {
             attributes["x-model"] = "values['$key']"
-            attributes["aria-label"] = "Value"
+            ariaLabel = "Value"
             option { }
             option {
                 value = "true"

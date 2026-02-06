@@ -4,8 +4,12 @@ import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.users.User
+import com.zalphion.featurecontrol.web.AriaHasPopup
 import com.zalphion.featurecontrol.web.membersUri
 import com.zalphion.featurecontrol.web.applicationsUri
+import com.zalphion.featurecontrol.web.ariaControls
+import com.zalphion.featurecontrol.web.ariaHasPopup
+import com.zalphion.featurecontrol.web.ariaLabel
 import kotlinx.html.*
 import kotlin.collections.plus
 
@@ -16,8 +20,8 @@ fun FlowContent.teamSelector(
 ) {
     button(type = ButtonType.button, classes = "uk-button uk-button-default uk-border-pill") {
         style = "padding-left: 10px; padding-right: 10px"
-        attributes["aria-label"] = "Team"
-        attributes["aria-controls"] = "team-menu"
+        ariaLabel= "Team"
+        ariaControls = "team-menu"
 
         span("uk-margin-small-right") {
             attributes["uk-icon"] = "icon: users; ratio: 1.5"
@@ -31,7 +35,7 @@ fun FlowContent.teamSelector(
     div("uk-navbar-dropdown") {
         id = "team-menu"
         role = "menu"
-        attributes["aria-label"] = "Team Menu"
+        ariaLabel = "Team Menu"
         attributes["uk-dropdown"] = "mode: click;"
 
         ul("uk-nav uk-navbar-dropdown-nav") {
@@ -59,10 +63,10 @@ fun FlowContent.teamSelector(
             }
             li {
                 val createTeamModalId = createUpdateTeamModal(null)
-                a("#", classes = "navbar-item") {
+                a("#", classes = "navbar-item") {// needs to be an A element for ui-kit formatting
                     role = "button"
-                    attributes["aria-haspopup"] = "true"
-                    attributes["aria-controls"] = createTeamModalId
+                    ariaHasPopup = AriaHasPopup.Dialog
+                    ariaControls = createTeamModalId
                     onClick = "UIkit.modal('#$createTeamModalId').show()"
                     span {
                         attributes["uk-icon"] = "icon: users"

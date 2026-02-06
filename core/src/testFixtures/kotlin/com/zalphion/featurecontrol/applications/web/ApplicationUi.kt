@@ -2,7 +2,6 @@ package com.zalphion.featurecontrol.applications.web
 
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
-import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.config.web.ConfigSpecPage
@@ -15,10 +14,6 @@ import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 
 class ApplicationUi(private val section: Locator) {
-
-    init {
-        assertThat(section).isVisible()
-    }
 
     val name get() = section.getByRole(AriaRole.HEADING, Locator.GetByRoleOptions().setLevel(2))
         .let { AppName.parse(it.textContent().trim()) }

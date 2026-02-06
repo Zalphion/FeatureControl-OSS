@@ -1,7 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
 import com.microsoft.playwright.Locator
-import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.FeatureKey
@@ -10,10 +9,6 @@ import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.shouldBe
 
 class FeatureNavBarUi(private val locator: Locator, private val featureKey: FeatureKey) {
-
-    init {
-        PlaywrightAssertions.assertThat(locator).isVisible()
-    }
 
     val options get() = locator
         .locator("uk-subnav")

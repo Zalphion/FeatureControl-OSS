@@ -25,7 +25,7 @@ class ConfigSpecPage(private val page: Page) {
 
     val properties get() = page
         .getByRole(AriaRole.MAIN)
-        .locator("tbody tr")
+        .locator("tbody tr:visible")
         .waitForAll()
         .map { ConfigPropertyUi(it) }
 
