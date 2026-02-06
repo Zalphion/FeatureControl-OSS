@@ -39,14 +39,14 @@ val generateWebAssetVersions: TaskProvider<Task> = tasks.register("generateWebAs
     val outputDir = layout.buildDirectory.dir("generated/sources/webAssetVersions/kotlin")
     outputs.dir(outputDir)
 
+    val uikit = libs.versions.uikit.get()
+    val alpinejs = libs.versions.alpinejs.get()
+    val dayjs = libs.versions.dayjs.get()
+
     doLast {
         val out = outputDir.get().asFile
         val pkgDir = out.resolve("com/zalphion/featurecontrol/web")
         pkgDir.mkdirs()
-
-        val uikit = libs.versions.uikit.get()
-        val alpinejs = libs.versions.alpinejs.get()
-        val dayjs = libs.versions.dayjs.get()
 
         pkgDir.resolve("WebAssetVersions.kt").writeText(
             """
