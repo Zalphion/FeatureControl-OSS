@@ -8,12 +8,14 @@ import com.zalphion.featurecontrol.applications.web.application
 import com.zalphion.featurecontrol.applications.web.applicationsList
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.waitForAll
+import com.zalphion.featurecontrol.web.waitForReady
 
 private val urlRegex = ".*/applications/([^/]+)/config.*".toRegex()
 
 class ConfigSpecPage(private val page: Page) {
 
     init {
+        page.waitForReady()
         assertThat(page).hasURL(urlRegex.toPattern())
     }
 

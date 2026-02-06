@@ -12,12 +12,14 @@ import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.web.DeleteModalUi
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.getModal
+import com.zalphion.featurecontrol.web.waitForReady
 
 private val urlRegex = ".*applications/([^/]+)/features/([^/]+).*".toRegex()
 
 class FeaturePage(private val page: Page) {
 
     init {
+        page.waitForReady()
         PlaywrightAssertions.assertThat(page).hasURL(urlRegex.toPattern())
     }
 

@@ -19,12 +19,14 @@ import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.toInputProperty
 import com.zalphion.featurecontrol.web.toListProperty
 import com.zalphion.featurecontrol.web.waitForAll
+import com.zalphion.featurecontrol.web.waitForReady
 
 private val urlRegex = ".*applications/([^/]+)/features/([^/]+)/environments/([^/]+).*".toRegex()
 
 class FeatureEnvironmentPage(private val page: Page) {
 
     init {
+        page.waitForReady()
         PlaywrightAssertions.assertThat(page).hasURL(urlRegex.toPattern())
     }
 

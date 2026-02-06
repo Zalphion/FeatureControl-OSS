@@ -9,6 +9,7 @@ import com.zalphion.featurecontrol.applications.web.applicationsList
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.waitForAll
+import com.zalphion.featurecontrol.web.waitForReady
 import io.kotest.matchers.shouldBe
 
 private val urlRegex = ".*/applications/([^/]+)/config/([^/]+).*".toRegex()
@@ -16,6 +17,7 @@ private val urlRegex = ".*/applications/([^/]+)/config/([^/]+).*".toRegex()
 class ConfigEnvironmentPage(private val page: Page) {
 
     init {
+        page.waitForReady()
         assertThat(page).hasURL(urlRegex.toPattern())
     }
 

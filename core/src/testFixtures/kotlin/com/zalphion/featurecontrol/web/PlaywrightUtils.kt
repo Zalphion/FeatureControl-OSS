@@ -76,9 +76,13 @@ fun CoreTestDriver.playwright() = LaunchPlaywrightBrowser(
  * all() returns without waiting, which can introduce a race condition
  */
 fun Locator.waitForAll(): List<Locator> {
-    page().waitForLoadState(LoadState.NETWORKIDLE)
-    page().waitForSelector("body:not([x-cloak])") // Wait for Alpine to finish any initial DOM mutations.
+    page().waitForReady()
     return all()
+}
+
+fun Page.waitForReady() = apply {
+    waitForLoadState(LoadState.NETWORKIDLE)
+    waitForSelector("body:not([x-cloak])") // Wait for Alpine to finish any initial DOM mutations.
 }
 
 fun Locator.getControlled(): Locator {
