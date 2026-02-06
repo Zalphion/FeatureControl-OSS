@@ -57,6 +57,7 @@ import com.zalphion.featurecontrol.members.web.InviteMemberModalComponent
 import com.zalphion.featurecontrol.members.web.TeamsComponent
 import com.zalphion.featurecontrol.members.web.MemberLenses
 import com.zalphion.featurecontrol.members.web.MembersComponent
+import com.zalphion.featurecontrol.members.web.RoleComponent
 import com.zalphion.featurecontrol.members.web.acceptInvitation
 import com.zalphion.featurecontrol.members.web.createMember
 import com.zalphion.featurecontrol.members.web.deleteMember
@@ -195,7 +196,7 @@ class Core internal constructor(
 
     val render: ComponentRegistry = ComponentRegistry(pluginFactories.flatMap { it.componentExports(this) + listOf(
         TeamsComponent.core().toContainer(),
-        MembersComponent.core().toContainer(),
+        MembersComponent.core(this).toContainer(),
         InviteMemberModalComponent.core().toContainer(),
         NewApplicationModalComponent.core(this).toContainer(),
         UpdateApplicationModalComponent.core(this).toContainer(),
@@ -207,7 +208,8 @@ class Core internal constructor(
         ApplicationCardComponent.core().toContainer(),
         ConfigCardComponent.core().toContainer(),
         FeatureCardComponent.core().toContainer(),
-        ConfigNavBarComponent.core().toContainer()
+        ConfigNavBarComponent.core().toContainer(),
+        RoleComponent.core().toContainer(),
     )})
 
     private val plugins = pluginFactories.map { it.create(this) }
@@ -238,8 +240,10 @@ class Core internal constructor(
 
     fun getPages(teamId: TeamId) = buildList {
         this += PageLink(PageSpec.applications, applicationsUri(teamId))
+
+        val entitlements = getEntitlements(teamId)
         for (plugin in plugins) {
-            addAll(plugin.getPages(teamId))
+            addAll(plugin.getPages(teamId, entitlements))
         }
     }
 
@@ -269,7 +273,7 @@ class Core internal constructor(
             .logSummary(clock = clock)
             .then(ServerFilters.logErrors())
             .then(routes(listOf(
-                *plugins.mapNotNull { it.getRoutes() }.toTypedArray(),
+                *plugins.mapNotNull { it.getRoutes(this) }.toTypedArray(),
                 LOGIN_PATH bind Method.GET to {
                     Response(Status.OK).with(htmlLens of loginView())
                 },
@@ -293,7 +297,7 @@ class Core internal constructor(
 
     private fun getWebRoutes() = routes(listOf(
         // plugins can override existing routes
-        *plugins.mapNotNull { it.getWebRoutes() }.toTypedArray(),
+        *plugins.mapNotNull { it.getWebRoutes(this) }.toTypedArray(),
         INDEX_PATH bind Method.GET to { request: Request ->
             val permissions = permissionsLens(request)
             // FIXME go to team selector instead of trying to find a team

@@ -1,6 +1,7 @@
 package com.zalphion.featurecontrol.plugins
 
 import com.zalphion.featurecontrol.AppError
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.auth.Entitlements
 import com.zalphion.featurecontrol.events.Event
 import com.zalphion.featurecontrol.applications.Environment
@@ -28,13 +29,13 @@ interface Plugin {
     fun getRequirements(data: MemberUpdateData): Entitlements = emptySet()
 
     // Applied to the HTTP root (bring-your-own security)
-    fun getRoutes(): RoutingHttpHandler? = null
+    fun getRoutes(core: Core): RoutingHttpHandler? = null
 
     // Applied within the existing web routes, using its security
-    fun getWebRoutes(): RoutingHttpHandler? = null
+    fun getWebRoutes(core: Core): RoutingHttpHandler? = null
 
     // Register links to the top navbar
-    fun getPages(teamId: TeamId): Collection<PageLink> = emptyList()
+    fun getPages(teamId: TeamId, entitlements: Entitlements): Collection<PageLink> = emptyList()
 
     companion object
 }

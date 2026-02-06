@@ -13,7 +13,6 @@ import com.zalphion.featurecontrol.web.deleteModal
 import com.zalphion.featurecontrol.web.modalIconButton
 import com.zalphion.featurecontrol.web.modalTextButton
 import com.zalphion.featurecontrol.web.moreMenu
-import com.zalphion.featurecontrol.web.navbar
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.AppId
@@ -186,8 +185,10 @@ fun <A: Application?, I, E> ApplicationsPageComponent<A, I, E>.render(
     messages: List<FlashMessageDto>,
     selectedFeature: FeatureKey?,
     content: (FlowContent.() -> Unit)? = null,
-) = core.pageSkeleton(messages) {
-    navbar(navBar)
+) = core.pageSkeleton(
+    messages = messages,
+    topNav = navBar,
+) {
     div("uk-flex uk-height-viewport") {
         aside("uk-width-medium uk-background-muted uk-padding-small uk-overflow-auto") {
             attributes["aria-label"] = "Applications Bar"

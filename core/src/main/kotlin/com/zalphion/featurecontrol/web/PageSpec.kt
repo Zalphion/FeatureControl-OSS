@@ -18,6 +18,7 @@ data class PageSpec(val name: String, val icon: String) {
         val features = PageSpec("Features", "icon: cog")
         val config = PageSpec("Config", "icon: file-text")
         val members = PageSpec("Members", "icon: users")
+        val userSettings = PageSpec("User Settings", "icon: user")
     }
 }
 data class PageLink(

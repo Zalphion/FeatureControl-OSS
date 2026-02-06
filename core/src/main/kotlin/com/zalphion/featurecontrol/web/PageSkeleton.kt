@@ -5,21 +5,28 @@ import com.zalphion.featurecontrol.auth.web.CSRF_COOKIE_NAME
 import com.zalphion.featurecontrol.auth.web.CSRF_FORM_PARAM
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.APP_NAME
+import com.zalphion.featurecontrol.members.MemberDetails
 import kotlinx.html.FlowContent
 import kotlinx.html.ScriptCrossorigin
+import kotlinx.html.aside
 import kotlinx.html.body
+import kotlinx.html.div
 import kotlinx.html.head
 import kotlinx.html.html
 import kotlinx.html.link
+import kotlinx.html.main
 import kotlinx.html.script
 import kotlinx.html.stream.createHTML
+import kotlinx.html.style
 import kotlinx.html.title
 import kotlinx.html.unsafe
 
 fun Core.pageSkeleton(
     messages: List<FlashMessageDto>,
     subTitle: String? = null,
-    content: (FlowContent.(Core) -> Unit),
+    topNav: NavBar<out MemberDetails?>? = null,
+    sideNav: SideNav? = null,
+    mainContent: (FlowContent.(Core) -> Unit),
 ) = createHTML().html {
     head {
         if (subTitle != null) {
@@ -50,7 +57,30 @@ fun Core.pageSkeleton(
     body {
         attributes["x-data"] = "" // required for x-cloak to work
         attributes["x-cloak"] = ""  // signal for automated testing readiness; alpine.js will remove this when it's complete
-        content(this@pageSkeleton)
+
+        if (topNav != null) {
+            this.renderNavbar( topNav)
+        }
+
+        div("uk-flex uk-height-viewport") {
+            if (sideNav != null) {
+                aside("uk-width-large uk-background-muted uk-padding-small uk-overflow-auto") {
+                    style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
+
+                    sideNav.topBar(this, this@pageSkeleton)
+
+                    div {
+                        for (page in sideNav.pages) {
+                            navButton(page, selected = page.spec == sideNav.selected)
+                        }
+                    }
+                }
+            }
+
+            main("uk-width-expand uk-padding-small uk-overflow-auto") {
+                mainContent(this@pageSkeleton)
+            }
+        }
 
         val messagesScript = messages.joinToString("\n") { message ->
             val status = when (message.type) {

@@ -88,7 +88,7 @@ data class NavBar<T>(
     }
 }
 
-fun FlowContent.navbar(model: NavBar<out MemberDetails?>) = with(model) {
+internal fun FlowContent.renderNavbar(model: NavBar<out MemberDetails?>) = with(model) {
     nav("uk-navbar-container uk-navbar-transparent uk-background-primary uk-light") {
         attributes["uk-navbar"] = ""
         div("uk-navbar-left") {

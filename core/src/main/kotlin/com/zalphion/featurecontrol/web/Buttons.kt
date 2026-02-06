@@ -5,12 +5,16 @@ import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.UL
+import kotlinx.html.a
 import kotlinx.html.button
+import kotlinx.html.classes
 import kotlinx.html.div
 import kotlinx.html.id
 import kotlinx.html.onClick
 import kotlinx.html.span
+import kotlinx.html.style
 import kotlinx.html.ul
+import kotlin.collections.plus
 
 fun FlowContent.modalIconButton(
     tooltip: String,
@@ -68,5 +72,19 @@ fun FlowContent.moreMenu(resourceId: StringValue, icons: UL.(String) -> Unit) {
         ul("uk-nav uk-dropdown-nav") {
             icons(dropdownId)
         }
+    }
+}
+
+fun FlowContent.navButton(page: PageLink, selected: Boolean) {
+    a(page.uri.toString(), classes = "uk-button uk-button-large uk-width-1-1") {
+        if (page.tooltip != null) attributes["uk-tooltip"] = page.tooltip
+        if (!page.enabled) attributes["disabled"] = ""
+        classes += if (selected) "uk-button-primary" else "uk-button-default"
+        style = "padding-bottom: 10px; padding-top: 10px; margin-top: 10px; margin-bottom: 10px;"
+
+        span("uk-margin-small-right") {
+            attributes["uk-icon"] = page.spec.icon
+        }
+        +page.spec.name
     }
 }

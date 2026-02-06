@@ -6,17 +6,18 @@ import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.NavBar
 import com.zalphion.featurecontrol.web.deleteModal
 import com.zalphion.featurecontrol.web.membersUri
-import com.zalphion.featurecontrol.web.navbar
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.web.withRichMethod
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.web.TeamsComponent
 import com.zalphion.featurecontrol.users.User
+import com.zalphion.featurecontrol.web.PageLink
+import com.zalphion.featurecontrol.web.PageSpec
+import com.zalphion.featurecontrol.web.SideNav
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
-import kotlinx.html.aside
 import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.form
@@ -25,7 +26,6 @@ import kotlinx.html.main
 import kotlinx.html.nav
 import kotlinx.html.onClick
 import kotlinx.html.span
-import kotlinx.html.style
 import kotlinx.html.table
 import kotlinx.html.tbody
 import kotlinx.html.td
@@ -34,31 +34,25 @@ import kotlinx.html.thead
 import kotlinx.html.tr
 import kotlinx.html.ul
 import org.http4k.core.Method
+import org.http4k.core.Uri
 
 fun Core.userPage(
     permissions: Permissions<User>,
     navBar: NavBar<MemberDetails?>,
     messages: List<FlashMessageDto>,
-    subTitle: String? = null
-) = pageSkeleton(messages, subTitle) {
-    navbar(navBar)
-
-    div("uk-flex uk-height-viewport") {
-        aside("uk-width-medium uk-background-muted uk-padding-small uk-overflow-auto") {
-            style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
-
-            h3("uk-logo") {
-                span("uk-margin-small-right") {
-                    attributes["uk-icon"] = "icon: users"
-                }
-                +"User Settings"
-            }
-        }
-
-        main("uk-width-expand uk-padding-small uk-overflow-auto") {
-            teams(this@userPage, navBar.memberships.filter { details -> details.member.active }, permissions)
-            invitations(navBar.memberships.filter { details -> !details.member.active }, permissions)
-        }
+) = pageSkeleton(
+    messages = messages,
+    subTitle = PageSpec.userSettings.name,
+    topNav = navBar,
+    sideNav = SideNav(
+        pages = listOf(PageLink(PageSpec.userSettings, Uri.of("profile"))),
+        selected = PageSpec.userSettings,
+        topBar = { h3 { +navBar.permissions.principal.let { it.userName ?: it.emailAddress.value } }}
+    )
+) {
+    main("uk-width-expand uk-padding-small uk-overflow-auto") {
+        teams(this@userPage, navBar.memberships.filter { details -> details.member.active }, permissions)
+        invitations(navBar.memberships.filter { details -> !details.member.active }, permissions)
     }
 }
 

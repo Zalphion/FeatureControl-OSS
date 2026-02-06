@@ -11,31 +11,23 @@ import com.zalphion.featurecontrol.web.PageSpec
 import com.zalphion.featurecontrol.web.modalTextButton
 import com.zalphion.featurecontrol.web.membersUri
 import com.zalphion.featurecontrol.web.moreMenu
-import com.zalphion.featurecontrol.web.navbar
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.AppError
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.memberNotFound
+import com.zalphion.featurecontrol.web.SideNav
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asFailure
 import dev.forkhandles.result4k.asSuccess
 import dev.forkhandles.result4k.onFailure
-import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
-import kotlinx.html.a
-import kotlinx.html.aside
-import kotlinx.html.button
-import kotlinx.html.classes
 import kotlinx.html.div
 import kotlinx.html.h3
 import kotlinx.html.li
-import kotlinx.html.main
 import kotlinx.html.nav
 import kotlinx.html.span
-import kotlinx.html.style
 import kotlinx.html.ul
-import kotlin.collections.plus
 import kotlin.collections.set
 
 data class TeamPageComponent(
@@ -65,27 +57,17 @@ fun Core.teamPage(
     model: TeamPageComponent,
     messages: List<FlashMessageDto>,
     content: FlowContent.(TeamPageComponent) -> Unit
-) = pageSkeleton(messages, "Manage Team") {
-    navbar(model.navBar)
-
-    div("uk-flex uk-height-viewport") {
-        aside("uk-width-large uk-background-muted uk-padding-small uk-overflow-auto") {
-            style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
-
-            teamNavBar(model.team.team)
-
-            div {
-                for (page in model.pages) {
-                    iconButton(page, selected = page.spec == model.navBar.selectedPage)
-                }
-            }
-        }
-
-        main("uk-width-expand uk-padding-small uk-overflow-auto") {
-            content(model)
-        }
-    }
-}
+) = pageSkeleton(
+    messages = messages,
+    subTitle = "Manage Team",
+    topNav = model.navBar,
+    sideNav = SideNav(
+        topBar = { teamNavBar(model.team.team) },
+        pages = model.pages,
+        selected = model.navBar.selectedPage,
+    ),
+    mainContent = { content(model) }
+)
 
 private fun FlowContent.teamNavBar(team: Team) {
     nav("uk-navbar-container") {
@@ -116,22 +98,6 @@ private fun FlowContent.teamNavBar(team: Team) {
                     }
                 }
             }
-        }
-    }
-}
-
-private fun FlowContent.iconButton(page: PageLink, selected: Boolean) {
-    a(page.uri.toString()) {
-        button(type = ButtonType.button, classes = "uk-button uk-button-large uk-width-1-1") {
-            if (page.tooltip != null) attributes["uk-tooltip"] = page.tooltip
-            if (!page.enabled) attributes["disabled"] = ""
-            classes += if (selected) "uk-button-primary" else "uk-button-default"
-            style = "padding-bottom: 10px; padding-top: 10px; margin-top: 10px; margin-bottom: 10px;"
-
-            span("uk-margin-small-right") {
-                attributes["uk-icon"] = page.spec.icon
-            }
-            +page.spec.name
         }
     }
 }

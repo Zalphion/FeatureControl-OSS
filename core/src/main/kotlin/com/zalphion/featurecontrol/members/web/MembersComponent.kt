@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
@@ -34,6 +35,7 @@ class MembersComponent(
 ) {
     companion object {
         fun core(
+            core: Core,
             extraColumnsFn: (MembersComponent) -> List<Pair<String, TD.(MemberDetails) -> Unit>> = { emptyList() },
             extraActionsFn: (MembersComponent) -> List<LI.(MemberDetails) -> Unit> = { emptyList() }
         ) = Component<MembersComponent> { flow, data ->
@@ -45,10 +47,12 @@ class MembersComponent(
                         tr {
                             th { +"Name" }
                             th { +"Email" }
+                            th { +"Role"}
                             th { +"Status" }
                             for (header in extraColumns.map { it.first }) {
                                 th { +header }
                             }
+                            th { +"Actions" }
                         }
                     }
                     tbody {
@@ -67,6 +71,11 @@ class MembersComponent(
                                 td {
                                     ariaLabel = "Email Address"
                                     +details.user.emailAddress.value
+                                }
+
+                                td {
+                                    ariaLabel = "Role"
+                                    core.render(this, RoleComponent(details))
                                 }
 
                                 // status
