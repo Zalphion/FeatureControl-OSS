@@ -65,59 +65,63 @@ class ConfigEnvironmentPageTest: CoreTestDriver() {
 
     @Test
     fun `show environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
-            .environments.select(devName) { page ->
-                page.environments.options.shouldContainExactly(devName, prodName)
-                page.environments.selected shouldBe devName
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
+                .environments.select(devName) { page ->
+                    page.environments.options.shouldContainExactly(devName, prodName)
+                    page.environments.selected shouldBe devName
 
-                page.values.shouldHaveSize(4)
-                page.values[0].also { value ->
-                    value.key shouldBe booleanProperty.first
-                    value.booleanValue shouldBe null
+                    page.values.shouldHaveSize(4)
+                    page.values[0].also { value ->
+                        value.key shouldBe booleanProperty.first
+                        value.booleanValue shouldBe null
+                    }
+                    page.values[1].also { value ->
+                        value.key shouldBe numberProperty.first
+                        value.numberValue shouldBe 123.toBigDecimal()
+                    }
+                    page.values[2].also { value ->
+                        value.key shouldBe secretProperty.first
+                        value.textValue shouldBe null
+                    }
+                    page.values[3].also { value ->
+                        value.key shouldBe strProperty.first
+                        value.textValue shouldBe "lol"
+                    }
                 }
-                page.values[1].also { value ->
-                    value.key shouldBe numberProperty.first
-                    value.numberValue shouldBe 123.toBigDecimal()
-                }
-                page.values[2].also { value ->
-                    value.key shouldBe secretProperty.first
-                    value.textValue shouldBe null
-                }
-                page.values[3].also { value ->
-                    value.key shouldBe strProperty.first
-                    value.textValue shouldBe "lol"
-                }
-            }
+        }
     }
 
     @Test
     fun `update environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
-            .environments.select(devName) { page ->
-                page.values.find { it.key == booleanProperty.first }.shouldNotBeNull().booleanValue = true
-                page.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue = null
-                page.values.find { it.key == numberProperty.first }.shouldNotBeNull().numberValue = null
-                page.values.first { it.key  == secretProperty.first }.textValue = "new secret"
-            }.update { result ->
-                result.values.shouldHaveSize(4)
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
+                .environments.select(devName) { page ->
+                    page.values.find { it.key == booleanProperty.first }.shouldNotBeNull().booleanValue = true
+                    page.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue = null
+                    page.values.find { it.key == numberProperty.first }.shouldNotBeNull().numberValue = null
+                    page.values.first { it.key == secretProperty.first }.textValue = "new secret"
+                }.update { result ->
+                    result.values.shouldHaveSize(4)
 
-                result.values.find { it.key == booleanProperty.first }.shouldNotBeNull().booleanValue shouldBe true
-                result.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue shouldBe null
-                result.values.find { it.key == numberProperty.first }.shouldNotBeNull().numberValue shouldBe null
-                result.values.find { it.key == secretProperty.first }.shouldNotBeNull().textValue shouldBe "********"
-            }
+                    result.values.find { it.key == booleanProperty.first }.shouldNotBeNull().booleanValue shouldBe true
+                    result.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue shouldBe null
+                    result.values.find { it.key == numberProperty.first }.shouldNotBeNull().numberValue shouldBe null
+                    result.values.find { it.key == secretProperty.first }
+                        .shouldNotBeNull().textValue shouldBe "********"
+                }
+        }
     }
 
     @Test
     fun `reset environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
-            .environments.select(devName) { page ->
-                page.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue = "foobar"
-            }.reset { result ->
-                result.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue shouldBe "lol"
-            }
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
+                .environments.select(devName) { page ->
+                    page.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue = "foobar"
+                }.reset { result ->
+                    result.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue shouldBe "lol"
+                }
+        }
     }
 }

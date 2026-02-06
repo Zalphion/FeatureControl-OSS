@@ -16,7 +16,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import org.http4k.core.extend
 import org.http4k.playwright.Http4kBrowser
 import org.http4k.playwright.LaunchPlaywrightBrowser
-import java.util.concurrent.TimeUnit
+import java.time.Duration
+import java.time.Instant
 
 private val ci = System.getenv("CI")?.toBoolean() == true
 
@@ -24,32 +25,27 @@ fun Http4kBrowser.asUser(
     core: Core,
     user: User,
     team: Team? = null,
+    waitTimeout: Duration = Duration.ofSeconds(5),
     block: (ApplicationsPage) -> Unit = {}
-): ApplicationsPage {
+) {
     val sessionCookie = core.createSessionCookie(user.userId)
 
-    val context = newContext().apply {
-        setDefaultTimeout(TimeUnit.SECONDS.toMillis(5).toDouble())
-        addCookies(
+    newContext().use { context ->
+        context.setDefaultTimeout(waitTimeout.toMillis().toDouble())
+        context.addCookies(
             listOf(
-                Cookie(SESSION_COOKIE_NAME, sessionCookie.value)
+                Cookie(sessionCookie.name, sessionCookie.value)
                     .setDomain("localhost")
                     .setPath("/")
             )
         )
-    }
 
-    val uri = if (team != null) baseUri.extend(applicationsUri(team.teamId)) else baseUri
+        val uri = if (team != null) baseUri.extend(applicationsUri(team.teamId)) else baseUri
 
-    return try {
-        context.newPage()
-            .apply { navigate(uri.toString()) }
-            .let(::ApplicationsPage)
-            .also(block)
-    } catch (e: Exception) {
-        e.printStackTrace(System.err)
-        if (!ci) Thread.sleep(10_000)
-        throw e
+        context.newPage().use {
+            it.navigate(uri.toString())
+            block(ApplicationsPage(it))
+        }
     }
 }
 
@@ -89,3 +85,5 @@ fun Locator.getControlled(): Locator {
     val targetId = getAttribute("aria-controls").shouldNotBeNull()
     return page().locator("#$targetId")
 }
+
+fun Locator.getTime(): Instant = Instant.parse(getAttribute("datetime").shouldNotBeNull())

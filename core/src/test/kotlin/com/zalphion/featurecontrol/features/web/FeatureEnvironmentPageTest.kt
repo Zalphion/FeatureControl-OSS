@@ -77,16 +77,17 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
             variants = emptyMap()
         )
 
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
             .application.select(emptyFeature.key)
             .environments.options.shouldBeEmpty()
+        }
     }
 
     @Test
     fun `show environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
             .application.select(feature.key)
             .environments.select(devName) { page ->
                 page.uriEnvironment shouldBe devName
@@ -129,53 +130,56 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
                     }
                 }
             }
+            }
     }
 
     @Test
     fun `update environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
-            .application.select(feature.key)
-            .environments.select(devName) { page ->
-                page.variants[old].shouldNotBeNull().also { variant ->
-                    variant.name shouldBe old
-                    variant.weight = Weight.of(9001)
-                    variant.subjectIdsModal { modal ->
-                        modal.subjectIds = listOf(subject1, subject2)
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
+                .application.select(feature.key)
+                .environments.select(devName) { page ->
+                    page.variants[old].shouldNotBeNull().also { variant ->
+                        variant.name shouldBe old
+                        variant.weight = Weight.of(9001)
+                        variant.subjectIdsModal { modal ->
+                            modal.subjectIds = listOf(subject1, subject2)
+                        }
+                    }
+                }.update { result ->
+                    result.environments.selected shouldBe devName
+                    result.variants[old].shouldNotBeNull().also { variant ->
+                        variant.name shouldBe old
+                        variant.weight shouldBe Weight.of(9001)
+                        variant.subjectIdsModal { modal ->
+                            modal.subjectIds.shouldContainExactlyInAnyOrder(subject1, subject2)
+                        }
                     }
                 }
-            }.update { result ->
-                result.environments.selected shouldBe devName
-                result.variants[old].shouldNotBeNull().also { variant ->
-                    variant.name shouldBe old
-                    variant.weight shouldBe Weight.of(9001)
-                    variant.subjectIdsModal { modal ->
-                        modal.subjectIds.shouldContainExactlyInAnyOrder(subject1, subject2)
-                    }
-                }
-            }
+        }
     }
 
     @Test
     fun `reset environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
-            .application.select(feature.key)
-            .environments.select(prodName) { page ->
-                page.variants[old].shouldNotBeNull().also { variant ->
-                    variant.weight = Weight.of(9001)
-                    variant.subjectIdsModal { modal ->
-                        modal.subjectIds = listOf(subject1, subject2)
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
+                .application.select(feature.key)
+                .environments.select(prodName) { page ->
+                    page.variants[old].shouldNotBeNull().also { variant ->
+                        variant.weight = Weight.of(9001)
+                        variant.subjectIdsModal { modal ->
+                            modal.subjectIds = listOf(subject1, subject2)
+                        }
+                    }
+                }.reset { result ->
+                    result.environments.selected shouldBe prodName
+                    result.variants[old].shouldNotBeNull().also { variant ->
+                        variant.weight shouldBe Weight.of(1)
+                        variant.subjectIdsModal { modal ->
+                            modal.subjectIds.shouldContainExactlyInAnyOrder(subject1)
+                        }
                     }
                 }
-            }.reset { result ->
-                result.environments.selected shouldBe prodName
-                result.variants[old].shouldNotBeNull().also { variant ->
-                    variant.weight shouldBe Weight.of(1)
-                    variant.subjectIdsModal { modal ->
-                        modal.subjectIds.shouldContainExactlyInAnyOrder(subject1)
-                    }
-                }
-            }
+        }
     }
 }

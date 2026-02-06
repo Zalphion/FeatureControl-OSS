@@ -128,18 +128,35 @@ private fun UL.pageLink(page: PageLink, selectedPage: PageSpec?) {
 }
 
 private fun FlowContent.userWidget(user: User) {
+    val dropdownId = "user-widget-dropdown"
+
     button(type = ButtonType.button, classes = "uk-button uk-button-default uk-border-pill uk-padding-remove-left") {
         style = "padding-right: 10px;"
+        ariaLabel = "User Widget"
+        ariaHasPopup = AriaHasPopup.Menu
+        ariaControls = dropdownId
+
         avatarView(user.photoUrl, 40) {
             classes += "uk-margin-small-right"
         }
-        +(user.userName ?: user.emailAddress.value)
+        if (user.userName != null) {
+            span {
+                ariaLabel = "Username"
+                +user.userName
+            }
+        } else {
+            span {
+                ariaLabel = "Email"
+                +user.emailAddress.value
+            }
+        }
         span {
             attributes["uk-drop-parent-icon"] = "ratio: 1.5"
         }
     }
 
     div("uk-navbar-dropdown") {
+        id = dropdownId
         attributes["uk-dropdown"] = "mode: click;"
 
         form(LOGOUT_PATH, method = FormMethod.post) {
@@ -153,7 +170,7 @@ private fun FlowContent.userWidget(user: User) {
                     span {
                         attributes["uk-icon"] = "icon: user"
                     }
-                    +"User Settings"
+                    +"Settings"
                 }
             }
             li("uk-nav-divider")

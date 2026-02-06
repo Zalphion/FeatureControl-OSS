@@ -195,7 +195,7 @@ class Core internal constructor(
     ))
 
     val render: ComponentRegistry = ComponentRegistry(pluginFactories.flatMap { it.componentExports(this) + listOf(
-        TeamsComponent.core().toContainer(),
+        TeamsComponent.core(this).toContainer(),
         MembersComponent.core(this).toContainer(),
         InviteMemberModalComponent.core().toContainer(),
         NewApplicationModalComponent.core(this).toContainer(),
@@ -327,10 +327,10 @@ class Core internal constructor(
                 },
                 "members" bind routes(listOf(
                     Method.GET bind showMembers(),
-                    isRichDelete bind deleteMember(),
                     isRichPut bind updateMember(),
                     Method.POST bind createMember(),
                     "$userIdLens" bind routes(listOf(
+                        isRichDelete bind deleteMember(),
                         Method.POST bind resendInvitation()
                     ))
                 )),

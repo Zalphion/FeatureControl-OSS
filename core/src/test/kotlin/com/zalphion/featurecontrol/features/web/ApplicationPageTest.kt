@@ -40,7 +40,7 @@ class ApplicationPageTest: CoreTestDriver() {
     @Test
     fun `no applications`(browser: Http4kBrowser) {
         browser.asUser(core, member.user) { page ->
-            page.teamId shouldBe member.team.teamId
+            page.uriTeamId shouldBe member.team.teamId
             page.applications.list.shouldBeEmpty()
             page.applications.selected.shouldBeNull()
         }
@@ -117,13 +117,14 @@ class ApplicationPageTest: CoreTestDriver() {
         val app1 = createApplication(member, appName1)
         val app2 = createApplication(member, appName2)
 
-        browser.asUser(core, member.user)
-            .applications.select(app2.appName)
-            .application.more()
-            .delete().confirm { page ->
-                page.applications.list.shouldContainExactly(app1.appName)
-                page.applications.selected.shouldBeNull()
-            }
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app2.appName)
+                .application.more()
+                .delete().confirm { page ->
+                    page.applications.list.shouldContainExactly(app1.appName)
+                    page.applications.selected.shouldBeNull()
+                }
+        }
     }
 
     @Test
@@ -131,22 +132,23 @@ class ApplicationPageTest: CoreTestDriver() {
         val app1 = createApplication(member, appName1, listOf(dev, prod))
         val app2 = createApplication(member, appName2, listOf(dev, prod))
 
-        browser.asUser(core, member.user)
-            .applications.select(app2.appName)
-            .application.more().update { app ->
-                app.setName(appName3)
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app2.appName)
+                .application.more().update { app ->
+                    app.setName(appName3)
 
-                app.forEnvironment(dev.name) { env ->
-                    env.setDescription("cool stuff happens here")
-                }
+                    app.forEnvironment(dev.name) { env ->
+                        env.setDescription("cool stuff happens here")
+                    }
 
-                app.newEnvironment { env ->
-                    env.setName(stagingName)
+                    app.newEnvironment { env ->
+                        env.setName(stagingName)
+                    }
+                }.submit { page ->
+                    page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, appName3)
+                    page.applications.selected shouldBe appName3
                 }
-            }.submit { page ->
-                page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, appName3)
-                page.applications.selected shouldBe appName3
-            }
+        }
 
         core.applications[app2.teamId, app2.appId] shouldBe app2.copy(
             appName = appName3,

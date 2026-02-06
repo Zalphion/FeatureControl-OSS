@@ -56,12 +56,11 @@ internal fun Core.showMembers(): HttpHandler = fn@{ request ->
 }
 
 internal fun Core.acceptInvitation(): HttpHandler = { request ->
-    val principal = permissionsLens(request)
+    val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
-    val userId = userIdLens(request)
 
-    AcceptInvitation(teamId, userId)
-        .invoke(principal, this)
+    AcceptInvitation(teamId, permissions.principal.userId)
+        .invoke(permissions, this)
         .map {
             Response(Status.SEE_OTHER)
                 .location(applicationsUri(teamId))

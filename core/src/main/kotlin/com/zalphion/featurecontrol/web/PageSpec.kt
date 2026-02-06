@@ -7,6 +7,7 @@ import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.configs.ConfigEnvironment
 import com.zalphion.featurecontrol.configs.ConfigSpec
 import com.zalphion.featurecontrol.features.Feature
+import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.UserId
 import org.http4k.core.Uri
@@ -48,3 +49,4 @@ fun Feature.uri() = featureUri(teamId, appId, key)
 fun Feature.uri(environmentName: EnvironmentName) = featureUri(teamId, appId, key, environmentName)
 fun ConfigSpec.uri() = configUri(teamId, appId)
 fun ConfigEnvironment.uri() = configUri(teamId, appId, name)
+fun Member.uri() = membersUri(teamId, userId)

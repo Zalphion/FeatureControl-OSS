@@ -36,16 +36,17 @@ class FeaturePageTest: CoreTestDriver() {
 
     @Test
     fun `list features - empty`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
             .application.features
             .shouldBeEmpty()
+        }
     }
 
     @Test
     fun `new feature`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
             .application.newFeature { form ->
                 form.key = featureKey1
                 form.edit.description = "cool stuff"
@@ -64,6 +65,7 @@ class FeaturePageTest: CoreTestDriver() {
                 result.edit.description shouldBe "cool stuff"
                 result.edit.variants.map { it.name }.shouldContainExactly(old, new)
             }
+        }
 
         core.features[app.appId, featureKey1] shouldBe Feature(
             teamId = member.team.teamId,
@@ -88,28 +90,29 @@ class FeaturePageTest: CoreTestDriver() {
             defaultVariant = old
         )
 
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
-            .application.select(feature2.key) { page ->
-                page.edit.let { feature ->
-                    feature.description = "really cool stuff"
-                    feature.variants
-                        .find { it.name == old }
-                        .shouldNotBeNull()
-                        .also { it.description = "legacy" }
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
+                .application.select(feature2.key) { page ->
+                    page.edit.let { feature ->
+                        feature.description = "really cool stuff"
+                        feature.variants
+                            .find { it.name == old }
+                            .shouldNotBeNull()
+                            .also { it.description = "legacy" }
 
-                    feature.newVariant { variant ->
-                        variant.name = new
-                        variant.description = "modern"
-                        variant.default = true
+                        feature.newVariant { variant ->
+                            variant.name = new
+                            variant.description = "modern"
+                            variant.default = true
+                        }
                     }
+                }.update { page ->
+                    page.application.features.shouldContainExactly(feature1.key, feature2.key)
+                    page.featureKey shouldBe featureKey2
+                    page.edit.description shouldBe "really cool stuff"
+                    page.edit.variants.map { it.name }.shouldContainExactly(old, new)
                 }
-            }.update { page ->
-                page.application.features.shouldContainExactly(feature1.key, feature2.key)
-                page.featureKey shouldBe featureKey2
-                page.edit.description shouldBe "really cool stuff"
-                page.edit.variants.map { it.name }.shouldContainExactly(old, new)
-            }
+        }
 
         core.features[app.appId, feature2.key] shouldBe feature2.copy(
             description = "really cool stuff",
@@ -128,8 +131,8 @@ class FeaturePageTest: CoreTestDriver() {
             variants = mapOf(old to "old", new to "new")
         )
 
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
             .application.select(feature.key) { page ->
                 page.edit.variants
                     .find { it.name == old }
@@ -138,6 +141,7 @@ class FeaturePageTest: CoreTestDriver() {
             }.update { page ->
                 page.edit.variants.map { it.name }.shouldContainExactly(new)
             }
+        }
 
         core.features[app.appId, feature.key] shouldBe feature.copy(
             defaultVariant = new,
@@ -150,14 +154,15 @@ class FeaturePageTest: CoreTestDriver() {
         val feature1 = createFeature(member, app, featureKey1)
         val feature2 = createFeature(member, app, featureKey2)
 
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
-            .application.select(feature2.key)
-            .environments.more().delete().confirm { page ->
-                page.application.name shouldBe app.appName
-                page.application.selectedFeature.shouldBeNull()
-                page.application.features.shouldContainExactly(feature1.key)
-            }
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
+                .application.select(feature2.key)
+                .environments.more().delete().confirm { page ->
+                    page.application.name shouldBe app.appName
+                    page.application.selectedFeature.shouldBeNull()
+                    page.application.features.shouldContainExactly(feature1.key)
+                }
+        }
     }
 
     @Test
@@ -170,22 +175,23 @@ class FeaturePageTest: CoreTestDriver() {
             variants = mapOf(old to "old", new to "new")
         )
 
-        browser.asUser(core, member.user)
-            .applications.select(app.appName)
-            .application.select(feature.key) { page ->
-                page.edit.description = "foobar"
-                page.edit.newVariant { variant ->
-                    variant.name = Variant.parse("new-stuff")
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName)
+                .application.select(feature.key) { page ->
+                    page.edit.description = "foobar"
+                    page.edit.newVariant { variant ->
+                        variant.name = Variant.parse("new-stuff")
+                    }
+                    page.edit.variants
+                        .find { it.name == old }
+                        .shouldNotBeNull()
+                        .description = "old stuff"
+                }.reset { result ->
+                    result.edit.description shouldBe "lolcats"
+                    result.edit.variants
+                        .map { it.name to it.description }
+                        .shouldContainExactly(old to "old", new to "new")
                 }
-                page.edit.variants
-                    .find { it.name == old }
-                    .shouldNotBeNull()
-                    .description = "old stuff"
-            }.reset { result ->
-                result.edit.description shouldBe "lolcats"
-                result.edit.variants
-                    .map { it.name to it.description }
-                    .shouldContainExactly(old to "old", new to "new")
-            }
+        }
     }
 }

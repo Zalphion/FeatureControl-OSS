@@ -43,18 +43,19 @@ class ConfigSpecPageTest: CoreTestDriver() {
 
     @Test
     fun `no properties`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName) { page ->
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName) { page ->
                 page.environments.options.shouldContainExactly(devName, prodName)
                 page.environments.selected.shouldBeNull()
                 page.properties.shouldBeEmpty()
             }
+        }
     }
 
     @Test
     fun `add properties`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user)
-            .applications.select(app.appName) { page ->
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName) { page ->
                 page.newProperty { prop ->
                     prop.key = strProperty.first
                     prop.type = PropertyTypeDto.String
@@ -77,11 +78,12 @@ class ConfigSpecPageTest: CoreTestDriver() {
                     result.properties.map { it.toDto() }.shouldContainExactlyInAnyOrder(
                         ConfigPropertyDto(strProperty.first, "a string prop", PropertyTypeDto.String),
                         ConfigPropertyDto(secretProperty.first, "", PropertyTypeDto.Secret),
-                        ConfigPropertyDto(numberProperty.first, "",PropertyTypeDto.Number),
+                        ConfigPropertyDto(numberProperty.first, "", PropertyTypeDto.Number),
                         ConfigPropertyDto(booleanProperty.first, "", PropertyTypeDto.Boolean)
                     )
                 }
             }
+        }
     }
 
     @Test
@@ -92,9 +94,8 @@ class ConfigSpecPageTest: CoreTestDriver() {
             properties = mapOf(strProperty, secretProperty, numberProperty, booleanProperty)
         )
 
-        browser
-            .asUser(core, member.user).applications
-            .select(app.appName) { page ->
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName) { page ->
                 page.properties
                     .find { it.key == secretProperty.first }
                     .shouldNotBeNull()
@@ -118,6 +119,7 @@ class ConfigSpecPageTest: CoreTestDriver() {
                     )
                 }
             }
+        }
     }
 
     @Test
@@ -128,9 +130,8 @@ class ConfigSpecPageTest: CoreTestDriver() {
             properties = mapOf(strProperty, secretProperty, numberProperty, booleanProperty)
         )
 
-        browser
-            .asUser(core, member.user).applications
-            .select(app.appName) { page ->
+        browser.asUser(core, member.user) { page ->
+            page.applications.select(app.appName) { page ->
                 page.properties
                     .find { it.key == secretProperty.first }
                     .shouldNotBeNull()
@@ -157,5 +158,6 @@ class ConfigSpecPageTest: CoreTestDriver() {
                     booleanProperty.second.toDto(booleanProperty.first)
                 )
             }
+        }
     }
 }

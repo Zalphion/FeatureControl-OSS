@@ -2,10 +2,11 @@ package com.zalphion.featurecontrol.web
 
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
+import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.web.ApplicationsPage
 import com.zalphion.featurecontrol.teams.TeamName
-import com.zalphion.featurecontrol.teams.web.MembersPage
+import com.zalphion.featurecontrol.members.web.MembersPage
 
 class MainNavBarUi(private val locator: Locator) {
 
@@ -22,7 +23,9 @@ class MainNavBarUi(private val locator: Locator) {
     fun openTeams(block: (TeamMenuUi) -> Unit = {}) = locator
         .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Team").setExact(true))
         .also { it.click() }
-        .let { TeamMenuUi(it.getControlled()) }
+        .getControlled()
+        .also { PlaywrightAssertions.assertThat(it).isVisible() } // wait for the menu to open
+        .let { TeamMenuUi(it) }
         .also(block)
 
     // TODO user widget

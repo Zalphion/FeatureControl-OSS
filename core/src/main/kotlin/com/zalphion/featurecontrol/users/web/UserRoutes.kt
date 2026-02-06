@@ -15,7 +15,7 @@ internal fun Core.showUserSettings(): HttpHandler = fn@{ request ->
 
     val navBar = NavBar.get(this, permissions)
 
-    Response(Status.OK).with(htmlLens of userPage(
+    Response(Status.OK).with(htmlLens of userPageComponent(
         navBar = navBar,
         messages = request.messages(),
         permissions = permissions

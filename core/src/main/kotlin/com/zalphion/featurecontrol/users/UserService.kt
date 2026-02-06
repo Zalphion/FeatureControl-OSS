@@ -20,6 +20,7 @@ class UserService(private val core: Core) {
             f = { userAlreadyExists(data.emailAddress) }
         ).map { data.toUser() }
         .map { user ->
+            // TODO don't force user to have a team; UI should prompt them instead
             val team = Team(
                 teamId = TeamId.random(core.random),
                 teamName = TeamName.parse("${user.userName}'s Team"),

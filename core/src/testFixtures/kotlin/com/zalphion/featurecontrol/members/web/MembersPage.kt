@@ -1,16 +1,25 @@
-package com.zalphion.featurecontrol.teams.web
+package com.zalphion.featurecontrol.members.web
 
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
+import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.web.getControlled
 import com.zalphion.featurecontrol.web.mainNavBar
 import com.zalphion.featurecontrol.web.toInputProperty
 import com.zalphion.featurecontrol.web.waitForAll
+import com.zalphion.featurecontrol.web.waitForReady
 import java.time.Instant
 
+private val urlRegex = ".*teams/([^/]+)/members.*".toRegex()
+
 class MembersPage(private val page: Page) {
+
+    init {
+        page.waitForReady()
+        PlaywrightAssertions.assertThat(page).hasURL(urlRegex.toPattern())
+    }
 
     val mainNavBar get() = page.mainNavBar()
 

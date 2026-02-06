@@ -25,6 +25,7 @@ fun FlowContent.modalIconButton(
 ) {
     button(type = ButtonType.button, classes = "uk-icon-button uk-button-default") {
         ariaHasPopup = AriaHasPopup.Dialog
+        ariaControls = modalId
         attrs()
 
         attributes["uk-tooltip"] = tooltip
