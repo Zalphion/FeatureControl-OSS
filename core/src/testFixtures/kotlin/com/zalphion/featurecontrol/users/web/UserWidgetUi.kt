@@ -25,9 +25,6 @@ class UserWidgetUi(private val locator: Locator) {
         .also(block)
 }
 
-fun Page.userWidget() = getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("User Widget"))
-    .let(::UserWidgetUi)
-
 class UserMenuUi(private val locator: Locator) {
 
     fun goToSettings(block: (UserSettingsPage) -> Unit = {}) = locator

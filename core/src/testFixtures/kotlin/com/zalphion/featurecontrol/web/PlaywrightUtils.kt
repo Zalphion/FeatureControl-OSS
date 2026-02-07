@@ -76,6 +76,10 @@ fun Locator.waitForAll(): List<Locator> {
     return all()
 }
 
+fun Page.waitForNextAlpineTick() {
+    evaluate("() => new Promise(resolve => window.Alpine.nextTick(resolve))")
+}
+
 fun Page.waitForReady() = apply {
     waitForLoadState(LoadState.NETWORKIDLE)
     waitForSelector("body:not([x-cloak])") // Wait for Alpine to finish any initial DOM mutations.

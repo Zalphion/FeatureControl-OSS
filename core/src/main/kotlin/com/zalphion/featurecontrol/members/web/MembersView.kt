@@ -5,7 +5,9 @@ import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.users.User
+import com.zalphion.featurecontrol.web.AriaPopup
 import com.zalphion.featurecontrol.web.ariaControls
+import com.zalphion.featurecontrol.web.ariaHasPopup
 import com.zalphion.featurecontrol.web.searchBar
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
@@ -39,6 +41,7 @@ fun FlowContent.membersView(
                 core.render(this, InviteMemberModalComponent(team, modalId))
                 button(type = ButtonType.button, classes = "uk-button uk-button-primary") {
                     ariaControls = modalId
+                    ariaHasPopup = AriaPopup.Dialog
                     onClick = "UIkit.modal('#$modalId').show()"
                     span {
                         attributes["uk-icon"] = "icon: mail"

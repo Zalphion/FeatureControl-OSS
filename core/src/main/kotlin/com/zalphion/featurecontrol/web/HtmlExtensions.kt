@@ -25,13 +25,13 @@ var HTMLTag.ariaControls: String
     get() = attributes["aria-controls"] ?: ""
     set(value) { attributes["aria-controls"] = value }
 
-var HTMLTag.ariaHasPopup: AriaHasPopup
+var HTMLTag.ariaHasPopup: AriaPopup
     get() = attributes["aria-haspopup"]
-        ?.let { value -> AriaHasPopup.entries.first { entry -> entry.toString().lowercase() == value } }
-        ?: AriaHasPopup.False
+        ?.let { value -> AriaPopup.entries.first { entry -> entry.toString().lowercase() == value } }
+        ?: AriaPopup.False
     set(value) { attributes["aria-haspopup"] = value.toString().lowercase() }
 
-enum class AriaHasPopup {
+enum class AriaPopup {
     False, True, Menu, ListBox, Tree, Grid, Dialog;
 }
 

@@ -58,6 +58,8 @@ class MembersComponent(
                     tbody {
                         for (details in data.members) {
                             tr {
+                                // FIXME playwright isn't able to detect changes easily; necessitating a hard sleep
+                                // Switching to x-for will make it easier for playwright, but the complex logic makes that difficult
                                 if (data.filterModel != null) {
                                     val searchTerms = "${details.user.userName}${details.user.emailAddress}".sanitizeSearchTerm()
                                     attributes["x-show"] = "'$searchTerms'.includes(${data.filterModel}.toLowerCase())"

@@ -4,7 +4,7 @@ import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.users.User
-import com.zalphion.featurecontrol.web.AriaHasPopup
+import com.zalphion.featurecontrol.web.AriaPopup
 import com.zalphion.featurecontrol.web.membersUri
 import com.zalphion.featurecontrol.web.applicationsUri
 import com.zalphion.featurecontrol.web.ariaControls
@@ -65,7 +65,7 @@ fun FlowContent.teamSelector(
                 val createTeamModalId = createUpdateTeamModal(null)
                 a("#", classes = "navbar-item") {// needs to be an A element for ui-kit formatting
                     role = "button"
-                    ariaHasPopup = AriaHasPopup.Dialog
+                    ariaHasPopup = AriaPopup.Dialog
                     ariaControls = createTeamModalId
                     onClick = "UIkit.modal('#$createTeamModalId').show()"
                     span {

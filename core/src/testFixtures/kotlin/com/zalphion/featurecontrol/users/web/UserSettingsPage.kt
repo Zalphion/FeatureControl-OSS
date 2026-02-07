@@ -24,7 +24,6 @@ class UserSettingsPage(private val page: Page) {
     }
 
     val mainNavBar get() = page.mainNavBar()
-    val user get() = page.userWidget()
 
     val memberships get() = page
         .getByRole(AriaRole.REGION, Page.GetByRoleOptions().setName("Teams"))

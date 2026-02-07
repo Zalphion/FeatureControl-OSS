@@ -3,12 +3,12 @@ package com.zalphion.featurecontrol.web
 import com.microsoft.playwright.Locator
 import kotlin.reflect.KProperty
 
-class CheckboxLocatorProperty(private val locator: Locator) {
+class CheckboxLocatorProperty(private val locator: Locator): PropertyDelegate<Boolean> {
 
-    operator fun getValue(thisRef: Any?, property: KProperty<*>) = locator.isChecked
+    override fun getValue(thisRef: Any?, property: KProperty<*>) = locator.isChecked
 
-    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) {
-        locator.isChecked = value
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Boolean?) {
+        locator.isChecked = value ?: false
     }
 }
 

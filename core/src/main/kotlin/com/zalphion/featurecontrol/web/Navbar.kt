@@ -133,7 +133,7 @@ private fun FlowContent.userWidget(user: User) {
     button(type = ButtonType.button, classes = "uk-button uk-button-default uk-border-pill uk-padding-remove-left") {
         style = "padding-right: 10px;"
         ariaLabel = "User Widget"
-        ariaHasPopup = AriaHasPopup.Menu
+        ariaHasPopup = AriaPopup.Menu
         ariaControls = dropdownId
 
         avatarView(user.photoUrl, 40) {

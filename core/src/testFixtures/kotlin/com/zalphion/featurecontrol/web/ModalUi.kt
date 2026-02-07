@@ -10,9 +10,7 @@ abstract class ModalUi(protected val locator: Locator): AutoCloseable {
     init {
         // wait for the modal to be visible
         locator.waitFor(Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE))
-
-        // wait for any alpine updates to occur
-        locator.evaluate("() => new Promise(resolve => window.Alpine.nextTick(resolve))")
+        locator.page().waitForNextAlpineTick()
     }
 
     override fun close() {

@@ -33,10 +33,10 @@ class UserSettingsPageTest: CoreTestDriver() {
     @Test
     fun `show blank page`(browser: Http4kBrowser) {
         browser.asUser(core, member.user) { page ->
-            page.user.username shouldBe null
-            page.user.email shouldBe idp1Email1
+            page.mainNavBar.user.username shouldBe null
+            page.mainNavBar.user.email shouldBe idp1Email1
 
-            page.user.open().goToSettings { settings ->
+            page.mainNavBar.user.open().goToSettings { settings ->
                 settings.memberships.shouldHaveSize(1)
                 settings.memberships[0].also { membership ->
                     membership.teamName shouldBe member.team.teamName
@@ -61,7 +61,7 @@ class UserSettingsPageTest: CoreTestDriver() {
         ).invoke(otherMember2.user, core).shouldBeSuccess()
 
         browser.asUser(core, member.user) { page ->
-            page.user.open().goToSettings { settings ->
+            page.mainNavBar.user.open().goToSettings { settings ->
                 settings.memberships
                     .map { it.teamName }
                     .shouldContainExactlyInAnyOrder(member.team.teamName, otherMember1.team.teamName)
@@ -90,7 +90,7 @@ class UserSettingsPageTest: CoreTestDriver() {
         member.user.addTo(core, otherMember.team)
 
         browser.asUser(core, member.user) { page ->
-            page.user.open().goToSettings { settings ->
+            page.mainNavBar.user.open().goToSettings { settings ->
                 settings.memberships
                     .find { it.teamName == otherMember.team.teamName }
                     .shouldNotBeNull()
@@ -111,7 +111,7 @@ class UserSettingsPageTest: CoreTestDriver() {
         ).invoke(otherMember.user, core).shouldBeSuccess()
 
         browser.asUser(core, member.user) { page ->
-            page.user.open().goToSettings { settings ->
+            page.mainNavBar.user.open().goToSettings { settings ->
                 settings.invitations
                     .find { it.teamName == otherMember.team.teamName }
                     .shouldNotBeNull()
@@ -119,7 +119,7 @@ class UserSettingsPageTest: CoreTestDriver() {
                         // should be on the applications page of the new team
                         result.mainNavBar.currentTeam shouldBe otherMember.team.teamName
                     }
-                    .user.open().goToSettings { settings ->
+                    .mainNavBar.user.open().goToSettings { settings ->
                         // confirm memberships and invitations have been updated
                         settings.memberships.map { it.teamName }
                             .shouldContainExactlyInAnyOrder(member.team.teamName, otherMember.team.teamName)

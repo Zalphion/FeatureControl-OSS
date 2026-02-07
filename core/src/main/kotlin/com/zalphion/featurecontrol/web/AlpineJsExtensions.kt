@@ -35,6 +35,11 @@ fun FlowContent.onEscape(js: String) {
     attributes["@keydown.escape.capture"] = js
 }
 
+var HTMLTag.xModel: String?
+    get() = attributes["x-model"]
+    set(value) { attributes["x-model"] = value.orEmpty() }
+
+
 class TEMPLATE(
     initialAttributes : Map<String, String>,
     override val consumer: TagConsumer<*>

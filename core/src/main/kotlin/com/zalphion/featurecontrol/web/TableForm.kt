@@ -117,7 +117,7 @@ interface TableElementSchema {
             flow.button(type = ButtonType.button, classes = "uk-button uk-button-default") {
                 val fullKey = if (key == null) "element" else "element.$key"
 
-                ariaHasPopup = AriaHasPopup.Dialog
+                ariaHasPopup = AriaPopup.Dialog
                 ariaLabel = label
                 ariaControls = modalId
                 attributes["x-text"] = $$"`$$label (${$$fullKey.length})`"
