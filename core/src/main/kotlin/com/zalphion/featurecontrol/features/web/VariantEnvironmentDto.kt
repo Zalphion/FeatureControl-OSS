@@ -6,14 +6,20 @@ import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.features.Weight
 import se.ansman.kotshi.JsonSerializable
 
-@JsonSerializable
-data class VariantEnvironmentDto(
-    val name: Variant,
-    val weight: Weight?,
+interface VariantEnvironmentDto {
+    val name: Variant
+    val weight: Weight?
     val subjectIds: Set<SubjectId>
-)
+}
 
-fun FeatureEnvironment.toDto(variant: Variant) = VariantEnvironmentDto(
+@JsonSerializable
+data class CoreVariantEnvironmentDto(
+    override val name: Variant,
+    override val weight: Weight?,
+    override val subjectIds: Set<SubjectId>
+): VariantEnvironmentDto
+
+fun FeatureEnvironment.toCoreDto(variant: Variant) = CoreVariantEnvironmentDto(
     name = variant,
     weight = weights[variant],
     subjectIds = overrides.filter { it.value == variant }.keys.toSet()

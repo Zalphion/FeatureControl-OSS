@@ -29,6 +29,7 @@ fun Http4kBrowser.asUser(
     block: (ApplicationsPage) -> Unit = {}
 ) {
     val sessionCookie = core.createSessionCookie(user.userId)
+    val uri = if (team != null) baseUri.extend(applicationsUri(team.teamId)) else baseUri
 
     newContext().use { context ->
         context.setDefaultTimeout(waitTimeout.toMillis().toDouble())
@@ -39,8 +40,6 @@ fun Http4kBrowser.asUser(
                     .setPath("/")
             )
         )
-
-        val uri = if (team != null) baseUri.extend(applicationsUri(team.teamId)) else baseUri
 
         context.newPage().use {
             it.navigate(uri.toString())

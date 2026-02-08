@@ -8,9 +8,9 @@ import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.NavBar
 import com.zalphion.featurecontrol.web.PageLink
 import com.zalphion.featurecontrol.web.PageSpec
-import com.zalphion.featurecontrol.web.modalTextButton
+import com.zalphion.featurecontrol.web.components.modalTextButton
 import com.zalphion.featurecontrol.web.membersUri
-import com.zalphion.featurecontrol.web.moreMenu
+import com.zalphion.featurecontrol.web.components.moreMenu
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.AppError

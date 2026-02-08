@@ -8,7 +8,7 @@ import com.zalphion.featurecontrol.users.User
 import com.zalphion.featurecontrol.web.AriaPopup
 import com.zalphion.featurecontrol.web.ariaControls
 import com.zalphion.featurecontrol.web.ariaHasPopup
-import com.zalphion.featurecontrol.web.searchBar
+import com.zalphion.featurecontrol.web.components.searchBar
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.button

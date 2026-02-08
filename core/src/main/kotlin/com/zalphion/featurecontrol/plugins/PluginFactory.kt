@@ -9,6 +9,8 @@ abstract class PluginFactory<P: Plugin>(
     val permissionsFactoryFn: (Core) -> PermissionsFactory? = { null },
     val lensExports: (Core) -> List<LensContainer<*>> = { emptyList() },
     val componentExports: (Core) -> List<ComponentContainer<*>> = { emptyList() },
+    // TODO can maybe eliminate this testing hook by revisiting the two-stage init process
+    // If we can inject the initialized plugins directly into core, then tests can create the plugins themselves
     private val onCreate: (P) -> Unit = {},
 ) {
     protected abstract fun createInternal(core: Core): P

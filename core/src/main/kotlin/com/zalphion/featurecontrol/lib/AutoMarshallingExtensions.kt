@@ -14,3 +14,5 @@ inline fun <reified T: Any> AutoMarshalling.asBiDiMapping() = BiDiMapping<String
     asOut = { asA(it) },
     asIn = { asFormatString(it) }
 )
+
+inline fun <reified T: Any> BiDiMapping<String, Array<T>>.mapToList() = map({ it.toList() }, { it.toTypedArray() })

@@ -9,10 +9,10 @@ import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.User
 import com.zalphion.featurecontrol.web.NavBar
 import com.zalphion.featurecontrol.web.PageSpec
-import com.zalphion.featurecontrol.web.deleteModal
-import com.zalphion.featurecontrol.web.modalIconButton
-import com.zalphion.featurecontrol.web.modalTextButton
-import com.zalphion.featurecontrol.web.moreMenu
+import com.zalphion.featurecontrol.web.components.deleteModal
+import com.zalphion.featurecontrol.web.components.modalIconButton
+import com.zalphion.featurecontrol.web.components.modalTextButton
+import com.zalphion.featurecontrol.web.components.moreMenu
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.AppId

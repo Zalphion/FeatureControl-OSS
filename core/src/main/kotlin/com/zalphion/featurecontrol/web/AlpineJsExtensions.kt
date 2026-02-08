@@ -1,6 +1,7 @@
 package com.zalphion.featurecontrol.web
 
 import kotlinx.html.FlowContent
+import kotlinx.html.HTML
 import kotlinx.html.HTMLTag
 import kotlinx.html.HtmlBlockTag
 import kotlinx.html.HtmlTagMarker
@@ -10,6 +11,7 @@ import kotlinx.html.TR
 import kotlinx.html.TagConsumer
 import kotlinx.html.attributesMapOf
 import kotlinx.html.visit
+import org.http4k.format.AutoMarshalling
 
 fun FlowContent.onClick(js: String) {
     attributes["@click"] = js
@@ -39,6 +41,13 @@ var HTMLTag.xModel: String?
     get() = attributes["x-model"]
     set(value) { attributes["x-model"] = value.orEmpty() }
 
+var HTMLTag.xData: String?
+    get() = attributes["x-data"]
+    set(value) { attributes["x-data"] = value.orEmpty() }
+
+var HTMLTag.xText: String?
+    get() = attributes["x-text"]
+    set(value) { attributes["x-text"] = value.orEmpty() }
 
 class TEMPLATE(
     initialAttributes : Map<String, String>,

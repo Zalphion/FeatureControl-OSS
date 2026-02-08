@@ -1,7 +1,10 @@
-package com.zalphion.featurecontrol.web
+package com.zalphion.featurecontrol.web.components
 
+import com.zalphion.featurecontrol.web.AlpineEvent
 import kotlinx.html.ButtonType
+import kotlinx.html.DIV
 import kotlinx.html.FlowContent
+import kotlinx.html.H2
 import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.h2
@@ -11,12 +14,11 @@ fun FlowContent.modal(
     modalId: String,
     event: AlpineEvent? = null,
     withCloseButton: Boolean = true,
-    header: FlowContent.() -> Unit,
-    body: FlowContent.() -> Unit,
-    footer: (FlowContent.() -> Unit)?
+    header: H2.() -> Unit,
+    body: DIV.() -> Unit,
+    footer: (DIV.() -> Unit)?
 ) = div("uk-modal uk-modal-container") {
     id = modalId
-
 
     if (event != null) {
         attributes["@${event.eventId}.window"] = $$"$${event.dataKey} = $event.detail"

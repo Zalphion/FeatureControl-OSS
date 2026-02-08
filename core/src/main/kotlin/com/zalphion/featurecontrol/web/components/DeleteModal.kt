@@ -1,5 +1,6 @@
-package com.zalphion.featurecontrol.web
+package com.zalphion.featurecontrol.web.components
 
+import com.zalphion.featurecontrol.web.withRichMethod
 import kotlinx.html.ButtonType
 import kotlinx.html.FORM
 import kotlinx.html.FlowContent

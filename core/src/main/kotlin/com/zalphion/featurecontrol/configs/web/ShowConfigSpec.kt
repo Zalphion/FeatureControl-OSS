@@ -6,8 +6,9 @@ import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.plugins.Component
-import com.zalphion.featurecontrol.web.TableElementSchema
-import com.zalphion.featurecontrol.web.tableForm
+import com.zalphion.featurecontrol.web.table.InputTableElementSchema
+import com.zalphion.featurecontrol.web.table.SelectTableElementSchema
+import com.zalphion.featurecontrol.web.table.tableForm
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -23,7 +24,7 @@ class ConfigSpecComponent(val application: Application, val spec: ConfigSpec) {
                     inputName = "properties",
                     rowAriaLabel = "Property",
                     schema = listOf(
-                        TableElementSchema.Input(
+                        InputTableElementSchema(
                             label = "Key",
                             type = InputType.text,
                             key = "key",
@@ -31,15 +32,15 @@ class ConfigSpecComponent(val application: Application, val spec: ConfigSpec) {
                             headerClasses = "uk-width-medium",
                             required = true
                         ),
-                        TableElementSchema.Select(
+                        SelectTableElementSchema(
                             label = "Type",
                             key = "type",
-                            required = true,
+                            isRequired = true,
                             headerClasses = "uk-width-small",
                             options = PropertyTypeDto.entries.map { it.toString() },
                             default = PropertyTypeDto.String.toString()
                         ),
-                        TableElementSchema.Input(
+                        InputTableElementSchema(
                             label = "Description",
                             type = InputType.text,
                             key = "description",

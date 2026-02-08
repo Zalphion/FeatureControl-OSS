@@ -69,7 +69,7 @@ class VariantEnvironmentUi(private val locator: Locator) {
 
     fun subjectIdsModal(block: (SubjectIdsModalUi) -> Unit) {
         locator
-            .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Subject IDs"))
+            .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Subjects"))
             .also { it.click() }
             .getControlled()
             .let(::SubjectIdsModalUi)

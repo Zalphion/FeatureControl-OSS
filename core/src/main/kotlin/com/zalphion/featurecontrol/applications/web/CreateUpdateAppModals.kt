@@ -3,13 +3,13 @@ package com.zalphion.featurecontrol.applications.web
 import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.teams.Team
-import com.zalphion.featurecontrol.web.TableElementSchema
 import com.zalphion.featurecontrol.web.confirmCancelButtons
 import com.zalphion.featurecontrol.web.applicationsUri
-import com.zalphion.featurecontrol.web.tableForm
+import com.zalphion.featurecontrol.web.table.tableForm
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.plugins.Component
+import com.zalphion.featurecontrol.web.table.InputTableElementSchema
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.*
 import org.http4k.core.Uri
@@ -117,14 +117,14 @@ private fun FlowContent.environmentsTable(
 }
 
 val EnvironmentDto.Companion.tableSchema get() = listOf(
-    TableElementSchema.Input(
+    InputTableElementSchema(
         label = "Environment",
         key = "name",
         type = InputType.text,
         placeholder = "dev, staging, prod, etc.",
         headerClasses = "uk-width-medium"
     ),
-    TableElementSchema.Input(
+    InputTableElementSchema(
         label = "Description",
         key = "description",
         type = InputType.text,
@@ -132,7 +132,7 @@ val EnvironmentDto.Companion.tableSchema get() = listOf(
         headerClasses = "uk-width-large",
         required = false
     ),
-    TableElementSchema.Input(
+    InputTableElementSchema(
         label = "Colour",
         key = "colour",
         type = InputType.text,

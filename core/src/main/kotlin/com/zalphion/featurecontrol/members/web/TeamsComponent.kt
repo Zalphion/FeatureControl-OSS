@@ -6,9 +6,9 @@ import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.ariaHidden
 import com.zalphion.featurecontrol.web.ariaLabel
-import com.zalphion.featurecontrol.web.modal
-import com.zalphion.featurecontrol.web.modalCloseButton
-import com.zalphion.featurecontrol.web.modalIconButton
+import com.zalphion.featurecontrol.web.components.modal
+import com.zalphion.featurecontrol.web.components.modalCloseButton
+import com.zalphion.featurecontrol.web.components.modalIconButton
 import com.zalphion.featurecontrol.web.uri
 import com.zalphion.featurecontrol.web.withRichMethod
 import kotlinx.html.ButtonType

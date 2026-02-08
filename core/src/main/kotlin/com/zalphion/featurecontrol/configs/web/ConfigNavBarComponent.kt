@@ -4,7 +4,7 @@ import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.configs.ConfigEnvironment
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.configUri
-import com.zalphion.featurecontrol.web.subNavLinks
+import com.zalphion.featurecontrol.web.components.subNavLinks
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.a

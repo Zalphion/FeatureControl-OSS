@@ -1,5 +1,9 @@
-package com.zalphion.featurecontrol.web
+package com.zalphion.featurecontrol.web.components
 
+import com.zalphion.featurecontrol.web.AriaPopup
+import com.zalphion.featurecontrol.web.PageLink
+import com.zalphion.featurecontrol.web.ariaControls
+import com.zalphion.featurecontrol.web.ariaHasPopup
 import dev.forkhandles.values.StringValue
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType

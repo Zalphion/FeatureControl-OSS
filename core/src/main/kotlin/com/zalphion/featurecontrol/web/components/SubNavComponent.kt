@@ -1,4 +1,4 @@
-package com.zalphion.featurecontrol.web
+package com.zalphion.featurecontrol.web.components
 
 import kotlinx.html.FlowContent
 import kotlinx.html.a

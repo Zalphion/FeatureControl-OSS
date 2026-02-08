@@ -64,7 +64,7 @@ internal fun createCoreFeatureUpdateDataLens(json: AutoMarshalling): BodyLens<Fe
 
 internal fun createCoreFeatureEnvironmentLens(json: AutoMarshalling): BodyLens<FeatureEnvironment> {
     val variants = FormField
-        .map { json.asA<Array<VariantEnvironmentDto>>(it) }
+        .map { json.asA<Array<CoreVariantEnvironmentDto>>(it) }
         .required("variants")
 
     return Body

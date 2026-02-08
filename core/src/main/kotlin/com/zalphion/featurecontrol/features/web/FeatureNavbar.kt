@@ -3,10 +3,10 @@ package com.zalphion.featurecontrol.features.web
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.applications.Application
-import com.zalphion.featurecontrol.web.deleteModal
-import com.zalphion.featurecontrol.web.modalTextButton
-import com.zalphion.featurecontrol.web.moreMenu
-import com.zalphion.featurecontrol.web.subNavLinks
+import com.zalphion.featurecontrol.web.components.deleteModal
+import com.zalphion.featurecontrol.web.components.modalTextButton
+import com.zalphion.featurecontrol.web.components.moreMenu
+import com.zalphion.featurecontrol.web.components.subNavLinks
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.a

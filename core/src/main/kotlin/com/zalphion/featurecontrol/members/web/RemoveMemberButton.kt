@@ -1,7 +1,7 @@
 package com.zalphion.featurecontrol.members.web
 
 import com.zalphion.featurecontrol.members.MemberDetails
-import com.zalphion.featurecontrol.web.deleteModal
+import com.zalphion.featurecontrol.web.components.deleteModal
 import com.zalphion.featurecontrol.web.membersUri
 import kotlinx.html.FlowContent
 import kotlinx.html.a

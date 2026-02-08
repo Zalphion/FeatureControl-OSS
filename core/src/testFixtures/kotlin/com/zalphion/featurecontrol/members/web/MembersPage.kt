@@ -29,8 +29,7 @@ class MembersPage(private val page: Page) {
         .getByPlaceholder("Search")
         .toInputProperty()
         .afterSetValue {
-            /* FIXME this is a lazy-ass solution, but I'm having a hard time finding the right way for playwright
-             * to correctly wait for alpine's x-show update to complete.
+            /* FIXME this is a terrible solution, but I'm having a hard time getting playwright to wait for alpine's x-show update to complete.
              * Supposedly, switching to x-for is easier for playwright to detect changes for, but that would require a major
              * rewrite to allow alpine to render the complex component and permissions logic
              */
