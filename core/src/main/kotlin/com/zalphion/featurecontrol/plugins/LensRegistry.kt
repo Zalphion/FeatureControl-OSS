@@ -4,7 +4,7 @@ import org.http4k.core.Request
 import org.http4k.lens.BodyLens
 import kotlin.reflect.KClass
 
-class LensRegistry(private val lenses: List<LensContainer<*>>) {
+class LensRegistry(private vararg val lenses: LensContainer<*>) {
 
     inline operator fun <reified T: Any> invoke(request: Request) =
         invoke(T::class, request)
@@ -13,6 +13,8 @@ class LensRegistry(private val lenses: List<LensContainer<*>>) {
         .firstNotNullOfOrNull { it.getSafely(type) }
         ?.invoke(request)
         ?: error("Could not find $type lens")
+
+    operator fun plus(other: LensRegistry) = LensRegistry(*lenses, *other.lenses)
 }
 
 class LensContainer<T: Any>(

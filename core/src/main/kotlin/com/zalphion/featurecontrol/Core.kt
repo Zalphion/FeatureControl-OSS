@@ -131,27 +131,26 @@ const val APP_NAME = "Feature Control"
 fun createCore(
     clock: Clock,
     random: Random,
+    storage: StorageDriver,
     config: CoreConfig,
     plugins: List<PluginFactory<*>> = emptyList(),
-    storageDriver: StorageDriver,
     eventBusFn: (List<Plugin>) -> EventBus
 ): Core {
-    val json = buildJson(plugins.mapNotNull { it.jsonExport })
+    val json = buildJson(plugins)
     return Core(
         clock = clock,
         random = random,
         json = json,
         config = config,
-        pluginFactories = plugins,
-        storageDriver = storageDriver,
+        plugins = plugins.map { it.create(json, storage) },
         eventBusFn = eventBusFn,
-        teams = TeamStorage.create(config.teamsStorageName, storageDriver, json),
-        users = UserStorage.create(config.usersStorageName, storageDriver, json),
-        members = MemberStorage.create(config.membersStorageName, storageDriver, json),
-        applications = ApplicationStorage.create(config.applicationsStorageName, storageDriver, json),
-        features = FeatureStorage.create(config.featuresStorageName, storageDriver, json),
-        configs = ConfigStorage.create(config.configsStorageName, config.configEnvironmentsTableName, storageDriver, json),
-        apiKeys = ApiKeyStorage.create(config.apiKeysStorageName, storageDriver, json),
+        teams = TeamStorage.create(config.teamsStorageName, storage, json),
+        users = UserStorage.create(config.usersStorageName, storage, json),
+        members = MemberStorage.create(config.membersStorageName, storage, json),
+        applications = ApplicationStorage.create(config.applicationsStorageName, storage, json),
+        features = FeatureStorage.create(config.featuresStorageName, storage, json),
+        configs = ConfigStorage.create(config.configsStorageName, config.configEnvironmentsTableName, storage, json),
+        apiKeys = ApiKeyStorage.create(config.apiKeysStorageName, storage, json),
         sessions = Sessions.hMacJwt(
             clock = clock,
             appSecret = config.appSecret,
@@ -167,7 +166,6 @@ class Core internal constructor(
     val random: Random,
     val json: AutoMarshalling,
     val config: CoreConfig,
-    val storageDriver: StorageDriver,
     val sessions: Sessions,
     val teams: TeamStorage,
     val users: UserStorage,
@@ -176,14 +174,14 @@ class Core internal constructor(
     val features: FeatureStorage,
     val configs: ConfigStorage,
     val apiKeys: ApiKeyStorage,
-    pluginFactories: List<PluginFactory<*>>,
+    private val plugins: List<Plugin>,
     eventBusFn: (List<Plugin>) -> EventBus
 ) {
-    val permissions = pluginFactories
-        .firstNotNullOfOrNull { it.permissionsFactoryFn(this) }
+    val permissions = plugins
+        .firstNotNullOfOrNull { it.buildPermissionsFactory(this) }
         ?: PermissionsFactory.teamMembership(users, members)
 
-    val extract = LensRegistry(pluginFactories.flatMap { it.lensExports(this) } + listOf(
+    val extract = LensRegistry(
         MemberLenses.coreCreate().toContainer(),
         createCoreApplicationCreateDataLens(json).toContainer(),
         createCoreApplicationUpdateDataLens(json).toContainer(),
@@ -192,9 +190,11 @@ class Core internal constructor(
         createCoreFeatureEnvironmentLens(json).toContainer(),
         createCoreConfigSpecDataLens(json).toContainer(),
         createCoreConfigEnvironmentDataLens(json).toContainer()
-    ))
+    ).let { base ->
+        plugins.map { it.buildLensExports(this) }.fold(base) { acc, next -> acc + next }
+    }
 
-    val render: ComponentRegistry = ComponentRegistry(pluginFactories.flatMap { it.componentExports(this) + listOf(
+    val render: ComponentRegistry = ComponentRegistry(
         TeamsComponent.core(this).toContainer(),
         MembersComponent.core(this).toContainer(),
         InviteMemberModalComponent.core().toContainer(),
@@ -210,9 +210,9 @@ class Core internal constructor(
         FeatureCardComponent.core().toContainer(),
         ConfigNavBarComponent.core().toContainer(),
         RoleComponent.core().toContainer(),
-    )})
-
-    private val plugins = pluginFactories.map { it.create(this) }
+    ).let { base ->
+        plugins.map { it.buildComponentExports(this) }.fold(base) { acc, next -> acc + next }
+    }
 
     fun getEntitlements(teamId: TeamId) = plugins
         .flatMap { it.getEntitlements(teamId) }

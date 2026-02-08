@@ -1,9 +1,10 @@
 package com.zalphion.featurecontrol.plugins
 
+import com.zalphion.featurecontrol.Core
 import kotlinx.html.FlowContent
 import kotlin.reflect.KClass
 
-class ComponentRegistry(private val components: List<ComponentContainer<*>>) {
+class ComponentRegistry(private vararg val components: ComponentContainer<*>) {
 
     inline operator fun <reified T: Any> invoke(flow: FlowContent, data: T) =
         invoke(T::class, flow, data)
@@ -12,6 +13,8 @@ class ComponentRegistry(private val components: List<ComponentContainer<*>>) {
         .firstNotNullOfOrNull { it.getSafely(type) }
         ?.invoke(flow, data)
         ?: error("Could not find $type component")
+
+    operator fun plus(other: ComponentRegistry) = ComponentRegistry(*components, *other.components)
 }
 
 class ComponentContainer<T: Any>(

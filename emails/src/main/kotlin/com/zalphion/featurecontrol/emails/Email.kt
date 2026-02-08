@@ -13,8 +13,7 @@ import org.http4k.core.Uri
 fun Plugin.Companion.email(
     emails: EmailSender,
     loginUri: Uri,
-    onInit: (Email) -> Unit = {}
-) = Email(emails, loginUri).toFactory(onInit)
+) = Email(emails, loginUri).toFactory()
 
 class Email internal constructor(
     val emails: EmailSender,

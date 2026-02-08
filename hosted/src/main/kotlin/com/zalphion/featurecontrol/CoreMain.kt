@@ -29,6 +29,12 @@ fun hostedMain(
 ) = createCore(
     clock = Clock.systemUTC(),
     random = SecureRandom().asKotlinRandom(),
+    storage = StorageDriver.postgres(
+        // TODO may want to add some validation to the original url (e.g. verify it was postgresql)
+        uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
+        credentials = env[Settings.postgresDatabaseCredentials],
+        pageSize = PageSize.of(100)
+    ),
     config = CoreConfig(
         appSecret = env[Settings.appSecret],
         staticUri = Uri.of("/"), // provided by webjars
@@ -37,12 +43,6 @@ fun hostedMain(
         csrfTtl = env[Settings.csrfTtl],
         sessionLength = env[Settings.sessionLength],
         invitationRetention = env[Settings.invitationsRetention]
-    ),
-    storageDriver = StorageDriver.postgres(
-        // TODO may want to add some validation to the original url (e.g. verify it was postgresql)
-        uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
-        credentials = env[Settings.postgresDatabaseCredentials],
-        pageSize = PageSize.of(100)
     ),
     eventBusFn = ::localEventBus,
     plugins = listOf(

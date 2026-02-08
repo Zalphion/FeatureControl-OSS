@@ -15,6 +15,7 @@ import com.zalphion.featurecontrol.features.Weight
 import com.zalphion.featurecontrol.crypto.Base64String
 import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.lib.Colour
+import com.zalphion.featurecontrol.plugins.PluginFactory
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.teams.TeamName
 import com.zalphion.featurecontrol.users.EmailAddress
@@ -33,8 +34,9 @@ import java.math.BigDecimal
 @KotshiJsonAdapterFactory
 private object CoreJsonAdapterFactory : JsonAdapter.Factory by KotshiCoreJsonAdapterFactory
 
-internal fun buildJson(plugins: List<JsonExport>): AutoMarshalling = plugins
-    .fold(Moshi.Builder()) { builder, plugin -> plugin.moshi(builder) }
+internal fun buildJson(plugins: List<PluginFactory<*>>): AutoMarshalling = plugins
+    .mapNotNull { it.jsonExport }
+    .fold(Moshi.Builder()) { builder, export -> export.moshi(builder) }
     .add(CoreJsonAdapterFactory)
     .add(BigDecimalAdapter)
     .add(ListAdapter)
@@ -56,7 +58,7 @@ internal fun buildJson(plugins: List<JsonExport>): AutoMarshalling = plugins
     .value(PropertyKey)
     .value(Colour)
     .value(EnginePrincipal)
-    .let { plugins.fold(it) { builder, plugin -> plugin.mapping(builder)} }
+    .let { plugins.mapNotNull { p -> p.jsonExport }.fold(it) { builder, export -> export.mapping(builder)} }
     .done()
     .let { ConfigurableMoshi(it) }
 

@@ -5,6 +5,7 @@ import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.auth.Entitlements
 import com.zalphion.featurecontrol.events.Event
 import com.zalphion.featurecontrol.applications.Environment
+import com.zalphion.featurecontrol.auth.PermissionsFactory
 import com.zalphion.featurecontrol.features.FeatureCreateData
 import com.zalphion.featurecontrol.features.FeatureUpdateData
 import com.zalphion.featurecontrol.members.MemberCreateData
@@ -16,6 +17,10 @@ import dev.forkhandles.result4k.asSuccess
 import org.http4k.routing.RoutingHttpHandler
 
 interface Plugin {
+    fun buildPermissionsFactory(core: Core): PermissionsFactory? = null
+    fun buildLensExports(core: Core): LensRegistry = LensRegistry()
+    fun buildComponentExports(core: Core): ComponentRegistry = ComponentRegistry()
+
     fun onEvent(event: Event): Result4k<Unit, AppError> = Unit.asSuccess()
 
     // get the entitlements provided by the team

@@ -22,7 +22,7 @@ import kotlin.collections.orEmpty
 import kotlin.random.Random
 
 abstract class CoreTestDriver(
-    plugins: List<PluginFactory<*>> = emptyList(),
+    additionalPlugins: List<PluginFactory<*>> = emptyList(),
     storageDriver: StorageDriver = StorageDriver.memory(PageSize.of(2)),
     val invitationRetention: Duration = Duration.ofHours(5),
     appSecret: AppSecret = AppSecret.of("secret")
@@ -36,8 +36,16 @@ abstract class CoreTestDriver(
 
     var entitlements = mutableMapOf<TeamId, Entitlements>()
 
+    private val plugins = listOf(
+        *additionalPlugins.toTypedArray(),
+        Plugin.webjars(),
+        object : Plugin {
+            override fun getEntitlements(teamId: TeamId) = entitlements[teamId].orEmpty()
+        }.toFactory()
+    )
+
     val core = createCore(
-        storageDriver = storageDriver,
+        storage = storageDriver,
         clock = clock,
         random = Random(1337),
         config = CoreConfig(
@@ -54,13 +62,7 @@ abstract class CoreTestDriver(
             apiKeysStorageName = "api_keys",
             invitationRetention = invitationRetention
         ),
-        plugins = listOf(
-            *plugins.toTypedArray(),
-            Plugin.webjars(),
-            object : Plugin {
-                override fun getEntitlements(teamId: TeamId) = entitlements[teamId].orEmpty()
-            }.toFactory()
-        ),
+        plugins = plugins,
         eventBusFn = ::localEventBus
     )
 

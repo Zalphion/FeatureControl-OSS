@@ -1,23 +1,15 @@
 package com.zalphion.featurecontrol.plugins
 
-import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.JsonExport
-import com.zalphion.featurecontrol.auth.PermissionsFactory
+import com.zalphion.featurecontrol.storage.StorageDriver
+import org.http4k.format.AutoMarshalling
 
 abstract class PluginFactory<P: Plugin>(
-    val jsonExport: JsonExport? = null,
-    val permissionsFactoryFn: (Core) -> PermissionsFactory? = { null },
-    val lensExports: (Core) -> List<LensContainer<*>> = { emptyList() },
-    val componentExports: (Core) -> List<ComponentContainer<*>> = { emptyList() },
-    // TODO can maybe eliminate this testing hook by revisiting the two-stage init process
-    // If we can inject the initialized plugins directly into core, then tests can create the plugins themselves
-    private val onCreate: (P) -> Unit = {},
+    val jsonExport: JsonExport? = null
 ) {
-    protected abstract fun createInternal(core: Core): P
-
-    fun create(core: Core) = createInternal(core).also(onCreate)
+    abstract fun create(json: AutoMarshalling, storage: StorageDriver): P
 }
 
-fun <P: Plugin> P.toFactory(onInit: (P) -> Unit = {}) = object: PluginFactory<P>() {
-    override fun createInternal(core: Core) = this@toFactory.also(onInit)
+fun <P: Plugin> P.toFactory() = object: PluginFactory<P>() {
+    override fun create(json: AutoMarshalling, storage: StorageDriver) = this@toFactory
 }
