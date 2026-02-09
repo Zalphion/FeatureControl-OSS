@@ -35,6 +35,13 @@ allprojects {
             if (System.getenv("FAST") == "true") {
                 excludeTags("playwright")
             }
+            systemProperties(
+                "junit.jupiter.execution.parallel.enabled" to "true",
+                "junit.jupiter.execution.parallel.mode.classes.default" to "concurrent", // parallel classes
+                "junit.jupiter.execution.parallel.mode.default" to "same_thread", // sequential cases
+                "junit.jupiter.execution.parallel.config.dynamic.strategy" to "dynamic",
+                "junit.jupiter.execution.parallel.config.dynamic.factor" to "1",
+            )
         }
     }
 

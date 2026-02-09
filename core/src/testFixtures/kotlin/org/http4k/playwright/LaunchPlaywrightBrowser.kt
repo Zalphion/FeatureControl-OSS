@@ -10,44 +10,41 @@ import org.http4k.core.Uri
 import org.http4k.server.ServerConfig
 import org.http4k.server.SunHttp
 import org.http4k.server.asServer
-import org.junit.jupiter.api.extension.AfterTestExecutionCallback
-import org.junit.jupiter.api.extension.BeforeTestExecutionCallback
+import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
-import java.util.concurrent.atomic.AtomicReference
 
-// TODO contribute back to http4k
 class LaunchPlaywrightBrowser @JvmOverloads constructor(
     http: HttpHandler,
     private val browserType: Playwright.() -> BrowserType = Playwright::chromium,
     private val launchOptions: LaunchOptions = LaunchOptions(),
     private val createPlaywright: () -> Playwright = ::create,
     serverFn: (Int) -> ServerConfig = ::SunHttp
-) : ParameterResolver, BeforeTestExecutionCallback, AfterTestExecutionCallback {
+) : ParameterResolver, AfterAllCallback {
 
     override fun supportsParameter(pc: ParameterContext, ec: ExtensionContext) =
         pc.parameter.parameterizedType.typeName == Browser::class.java.name ||
             pc.parameter.parameterizedType.typeName == Http4kBrowser::class.java.name
 
-    private val playwright = AtomicReference<Playwright>()
-    private val browser = AtomicReference<Browser>()
-
-    private val server = http.asServer(serverFn(0))
-
-    override fun resolveParameter(pc: ParameterContext, ec: ExtensionContext) = Http4kBrowser(
-        browserType(playwright.get()).launch(launchOptions).also(browser::set),
-        Uri.of("http://localhost:${server.port()}")
-    )
-
-    override fun beforeTestExecution(context: ExtensionContext) {
-        playwright.set(createPlaywright())
-        server.start()
+    private var playwright: Playwright? = null
+    private val server by lazy {
+        http.asServer(serverFn(0)).start()
     }
 
-    override fun afterTestExecution(context: ExtensionContext) {
+    private var browser: Browser? = null
+
+    override fun resolveParameter(pc: ParameterContext, ec: ExtensionContext) = Http4kBrowser(
+        delegate = browser ?: run {
+            val playwright = createPlaywright().also { playwright = it }
+            browserType(playwright).launch(launchOptions).also { browser = it }
+        },
+        baseUri = Uri.of("http://localhost:${server.port()}")
+    )
+
+    override fun afterAll(context: ExtensionContext) {
         server.stop()
-        browser.get().close() // in theory, closing playwright should be good enough, but this isn't always the case
-        playwright.get().close()
+        browser?.close() // in theory, closing playwright should be good enough, but this isn't always the case
+        playwright?.close()
     }
 }
