@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.web
 
+import com.microsoft.playwright.BrowserContext
 import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
@@ -13,15 +14,15 @@ import com.zalphion.featurecontrol.auth.web.createSessionCookie
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.users.User
 import io.kotest.matchers.nulls.shouldNotBeNull
+import org.http4k.core.Uri
 import org.http4k.core.extend
-import org.http4k.playwright.Http4kBrowser
-import org.http4k.playwright.LaunchPlaywrightBrowser
+import org.http4k.playwright.LaunchPlaywrightContext
 import java.time.Duration
 import java.time.Instant
 
 private val ci = System.getenv("CI")?.toBoolean() == true
 
-fun Http4kBrowser.asUser(
+fun BrowserContext.asUser(
     core: Core,
     user: User,
     team: Team? = null,
@@ -29,22 +30,20 @@ fun Http4kBrowser.asUser(
     block: (ApplicationsPage) -> Unit = {}
 ) {
     val sessionCookie = core.createSessionCookie(user.userId)
-    val uri = if (team != null) baseUri.extend(applicationsUri(team.teamId)) else baseUri
+    val uri = if (team != null) applicationsUri(team.teamId) else Uri.of("")
 
-    newContext().use { context ->
-        context.setDefaultTimeout(waitTimeout.toMillis().toDouble())
-        context.addCookies(
-            listOf(
-                Cookie(sessionCookie.name, sessionCookie.value)
-                    .setDomain("localhost")
-                    .setPath("/")
-            )
+    setDefaultTimeout(waitTimeout.toMillis().toDouble())
+    addCookies(
+        listOf(
+            Cookie(sessionCookie.name, sessionCookie.value)
+                .setDomain("localhost")
+                .setPath("/")
         )
+    )
 
-        context.newPage().use {
-            it.navigate(uri.toString())
-            block(ApplicationsPage(it))
-        }
+    newPage().use {
+        it.navigate(Uri.of("http://localhost").extend(uri).toString())
+        block(ApplicationsPage(it))
     }
 }
 
@@ -62,7 +61,7 @@ fun Page.getModal(name: String): Locator {
     )
 }
 
-fun CoreTestDriver.playwright() = LaunchPlaywrightBrowser(
+fun CoreTestDriver.playwright() = LaunchPlaywrightContext(
     http = core.getRoutes(),
     launchOptions = BrowserType.LaunchOptions().setHeadless(ci)
 )

@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
+import com.microsoft.playwright.BrowserContext
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.create
@@ -20,7 +21,6 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -35,8 +35,8 @@ class FeaturePageTest: CoreTestDriver() {
     private val app = createApplication(member, appName1)
 
     @Test
-    fun `list features - empty`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `list features - empty`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
             .application.features
             .shouldBeEmpty()
@@ -44,8 +44,8 @@ class FeaturePageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `new feature`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `new feature`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
             .application.newFeature { form ->
                 form.key = featureKey1
@@ -80,7 +80,7 @@ class FeaturePageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `edit feature`(browser: Http4kBrowser) {
+    fun `edit feature`(context: BrowserContext) {
         val feature1 = createFeature(member, app, featureKey1)
         val feature2 = createFeature(
             principal = member,
@@ -90,7 +90,7 @@ class FeaturePageTest: CoreTestDriver() {
             defaultVariant = old
         )
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
                 .application.select(feature2.key) { page ->
                     page.edit.let { feature ->
@@ -122,7 +122,7 @@ class FeaturePageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `remove variant`(browser: Http4kBrowser) {
+    fun `remove variant`(context: BrowserContext) {
         val feature = createFeature(
             principal = member,
             application = app,
@@ -131,7 +131,7 @@ class FeaturePageTest: CoreTestDriver() {
             variants = mapOf(old to "old", new to "new")
         )
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
             .application.select(feature.key) { page ->
                 page.edit.variants
@@ -150,11 +150,11 @@ class FeaturePageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `delete feature`(browser: Http4kBrowser) {
+    fun `delete feature`(context: BrowserContext) {
         val feature1 = createFeature(member, app, featureKey1)
         val feature2 = createFeature(member, app, featureKey2)
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
                 .application.select(feature2.key)
                 .environments.more().delete().confirm { page ->
@@ -166,7 +166,7 @@ class FeaturePageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `reset feature`(browser: Http4kBrowser) {
+    fun `reset feature`(context: BrowserContext) {
         val feature = createFeature(
             principal = member,
             application = app,
@@ -175,7 +175,7 @@ class FeaturePageTest: CoreTestDriver() {
             variants = mapOf(old to "old", new to "new")
         )
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
                 .application.select(feature.key) { page ->
                     page.edit.description = "foobar"

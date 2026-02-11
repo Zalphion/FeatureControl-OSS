@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.users.web
 
+import com.microsoft.playwright.BrowserContext
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.addTo
 import com.zalphion.featurecontrol.create
@@ -17,7 +18,6 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -31,8 +31,8 @@ class UserSettingsPageTest: CoreTestDriver() {
     val playwright = playwright()
 
     @Test
-    fun `show blank page`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `show blank page`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.mainNavBar.user.username shouldBe null
             page.mainNavBar.user.email shouldBe idp1Email1
 
@@ -49,7 +49,7 @@ class UserSettingsPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `show additional memberships and invitations`(browser: Http4kBrowser) {
+    fun `show additional memberships and invitations`(context: BrowserContext) {
         val otherMember1 = users.create(idp2Email1).shouldBeSuccess()
         member.user.addTo(core, otherMember1.team)
 
@@ -60,7 +60,7 @@ class UserSettingsPageTest: CoreTestDriver() {
             data = MemberCreateData(member.user.emailAddress, emptyMap())
         ).invoke(otherMember2.user, core).shouldBeSuccess()
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.mainNavBar.user.open().goToSettings { settings ->
                 settings.memberships
                     .map { it.teamName }
@@ -85,11 +85,11 @@ class UserSettingsPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `leave team`(browser: Http4kBrowser) {
+    fun `leave team`(context: BrowserContext) {
         val otherMember = users.create(idp1Email4).shouldBeSuccess()
         member.user.addTo(core, otherMember.team)
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.mainNavBar.user.open().goToSettings { settings ->
                 settings.memberships
                     .find { it.teamName == otherMember.team.teamName }
@@ -102,7 +102,7 @@ class UserSettingsPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `accept invitation`(browser: Http4kBrowser) {
+    fun `accept invitation`(context: BrowserContext) {
         val otherMember = users.create(idp1Email4).shouldBeSuccess()
         InviteUser(
             teamId = otherMember.team.teamId,
@@ -110,7 +110,7 @@ class UserSettingsPageTest: CoreTestDriver() {
             data = MemberCreateData(member.user.emailAddress, emptyMap())
         ).invoke(otherMember.user, core).shouldBeSuccess()
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.mainNavBar.user.open().goToSettings { settings ->
                 settings.invitations
                     .find { it.teamName == otherMember.team.teamName }

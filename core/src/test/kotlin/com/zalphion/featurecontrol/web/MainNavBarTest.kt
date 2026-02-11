@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.web
 
+import com.microsoft.playwright.BrowserContext
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.create
 import com.zalphion.featurecontrol.idp1Email1
@@ -10,7 +11,6 @@ import com.zalphion.featurecontrol.teams.TeamName
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -27,8 +27,8 @@ class MainNavBarTest: CoreTestDriver() {
     val playwright = playwright()
 
     @Test
-    fun `show team selector`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user, member.team) { page ->
+    fun `show team selector`(context: BrowserContext) {
+        context.asUser(core, member.user, member.team) { page ->
             page.mainNavBar.currentTeam shouldBe member.team.teamName
             page.mainNavBar.openTeams { teams ->
                 teams.options.shouldContainExactlyInAnyOrder(member.team.teamName, team2.teamName)
@@ -37,8 +37,8 @@ class MainNavBarTest: CoreTestDriver() {
     }
 
     @Test
-    fun `switch teams`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user, member.team) { page ->
+    fun `switch teams`(context: BrowserContext) {
+        context.asUser(core, member.user, member.team) { page ->
             page.mainNavBar.openTeams { teams ->
                 teams.goToTeam(team2.teamName) { result ->
                     result.mainNavBar.currentTeam shouldBe team2.teamName
@@ -48,10 +48,10 @@ class MainNavBarTest: CoreTestDriver() {
     }
 
     @Test
-    fun `create team`(browser: Http4kBrowser) {
+    fun `create team`(context: BrowserContext) {
         val name = TeamName.parse("super team")
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.mainNavBar.openTeams { teams ->
                 teams.createTeam { team ->
                     team.name = name

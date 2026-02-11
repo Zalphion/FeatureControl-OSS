@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.configs.web
 
+import com.microsoft.playwright.BrowserContext
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.booleanProperty
@@ -22,7 +23,6 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -64,8 +64,8 @@ class ConfigEnvironmentPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `show environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `show environment`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
                 .environments.select(devName) { page ->
                     page.environments.options.shouldContainExactly(devName, prodName)
@@ -93,8 +93,8 @@ class ConfigEnvironmentPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `update environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `update environment`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
                 .environments.select(devName) { page ->
                     page.values.find { it.key == booleanProperty.first }.shouldNotBeNull().booleanValue = true
@@ -114,8 +114,8 @@ class ConfigEnvironmentPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `reset environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `reset environment`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
                 .environments.select(devName) { page ->
                     page.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue = "foobar"

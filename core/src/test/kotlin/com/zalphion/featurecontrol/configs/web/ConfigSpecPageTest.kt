@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.configs.web
 
+import com.microsoft.playwright.BrowserContext
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.booleanProperty
@@ -23,7 +24,6 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -42,8 +42,8 @@ class ConfigSpecPageTest: CoreTestDriver() {
     )
 
     @Test
-    fun `no properties`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `no properties`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName) { page ->
                 page.environments.options.shouldContainExactly(devName, prodName)
                 page.environments.selected.shouldBeNull()
@@ -53,8 +53,8 @@ class ConfigSpecPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `add properties`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `add properties`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName) { page ->
                 page.newProperty { prop ->
                     prop.key = strProperty.first
@@ -87,14 +87,14 @@ class ConfigSpecPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `edit properties`(browser: Http4kBrowser) {
+    fun `edit properties`(context: BrowserContext) {
         core.configs += ConfigSpec(
             teamId = app.teamId,
             appId = app.appId,
             properties = mapOf(strProperty, secretProperty, numberProperty, booleanProperty)
         )
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName) { page ->
                 page.properties
                     .find { it.key == secretProperty.first }
@@ -123,14 +123,14 @@ class ConfigSpecPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `reset properties`(browser: Http4kBrowser) {
+    fun `reset properties`(context: BrowserContext) {
         core.configs += ConfigSpec(
             teamId = app.teamId,
             appId = app.appId,
             properties = mapOf(strProperty, secretProperty, numberProperty, booleanProperty)
         )
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName) { page ->
                 page.properties
                     .find { it.key == secretProperty.first }

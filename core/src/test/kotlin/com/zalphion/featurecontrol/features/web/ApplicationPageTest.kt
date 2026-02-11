@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
+import com.microsoft.playwright.BrowserContext
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.appName2
@@ -24,7 +25,6 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
-import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -38,8 +38,8 @@ class ApplicationPageTest: CoreTestDriver() {
     private val member = users.create(idp1Email1).shouldBeSuccess()
 
     @Test
-    fun `no applications`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `no applications`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.uriTeamId shouldBe member.team.teamId
             page.applications.list.shouldBeEmpty()
             page.applications.selected.shouldBeNull()
@@ -47,10 +47,10 @@ class ApplicationPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `create application`(browser: Http4kBrowser) {
+    fun `create application`(context: BrowserContext) {
         lateinit var createdId: AppId
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.new { form ->
                 form.setName(appName1)
                 form.newEnvironment { env ->
@@ -95,11 +95,11 @@ class ApplicationPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `select application`(browser: Http4kBrowser) {
+    fun `select application`(context: BrowserContext) {
         val app1 = createApplication(member, appName1)
         val app2 = createApplication(member, appName2)
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
             page.applications.selected.shouldBeNull()
 
@@ -113,11 +113,11 @@ class ApplicationPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `delete application`(browser: Http4kBrowser) {
+    fun `delete application`(context: BrowserContext) {
         val app1 = createApplication(member, appName1)
         val app2 = createApplication(member, appName2)
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.select(app2.appName)
                 .application.more()
                 .delete().confirm { page ->
@@ -128,11 +128,11 @@ class ApplicationPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `edit application`(browser: Http4kBrowser) {
+    fun `edit application`(context: BrowserContext) {
         val app1 = createApplication(member, appName1, listOf(dev, prod))
         val app2 = createApplication(member, appName2, listOf(dev, prod))
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.select(app2.appName)
                 .application.more().update { app ->
                     app.setName(appName3)

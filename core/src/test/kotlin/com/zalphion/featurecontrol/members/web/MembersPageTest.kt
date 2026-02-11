@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
+import com.microsoft.playwright.BrowserContext
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.IDP1
 import com.zalphion.featurecontrol.addTo
@@ -18,7 +19,6 @@ import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -48,8 +48,8 @@ class MembersPageTest: CoreTestDriver() {
         .shouldBeSuccess()
 
     @Test
-    fun `show members`(browser: Http4kBrowser) {
-        browser.asUser(core, member1.user) { page ->
+    fun `show members`(context: BrowserContext) {
+        context.asUser(core, member1.user) { page ->
             page.mainNavBar.openTeams().manageTeam { page ->
                 page.members.map { it.emailAddress }.shouldContainExactlyInAnyOrder(
                     member1.user.emailAddress,
@@ -87,8 +87,8 @@ class MembersPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `search members`(browser: Http4kBrowser) {
-        browser.asUser(core, member1.user) { page ->
+    fun `search members`(context: BrowserContext) {
+        context.asUser(core, member1.user) { page ->
             page.mainNavBar.openTeams().manageTeam { page ->
                 page.searchTerm = IDP1
 
@@ -100,8 +100,8 @@ class MembersPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `invite member`(browser: Http4kBrowser) {
-        browser.asUser(core, member1.user) { page ->
+    fun `invite member`(context: BrowserContext) {
+        context.asUser(core, member1.user) { page ->
             page.mainNavBar.openTeams().manageTeam { page ->
                 page.inviteMember { form ->
                     form.emailAddress = idp1Email4

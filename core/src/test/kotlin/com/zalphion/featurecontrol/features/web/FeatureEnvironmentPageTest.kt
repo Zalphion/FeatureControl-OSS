@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
+import com.microsoft.playwright.BrowserContext
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.create
@@ -25,7 +26,6 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import org.http4k.playwright.Http4kBrowser
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -69,7 +69,7 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
     )
 
     @Test
-    fun `no variants`(browser: Http4kBrowser) {
+    fun `no variants`(context: BrowserContext) {
         val emptyFeature = createFeature(
             principal = member,
             application = app,
@@ -77,7 +77,7 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
             variants = emptyMap()
         )
 
-        browser.asUser(core, member.user) { page ->
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
             .application.select(emptyFeature.key)
             .environments.options.shouldBeEmpty()
@@ -85,8 +85,8 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `show environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `show environment`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
             .application.select(feature.key)
             .environments.select(devName) { page ->
@@ -134,8 +134,8 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `update environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `update environment`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
                 .application.select(feature.key)
                 .environments.select(devName) { page ->
@@ -160,8 +160,8 @@ class FeatureEnvironmentPageTest: CoreTestDriver() {
     }
 
     @Test
-    fun `reset environment`(browser: Http4kBrowser) {
-        browser.asUser(core, member.user) { page ->
+    fun `reset environment`(context: BrowserContext) {
+        context.asUser(core, member.user) { page ->
             page.applications.select(app.appName)
                 .application.select(feature.key)
                 .environments.select(prodName) { page ->
