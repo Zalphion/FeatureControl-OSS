@@ -1,34 +1,30 @@
 package com.zalphion.featurecontrol.plugins
 
-import com.zalphion.featurecontrol.Core
 import kotlinx.html.FlowContent
 import kotlin.reflect.KClass
 
-class ComponentRegistry(private vararg val components: ComponentContainer<*>) {
+class ComponentRegistry private constructor(private val components: Map<KClass<*>, Component<*>>) {
+
+    constructor(): this(emptyMap())
+
+    inline fun <reified T: Any> with(component: Component<T>) = with(T::class, component)
+
+    fun <T: Any> with(type: KClass<T>, component: Component<T>) = ComponentRegistry(components + (type to component))
 
     inline operator fun <reified T: Any> invoke(flow: FlowContent, data: T) =
         invoke(T::class, flow, data)
 
-    operator fun <T: Any> invoke(type: KClass<T>, flow: FlowContent, data: T) = components
-        .firstNotNullOfOrNull { it.getSafely(type) }
+    @Suppress("UNCHECKED_CAST")
+    operator fun <T: Any> invoke(type: KClass<T>, flow: FlowContent, data: T) =
+        (components[type] as? Component<T>)
         ?.invoke(flow, data)
         ?: error("Could not find $type component")
 
-    operator fun plus(other: ComponentRegistry) = ComponentRegistry(*components, *other.components)
-}
+    operator fun plus(other: ComponentRegistry) = ComponentRegistry(components + other.components)
 
-class ComponentContainer<T: Any>(
-    private val type: KClass<T>,
-    private val component: Component<T>
-) {
-    fun <R: Any> getSafely(desiredType: KClass<R>): Component<R>? {
-        return if (desiredType == type) {
-            @Suppress("UNCHECKED_CAST")
-            component as Component<R>
-        } else null
+    operator fun plus(others: Collection<ComponentRegistry>) = others.fold(this) { acc, next ->
+        acc + next
     }
 }
-
-inline fun <reified T: Any> Component<T>.toContainer() = ComponentContainer(T::class, this)
 
 fun interface Component<T: Any>: (FlowContent, T) -> Unit

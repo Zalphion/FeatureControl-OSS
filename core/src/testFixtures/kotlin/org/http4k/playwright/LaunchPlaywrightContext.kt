@@ -55,7 +55,8 @@ class LaunchPlaywrightContext @JvmOverloads constructor(
 }
 
 private fun HttpHandler.toPlaywright(): Consumer<Route> {
-    val redirectsWorkaround = ResponseFilters.Modify( { response ->
+    val withRedirects = ResponseFilters.Modify( { response ->
+        // playwright's route override doesn't support 3xx redirects, so return a script with the redirect
         if (response.status.redirection) {
             Response(Status.OK).body("<script>window.location.replace('${response.location()}')</script>")
         } else {
@@ -64,7 +65,7 @@ private fun HttpHandler.toPlaywright(): Consumer<Route> {
     }).then(this)
 
     return Consumer<Route> { route ->
-        val response = redirectsWorkaround(route.request().toHttp4k())
+        val response = withRedirects(route.request().toHttp4k())
         route.fulfill(response.toPlaywright())
     }
 }
@@ -81,5 +82,6 @@ private fun Response.toPlaywright() = Route.FulfillOptions()
     .setHeaders(headers.toPlaywright())
     .setBodyBytes(body.stream.readBytes())
 
+// TODO test multiple headers in requests and responses
 private fun Headers.toPlaywright() = groupBy({ it.first }, { it.second })
     .mapValues { it.value.filterNotNull().joinToString(",") }

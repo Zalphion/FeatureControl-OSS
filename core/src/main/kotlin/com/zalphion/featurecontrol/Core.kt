@@ -68,7 +68,6 @@ import com.zalphion.featurecontrol.plugins.ComponentRegistry
 import com.zalphion.featurecontrol.plugins.LensRegistry
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
-import com.zalphion.featurecontrol.plugins.toContainer
 import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.teams.TeamStorage
@@ -181,38 +180,34 @@ class Core internal constructor(
         .firstNotNullOfOrNull { it.buildPermissionsFactory(this) }
         ?: PermissionsFactory.teamMembership(users, members)
 
-    val extract = LensRegistry(
-        MemberLenses.coreCreate().toContainer(),
-        createCoreApplicationCreateDataLens(json).toContainer(),
-        createCoreApplicationUpdateDataLens(json).toContainer(),
-        createCoreFeatureCreateDataLens(json).toContainer(),
-        createCoreFeatureUpdateDataLens(json).toContainer(),
-        createCoreFeatureEnvironmentLens(json).toContainer(),
-        createCoreConfigSpecDataLens(json).toContainer(),
-        createCoreConfigEnvironmentDataLens(json).toContainer()
-    ).let { base ->
-        plugins.map { it.buildLensExports(this) }.fold(base) { acc, next -> acc + next }
-    }
+    val extract: LensRegistry = LensRegistry()
+        .with(MemberLenses.coreCreate())
+        .with(createCoreApplicationCreateDataLens(json))
+        .with(createCoreApplicationUpdateDataLens(json))
+        .with(createCoreFeatureCreateDataLens(json))
+        .with(createCoreFeatureUpdateDataLens(json))
+        .with(createCoreFeatureEnvironmentLens(json))
+        .with(createCoreConfigSpecDataLens(json))
+        .with(createCoreConfigEnvironmentDataLens(json))
+        .plus(plugins.map { it.buildLensExports(this) })
 
-    val render: ComponentRegistry = ComponentRegistry(
-        TeamsComponent.core(this).toContainer(),
-        MembersComponent.core(this).toContainer(),
-        InviteMemberModalComponent.core().toContainer(),
-        NewApplicationModalComponent.core(this).toContainer(),
-        UpdateApplicationModalComponent.core(this).toContainer(),
-        NewFeatureModalComponent.core(this).toContainer(),
-        FeatureComponent.core(this).toContainer(),
-        FeatureEnvironmentComponent.core(this).toContainer(),
-        ConfigSpecComponent.core(this).toContainer(),
-        ConfigEnvironmentComponent.core(this).toContainer(),
-        ApplicationCardComponent.core().toContainer(),
-        ConfigCardComponent.core().toContainer(),
-        FeatureCardComponent.core().toContainer(),
-        ConfigNavBarComponent.core().toContainer(),
-        RoleComponent.core().toContainer(),
-    ).let { base ->
-        plugins.map { it.buildComponentExports(this) }.fold(base) { acc, next -> acc + next }
-    }
+    val render: ComponentRegistry = ComponentRegistry()
+        .with(TeamsComponent.core(this))
+        .with(MembersComponent.core(this))
+        .with(InviteMemberModalComponent.core())
+        .with(NewApplicationModalComponent.core(this))
+        .with(UpdateApplicationModalComponent.core(this))
+        .with(NewFeatureModalComponent.core(this))
+        .with(FeatureComponent.core(this))
+        .with(FeatureEnvironmentComponent.core(this))
+        .with(ConfigSpecComponent.core(this))
+        .with(ConfigEnvironmentComponent.core(this))
+        .with(ApplicationCardComponent.core())
+        .with(ConfigCardComponent.core())
+        .with(FeatureCardComponent.core())
+        .with(ConfigNavBarComponent.core())
+        .with(RoleComponent.core())
+        .plus(plugins.map { it.buildComponentExports(this) })
 
     fun getEntitlements(teamId: TeamId) = plugins
         .flatMap { it.getEntitlements(teamId) }
