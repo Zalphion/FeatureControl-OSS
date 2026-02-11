@@ -9,3 +9,4 @@ fun String.includeModule(name: String) {
 include("core", "emails", "hosted")
 
 "storage".includeModule("postgres")
+"storage".includeModule("embedded")

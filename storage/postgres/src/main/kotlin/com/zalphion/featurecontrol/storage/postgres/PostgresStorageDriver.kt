@@ -1,5 +1,8 @@
-package com.zalphion.featurecontrol.storage
+package com.zalphion.featurecontrol.storage.postgres
 
+import com.zalphion.featurecontrol.storage.PageSize
+import com.zalphion.featurecontrol.storage.Repository
+import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import com.zaxxer.hikari.util.Credentials
@@ -61,7 +64,7 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> postgresRepository(
                     VALUES (?, ?, ?, ?)
                 ON CONFLICT ($COLLECTION_NAME, $GROUP_ID_COLUMN, $ITEM_ID_COLUMN)
                 DO UPDATE SET $DOC_COLUMN = EXCLUDED.$DOC_COLUMN;
-            """
+            """.trimIndent()
             ).use { stmt ->
                 stmt.setString(1, collectionName)
                 stmt.setString(2, groupIdMapper(groupId))

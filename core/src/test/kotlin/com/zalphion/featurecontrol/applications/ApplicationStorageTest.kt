@@ -9,7 +9,7 @@ import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.staging
 import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.storage.memory
+import com.zalphion.featurecontrol.storage.embedded.embeddedMemory
 import com.zalphion.featurecontrol.teams.TeamId
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -19,7 +19,7 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import kotlin.collections.plus
 
-class ApplicationStorageTest: CoreTestDriver(storageDriver = StorageDriver.memory(PageSize.of(2))) {
+class ApplicationStorageTest: CoreTestDriver(storageDriver = StorageDriver.embeddedMemory(PageSize.of(2))) {
 
     private val applications = core.applications
     private val teamId = TeamId.of("team1234")

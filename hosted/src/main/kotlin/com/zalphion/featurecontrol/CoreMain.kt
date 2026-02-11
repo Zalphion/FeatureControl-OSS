@@ -10,7 +10,7 @@ import com.zalphion.featurecontrol.plugins.PluginFactory
 import com.zalphion.featurecontrol.plugins.webjars
 import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.storage.postgres
+import com.zalphion.featurecontrol.storage.postgres.postgres
 import org.http4k.config.Environment
 import org.http4k.core.Credentials
 import org.http4k.core.Uri

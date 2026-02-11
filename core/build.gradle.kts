@@ -23,6 +23,7 @@ dependencies {
     testFixturesApi(libs.forkhandles.result4k.kotest)
     testFixturesApi(libs.http4k.testing.playwright)
     testFixturesApi(libs.kotest.assertions.core.jvm)
+    testFixturesApi(project(":storage-embedded"))
 
     // include webjars for ui tests
     testFixturesRuntimeOnly(libs.webjars.uikit)

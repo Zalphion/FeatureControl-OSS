@@ -1,20 +1,18 @@
-package com.zalphion.featurecontrol.storage
+package com.zalphion.featurecontrol.storage.embedded
 
-import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
 import org.flywaydb.core.api.migration.Context
 import org.flywaydb.core.api.migration.JavaMigration
+import org.h2.jdbcx.JdbcConnectionPool
 
-internal fun HikariDataSource.migrate(): HikariDataSource {
+internal fun JdbcConnectionPool.migrate() {
     Flyway.configure()
         .dataSource(this@migrate)
         .javaMigrations(V1CreateMonoTable())
         .createSchemas(true)
         .load()
         .migrate()
-
-    return this
 }
 
 private class V1CreateMonoTable: JavaMigration {

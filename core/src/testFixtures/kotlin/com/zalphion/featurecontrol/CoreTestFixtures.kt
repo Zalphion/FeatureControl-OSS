@@ -23,7 +23,6 @@ val appName3 = AppName.of("app3")
 val featureKey1 = FeatureKey.of("feature1")
 val featureKey2 = FeatureKey.of("feature2")
 val featureKey3 = FeatureKey.of("feature3")
-val featureKey4 = FeatureKey.of("feature4")
 
 val old = Variant.of("old")
 val new = Variant.of("new")
