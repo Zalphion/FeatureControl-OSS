@@ -73,7 +73,7 @@ data class TestDocument(
 abstract class StorageDriverContract(storageDriverFn: (PageSize) -> StorageDriver) {
 
     private val repo = storageDriverFn(PageSize.of(2)).create(
-        name = "test",
+        collectionName = "test",
         groupIdMapper = TestGroupId.toBiDiMapping(),
         itemIdMapper = TestItemId.toBiDiMapping(),
         documentMapper = TestDocument.mapping

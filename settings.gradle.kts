@@ -13,4 +13,5 @@ include("core", "emails", "hosted")
     includeModule("postgres")
     includeModule("embedded")
     includeModule("mariadb")
+    includeModule("couchdb")
 }

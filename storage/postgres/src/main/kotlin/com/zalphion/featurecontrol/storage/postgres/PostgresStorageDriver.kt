@@ -28,13 +28,13 @@ fun StorageDriver.Companion.postgres(
     }).migrate()
 
     override fun <Doc : Any, GroupId : Any, ItemId : Any> create(
-        name: String,
+        collectionName: String,
         groupIdMapper: BiDiMapping<String, GroupId>,
         itemIdMapper: BiDiMapping<String, ItemId>,
         documentMapper: BiDiMapping<String, Doc>
     ) = postgresRepository(
         dataSource = dataSource,
-        collectionName = name,
+        collectionName = collectionName,
         documentMapper = documentMapper,
         groupIdMapper = groupIdMapper,
         itemIdMapper = itemIdMapper,

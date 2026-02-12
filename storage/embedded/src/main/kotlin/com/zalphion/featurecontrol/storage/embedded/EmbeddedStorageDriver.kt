@@ -45,13 +45,13 @@ private fun driver(url: Uri, pageSize: PageSize) = object: StorageDriver {
         .migrate()
 
     override fun <Doc : Any, GroupId : Any, ItemId : Any> create(
-        name: String,
+        collectionName: String,
         groupIdMapper: BiDiMapping<String, GroupId>,
         itemIdMapper: BiDiMapping<String, ItemId>,
         documentMapper: BiDiMapping<String, Doc>
     ) = embeddedRepository(
         dataSource = dataSource,
-        collectionName = name,
+        collectionName = collectionName,
         documentMapper = documentMapper,
         groupIdMapper = groupIdMapper,
         itemIdMapper = itemIdMapper,

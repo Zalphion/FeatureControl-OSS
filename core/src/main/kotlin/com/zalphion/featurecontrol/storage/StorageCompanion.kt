@@ -12,7 +12,7 @@ abstract class StorageCompanion<Storage: Any, Doc: Any, GroupId: Any, ItemId: An
     private val createFn: (Repository<Doc, GroupId, ItemId>) -> Storage
 ) {
     fun create(name: String, storageDriver: StorageDriver, json: AutoMarshalling) = storageDriver.create(
-        name = name,
+        collectionName = name,
         groupIdMapper = groupIdMapping,
         itemIdMapper = itemIdMapping,
         documentMapper = json.asBiDiMapping(documentType)

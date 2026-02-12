@@ -4,7 +4,7 @@ import org.http4k.lens.BiDiMapping
 
 interface StorageDriver {
     fun <Doc: Any, GroupId: Any, ItemId: Any> create(
-        name: String,
+        collectionName: String,
         groupIdMapper: BiDiMapping<String, GroupId>,
         itemIdMapper: BiDiMapping<String, ItemId>,
         documentMapper: BiDiMapping<String, Doc>

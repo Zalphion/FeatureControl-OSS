@@ -26,13 +26,13 @@ class ConfigStorage private constructor(
     companion object {
         fun create(baseStorageName: String, versionsStorageName: String, storageDriver: StorageDriver, json: AutoMarshalling) = ConfigStorage(
             specs = storageDriver.create(
-                name = baseStorageName,
+                collectionName = baseStorageName,
                 groupIdMapper = TeamId.toBiDiMapping(),
                 itemIdMapper = AppId.toBiDiMapping(),
                 documentMapper = json.asBiDiMapping()
             ),
             environments = storageDriver.create(
-                name = versionsStorageName,
+                collectionName = versionsStorageName,
                 groupIdMapper = AppId.toBiDiMapping(),
                 itemIdMapper = EnvironmentName.toBiDiMapping(),
                 documentMapper = json.asBiDiMapping()
