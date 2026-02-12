@@ -1,55 +1,38 @@
-package com.zalphion.featurecontrol.storage.embedded
+package com.zalphion.featurecontrol.storage.mariadb
 
 import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.storage.jdbc.JdbcRepository
+import com.zalphion.featurecontrol.storage.jdbc.migrate
 import com.zalphion.featurecontrol.storage.jdbc.JdbcNames.TABLE_NAME
 import com.zalphion.featurecontrol.storage.jdbc.JdbcNames.COLLECTION_NAME
 import com.zalphion.featurecontrol.storage.jdbc.JdbcNames.ITEM_ID_COLUMN
 import com.zalphion.featurecontrol.storage.jdbc.JdbcNames.GROUP_ID_COLUMN
 import com.zalphion.featurecontrol.storage.jdbc.JdbcNames.DOC_COLUMN
-import com.zalphion.featurecontrol.storage.jdbc.migrate
-import org.h2.jdbcx.JdbcConnectionPool
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+import com.zaxxer.hikari.util.Credentials
+import org.http4k.core.Credentials as Http4kCredentials
 import org.http4k.core.Uri
 import org.http4k.lens.BiDiMapping
-import java.nio.file.Path
-import java.util.UUID
 import javax.sql.DataSource
-import kotlin.use
 
-/**
- * Uses an embedded H2 database with a volatile in-memory store.
- *
- * Suitable for testing, but not production use.
- */
-fun StorageDriver.Companion.embeddedMemory(pageSize: PageSize) = driver(
-    url = Uri.of("jdbc:h2:mem:${UUID.randomUUID()}").query("DB_CLOSE_DELAY=-1"),
-    pageSize = pageSize
-)
-
-/**
- * Uses an embedded H2 database with filesystem persistence.
- *
- * WARNING: Only a single storage driver is supported per file.
- * Multi-replica deployments are unsuitable for this driver.
- */
-fun StorageDriver.Companion.embeddedSingleNode(file: Path, pageSize: PageSize) = driver(
-    url = Uri.of("jdbc:h2:$file"),
-    pageSize = pageSize
-)
-
-private fun driver(url: Uri, pageSize: PageSize) = object: StorageDriver {
-
-    private val dataSource = JdbcConnectionPool
-        .create(url.toString(), "sa", "")
-        .migrate()
+fun StorageDriver.Companion.mariaDb(
+    uri: Uri,
+    credentials: Http4kCredentials?,
+    pageSize: PageSize,
+) = object: StorageDriver {
+    private val dataSource = HikariDataSource(HikariConfig().apply {
+        this.jdbcUrl = uri.toString()
+        this.credentials = credentials?.let { Credentials(it.user, it.password) }
+    }).migrate()
 
     override fun <Doc : Any, GroupId : Any, ItemId : Any> create(
         name: String,
         groupIdMapper: BiDiMapping<String, GroupId>,
         itemIdMapper: BiDiMapping<String, ItemId>,
         documentMapper: BiDiMapping<String, Doc>
-    ) = embeddedRepository(
+    ) = mariaDbRepository(
         dataSource = dataSource,
         collectionName = name,
         documentMapper = documentMapper,
@@ -59,7 +42,7 @@ private fun driver(url: Uri, pageSize: PageSize) = object: StorageDriver {
     )
 }
 
-private fun <Doc: Any, GroupId: Any, ItemId: Any> embeddedRepository(
+private fun <Doc: Any, GroupId: Any, ItemId: Any> mariaDbRepository(
     dataSource: DataSource,
     collectionName: String,
     documentMapper: BiDiMapping<String, Doc>,
@@ -74,15 +57,15 @@ private fun <Doc: Any, GroupId: Any, ItemId: Any> embeddedRepository(
     itemIdMapper = itemIdMapper,
     pageSize = pageSize
 ) {
-
     override fun save(groupId: GroupId, itemId: ItemId, doc: Doc) {
         dataSource.connection.use { conn ->
             conn.prepareStatement(
                 """
-                MERGE INTO $TABLE_NAME
+                INSERT INTO $TABLE_NAME
                     ($COLLECTION_NAME, $GROUP_ID_COLUMN, $ITEM_ID_COLUMN, $DOC_COLUMN)
-                    KEY ($COLLECTION_NAME, $GROUP_ID_COLUMN, $ITEM_ID_COLUMN)
                     VALUES (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    $DOC_COLUMN = VALUES($DOC_COLUMN)
             """.trimIndent()
             ).use { stmt ->
                 stmt.setString(1, collectionName)

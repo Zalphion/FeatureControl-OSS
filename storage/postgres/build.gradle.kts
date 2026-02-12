@@ -1,8 +1,7 @@
 dependencies {
-    api(project(":core"))
+    api(project(":storage-jdbc"))
 
     implementation(libs.hikari.cp)
-    implementation(libs.flyway.core)
 
     runtimeOnly(libs.flyway.postgresql)
     runtimeOnly(libs.postgresql)

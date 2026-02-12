@@ -1,6 +1,5 @@
 dependencies {
-    api(project(":core"))
-    implementation(libs.flyway.core)
+    api(project(":storage-jdbc"))
     implementation(libs.h2)
 
     testImplementation(testFixtures(project(":core")))
