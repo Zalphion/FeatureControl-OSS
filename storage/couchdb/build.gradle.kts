@@ -12,4 +12,9 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.testcontainers.junit.jupiter)
+
+    kspTestFixtures(libs.kotshi.compiler)
+    testFixturesImplementation(libs.http4k.format.moshi) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
+    }
 }

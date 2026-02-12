@@ -12,48 +12,51 @@ import org.http4k.core.with
 import org.http4k.filter.ClientFilters
 import org.http4k.filter.RequestFilters
 
-class CouchDbClient(internet: HttpHandler, host: Uri, credentials: Credentials) {
-
+class CouchDbDatabaseClient(
+    databaseUri: Uri, // e.g. http://localhost:5984/feature-flags
+    credentials: Credentials, // the user must be an admin for the database given in the `databaseUri`
+    internet: HttpHandler,
+) {
     private val http = ClientFilters
-        .SetHostFrom(host)
+        .SetBaseUriFrom(databaseUri)
         .then(ClientFilters.BasicAuth(credentials))
         .then(RequestFilters.SetHeader("Accept", ContentType.APPLICATION_JSON.value))
         .then(internet)
 
-    fun createTable(databaseName: String) {
-        val response = Request(Method.PUT, databaseName).let(http)
+    fun createTable() {
+        val response = Request(Method.PUT, "").let(http)
         // 409 is fine; just means the database already exists
-        if (!response.status.successful || response.status == Status.PRECONDITION_FAILED) error(response)
+        if (!response.status.successful && response.status != Status.PRECONDITION_FAILED) error(response)
     }
 
-    fun getRev(databaseName: String, id: String): String? = Request(Method.HEAD, "$databaseName/$id")
+    fun getRev(id: String): String? = Request(Method.HEAD, id)
         .let(http)
         .takeIf { it.status.successful }
         ?.header("ETag")?.removeSurrounding("\"")
 
-    fun createIndex(databaseName: String, indexName: String, fields: List<String>) {
+    fun createIndex(indexName: String, fields: List<String>) {
         val body = CouchDbCreateIndexRequest(
             index = mapOf("fields" to fields),
             name = indexName,
             type = "json"
         )
 
-        Request(Method.POST, "$databaseName/_index")
+        Request(Method.POST, "_index")
             .with(CouchDbCreateIndexRequest.lens of body)
             .let(http)
             .also { if (!it.status.successful) error(it) }
 
     }
 
-    fun save(databaseName: String, document: CouchDbDocument) {
-        Request(Method.PUT, "$databaseName/${document.id}")
+    fun save(document: CouchDbDocument) {
+        Request(Method.PUT, document.id)
             .with(CouchDbDocument.lens of document)
             .let(http)
             .also { if (!it.status.successful) error(it) }
     }
 
-    fun get(databaseName: String, id: String): CouchDbDocument? {
-        val response = Request(Method.GET, "$databaseName/$id")
+    fun get(id: String): CouchDbDocument? {
+        val response = Request(Method.GET, id)
             .let(http)
 
         return when(response.status) {
@@ -63,10 +66,10 @@ class CouchDbClient(internet: HttpHandler, host: Uri, credentials: Credentials) 
         }
     }
 
-    fun batchGet(databaseName: String, ids: List<String>): Map<String, CouchDbDocument?> {
+    fun batchGet(ids: List<String>): Map<String, CouchDbDocument?> {
         if (ids.isEmpty()) return emptyMap()
 
-        return Request(Method.POST, "$databaseName/_all_docs")
+        return Request(Method.POST, "_all_docs")
             .query("include_docs", "true")
             .with(BulkDocsRequest.lens of BulkDocsRequest(ids))
             .let(http)
@@ -76,7 +79,6 @@ class CouchDbClient(internet: HttpHandler, host: Uri, credentials: Credentials) 
     }
 
     fun listByPrefix(
-        databaseName: String,
         prefix: String,
         cursor: String?,
         limit: Int
@@ -84,7 +86,7 @@ class CouchDbClient(internet: HttpHandler, host: Uri, credentials: Credentials) 
         val startKey = if (cursor == null) prefix else "$prefix$cursor"
 
         // uses _all_docs instead of _find to take advantage of the existing key index
-        return Request(Method.GET, "$databaseName/_all_docs")
+        return Request(Method.GET, "_all_docs")
             .query("include_docs", "true")
             .query("startkey", "\"$startKey\"")
             .query("endkey", "\"$prefix\\ufff0\"")
@@ -98,7 +100,6 @@ class CouchDbClient(internet: HttpHandler, host: Uri, credentials: Credentials) 
     }
 
     fun find(
-        databaseName: String,
         selector: Map<String, Any>,
         sort: List<Map<String, String>>,
         limit: Int
@@ -109,7 +110,7 @@ class CouchDbClient(internet: HttpHandler, host: Uri, credentials: Credentials) 
             limit = limit
         )
 
-        return Request(Method.POST, "$databaseName/_find")
+        return Request(Method.POST, "_find")
             .with(CouchDbQueryRequest.lens of query)
             .let(http)
             .also { if (!it.status.successful) error(it) }
@@ -117,10 +118,10 @@ class CouchDbClient(internet: HttpHandler, host: Uri, credentials: Credentials) 
             .docs
     }
 
-    fun delete(databaseName: String, id: String) {
-        val rev = getRev(databaseName, id) ?: return // not found
+    fun delete(id: String) {
+        val rev = getRev(id) ?: return // not found
 
-        Request(Method.DELETE, "$databaseName/$id")
+        Request(Method.DELETE, id)
             .query("rev", rev)
             .let(http)
             .also { if (!it.status.successful) error(it) }

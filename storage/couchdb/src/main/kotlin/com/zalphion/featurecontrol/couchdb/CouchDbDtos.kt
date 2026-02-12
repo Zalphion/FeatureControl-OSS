@@ -90,3 +90,4 @@ data class CouchDbQueryResponse(
         val lens = json.autoBody<CouchDbQueryResponse>().toLens()
     }
 }
+
