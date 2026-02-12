@@ -1,11 +1,11 @@
-package com.zalphion.featurecontrol.storage.embedded
+package com.zalphion.featurecontrol.storage.h2db
 
 import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.storage.StorageDriverContract
 import java.nio.file.Files
 
-class EmbeddedSingleNodeStorageDriverTest: StorageDriverContract({ pageSize ->
+class H2StorageDriverTest: StorageDriverContract({ pageSize ->
     val file = Files.createTempFile("storage", "db")
         .also { it.toFile().deleteOnExit() }
-    StorageDriver.embeddedSingleNode(file, pageSize)
+    StorageDriver.h2Db(file, pageSize)
 })

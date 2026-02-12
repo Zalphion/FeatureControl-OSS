@@ -9,7 +9,7 @@ import com.zalphion.featurecontrol.plugins.toFactory
 import com.zalphion.featurecontrol.plugins.webjars
 import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.storage.embedded.embeddedMemory
+import com.zalphion.featurecontrol.storage.h2db.h2DbInMemory
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.UserService
 import org.http4k.core.Uri
@@ -23,7 +23,7 @@ import kotlin.random.Random
 
 abstract class CoreTestDriver(
     additionalPlugins: List<PluginFactory<*>> = emptyList(),
-    storageDriver: StorageDriver = StorageDriver.embeddedMemory(PageSize.of(2)),
+    storageDriver: StorageDriver = StorageDriver.h2DbInMemory(PageSize.of(2)),
     val invitationRetention: Duration = Duration.ofHours(5),
     appSecret: AppSecret = AppSecret.of("secret")
 ) {

@@ -13,3 +13,8 @@ This is the FOSS (Free and Open Source Software) core of the Feature Control pla
 - **core**: Core business logic, repository interfaces, and HTTP routes (no HTTP server or database included)
 - **emails**: Plugin: Intercept events to send emails over the given transport (not included)
 - **hosted**: A fully deployable version of Feature Control using Undertow, Postgres, and Javax Mail
+- **storage**: Bring your own storage solution with a wide variety of options
+  - **postgres**: The ubiquitous relational database
+  - **mariadb**: The FOSS continuation of MySQL; retaining high compatibility with its proprietary sister
+  - **h2**: An embedded database stored on disk; suitable for single-node deployments or testing
+  - **couchdb**: A highly scalable document-based database for NoSQL aficionados

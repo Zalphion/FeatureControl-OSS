@@ -18,7 +18,7 @@ import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.staging
 import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.storage.embedded.embeddedMemory
+import com.zalphion.featurecontrol.storage.h2db.h2DbInMemory
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.toCreate
 import dev.andrewohara.utils.pagination.Page
@@ -27,7 +27,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class FeatureStorageTest: CoreTestDriver(storageDriver = StorageDriver.embeddedMemory(PageSize.of(2))) {
+class FeatureStorageTest: CoreTestDriver(storageDriver = StorageDriver.h2DbInMemory(PageSize.of(2))) {
 
     private val teamId = TeamId.of("team1234")
     private val features = core.features

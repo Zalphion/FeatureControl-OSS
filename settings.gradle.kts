@@ -11,7 +11,7 @@ include("core", "emails", "hosted")
 "storage".apply {
     includeModule("jdbc")
     includeModule("postgres")
-    includeModule("embedded")
+    includeModule("h2")
     includeModule("mariadb")
     includeModule("couchdb")
 }
