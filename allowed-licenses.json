@@ -51,6 +51,14 @@
     {
       "moduleName": ".*",
       "moduleLicense": "Eclipse Public License v2.0"
+    },
+    {
+      "moduleName": ".*",
+      "moduleLicense": "LGPL-2.1-or-later"
+    },
+    {
+      "moduleName": ".*",
+      "moduleLicense": "EPL 1.0"
     }
   ]
 }
