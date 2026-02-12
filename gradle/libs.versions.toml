@@ -3,7 +3,7 @@
 junit = "6.0.2"
 kotest = "6.1.2"
 forkhandles = "2.25.1.0"
-http4k = "6.27.0.0"
+http4k = "6.28.1.0"
 kotshi = "4.0.0"
 tinylog = "2.7.0"
 flyway = "12.0.0"
