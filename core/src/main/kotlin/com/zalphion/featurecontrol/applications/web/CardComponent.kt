@@ -95,9 +95,6 @@ fun FlowContent.renderCard(
         a(link.toString()) {
             if (selected) {
                 ariaCurrent = AriaCurrent.Page
-            } else {
-                // only filter if it's not currently selected
-                attributes["x-show"] = "'$name'.toLowerCase().includes($filterModel.toLowerCase())"
             }
 
             div("uk-card uk-card-hover uk-card-small uk-margin") {

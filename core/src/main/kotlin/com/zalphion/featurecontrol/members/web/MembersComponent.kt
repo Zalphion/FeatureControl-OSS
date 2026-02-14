@@ -9,12 +9,15 @@ import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.ariaLabel
 import com.zalphion.featurecontrol.web.membersUri
 import com.zalphion.featurecontrol.web.sanitizeSearchTerm
+import com.zalphion.featurecontrol.web.template
 import com.zalphion.featurecontrol.web.timestamp
+import com.zalphion.featurecontrol.web.tr
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.LI
 import kotlinx.html.TD
+import kotlinx.html.TR
 import kotlinx.html.button
 import kotlinx.html.form
 import kotlinx.html.li
@@ -57,58 +60,72 @@ class MembersComponent(
                     }
                     tbody {
                         for (details in data.members) {
-                            tr {
-                                // FIXME playwright isn't able to detect changes easily; necessitating a hard sleep
-                                // Switching to x-for will make it easier for playwright, but the complex logic makes that difficult
-                                if (data.filterModel != null) {
+                            if (data.filterModel != null) {
+                                template {
                                     val searchTerms = "${details.user.userName}${details.user.emailAddress}".sanitizeSearchTerm()
-                                    attributes["x-show"] = "'$searchTerms'.includes(${data.filterModel}.toLowerCase())"
-                                }
+                                    attributes["x-if"] = "'$searchTerms'.includes(${data.filterModel}.toLowerCase())"
 
-                                td {
-                                    ariaLabel = "Username"
-                                    +details.user.userName.orEmpty()
-                                }
-
-                                td {
-                                    ariaLabel = "Email Address"
-                                    +details.user.emailAddress.value
-                                }
-
-                                td {
-                                    ariaLabel = "Role"
-                                    core.render(this, RoleComponent(details))
-                                }
-
-                                // status
-                                td {
-                                    ariaLabel = "Status"
-                                    memberStatus(details.member)
-                                }
-
-                                for (render in extraColumns.map { it.second }) {
-                                    td { render(details) }
-                                }
-
-                                // actions
-                                td {
-                                    ul("uk-iconnav") {
-                                       if(details.member.active && data.permissions.memberDelete(details.member)) {
-                                            li { removeMemberButton(details) }
-                                        }
-                                        if (!details.member.active && data.permissions.memberUpdate(details.member)) {
-                                            li { resendInvitation(details.member) }
-                                        }
-
-                                        for (action in extraActions) {
-                                            li { action(details) }
-                                        }
+                                    tr {
+                                        memberRow(core, data.permissions, details, extraColumns, extraActions)
                                     }
+                                }
+                            } else {
+                                tr {
+                                    memberRow(core, data.permissions, details, extraColumns, extraActions)
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+private fun TR.memberRow(
+    core: Core,
+    permissions: Permissions<*>,
+    details: MemberDetails,
+    extraColumns: List<Pair<String, TD.(MemberDetails) -> Unit>>,
+    extraActions: List<LI.(MemberDetails) -> Unit>
+) {
+    td {
+        ariaLabel = "Username"
+        +details.user.userName.orEmpty()
+    }
+
+    td {
+        ariaLabel = "Email Address"
+        +details.user.emailAddress.value
+    }
+
+    td {
+        ariaLabel = "Role"
+        core.render(this, RoleComponent(details))
+    }
+
+    // status
+    td {
+        ariaLabel = "Status"
+        memberStatus(details.member)
+    }
+
+    for (render in extraColumns.map { it.second }) {
+        td { render(details) }
+    }
+
+    // actions
+    td {
+        ul("uk-iconnav") {
+            if(details.member.active && permissions.memberDelete(details.member)) {
+                li { removeMemberButton(details) }
+            }
+            if (!details.member.active && permissions.memberUpdate(details.member)) {
+                li { resendInvitation(details.member) }
+            }
+
+            for (action in extraActions) {
+                li { action(details) }
             }
         }
     }

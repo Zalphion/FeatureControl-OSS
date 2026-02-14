@@ -5,10 +5,10 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.users.EmailAddress
-import com.zalphion.featurecontrol.web.afterSetValue
 import com.zalphion.featurecontrol.web.getControlled
 import com.zalphion.featurecontrol.web.mainNavBar
 import com.zalphion.featurecontrol.web.toInputProperty
+import com.zalphion.featurecontrol.web.waitForAll
 import com.zalphion.featurecontrol.web.waitForReady
 import java.time.Instant
 
@@ -28,18 +28,11 @@ class MembersUi(private val page: Page) {
         .getByRole(AriaRole.NAVIGATION)
         .getByPlaceholder("Search")
         .toInputProperty()
-        .afterSetValue {
-            /* FIXME this is a terrible solution, but I'm having a hard time getting playwright to wait for alpine's x-show update to complete.
-             * Supposedly, switching to x-for is easier for playwright to detect changes for, but that would require a major
-             * rewrite to allow alpine to render the complex component and permissions logic
-             */
-            Thread.sleep(50)
-        }
 
     val members get() = page
         .getByRole(AriaRole.MAIN)
-        .locator("tbody tr:visible") // only pick rows that aren't hidden by the search filter
-        .all()
+        .locator("tbody tr")
+        .waitForAll()
         .map(::MemberUi)
 
     fun inviteMember(block: (InviteMemberUi) -> Unit = {}) = page
