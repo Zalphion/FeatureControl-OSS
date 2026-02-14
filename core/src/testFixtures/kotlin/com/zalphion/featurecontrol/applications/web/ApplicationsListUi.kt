@@ -4,28 +4,26 @@ import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppName
-import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.config.web.ConfigSpecUi
-import com.zalphion.featurecontrol.web.getModal
+import com.zalphion.featurecontrol.web.getControlled
 import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.shouldBe
 
 open class ApplicationsListUi(private val section: Locator) {
 
     fun select(appName: AppName, block: (ConfigSpecUi) -> Unit = {}): ConfigSpecUi {
-        section.getElement(AriaRole.LINK, appName.value).click()
+        section.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName(appName.value)).click()
         return ConfigSpecUi(section.page())
             .also { it.application.name shouldBe appName }
             .also(block)
     }
 
-    fun new(block: (ApplicationCreateUpdateUi) -> Unit): ApplicationCreateUpdateUi {
-        section.getElement(AriaRole.BUTTON, "New Application").click()
-
-        val modal = section.page().getModal("New Application")
-
-        return ApplicationCreateUpdateUi.create(modal).also(block)
-    }
+    fun new(block: (ApplicationCreateUpdateUi) -> Unit) = section
+        .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("New Application"))
+        .also { it.click() }
+        .getControlled()
+        .let(::ApplicationCreateUpdateUi)
+        .also(block)
 
     val list get() = section
         .getByRole(AriaRole.LINK)

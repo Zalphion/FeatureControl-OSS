@@ -5,7 +5,6 @@ import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions
-import com.microsoft.playwright.options.AriaRole
 import com.microsoft.playwright.options.Cookie
 import com.microsoft.playwright.options.LoadState
 import com.zalphion.featurecontrol.Core
@@ -40,21 +39,6 @@ fun BrowserContext.asUser(
     newPage().use {
         block(ApplicationsUi(it))
     }
-}
-
-fun Page.getElement(role: AriaRole, name: String): Locator {
-    return getByRole(role, Page.GetByRoleOptions().setName(name))
-}
-
-fun Locator.getElement(role: AriaRole, name: String): Locator {
-    return getByRole(role, Locator.GetByRoleOptions().setName(name))
-}
-
-@Deprecated("use getControlled instead")
-fun Page.getModal(name: String): Locator {
-    return getByRole(AriaRole.DIALOG).filter(
-        Locator.FilterOptions().setHas(getByRole(AriaRole.HEADING, Page.GetByRoleOptions().setName(name)))
-    )
 }
 
 fun CoreTestDriver.playwright() = LaunchPlaywrightContext(

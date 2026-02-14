@@ -15,7 +15,6 @@ import com.zalphion.featurecontrol.features.Weight
 import com.zalphion.featurecontrol.lib.toBiDiMapping
 import com.zalphion.featurecontrol.web.ModalUi
 import com.zalphion.featurecontrol.web.getControlled
-import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.toInputProperty
 import com.zalphion.featurecontrol.web.toListProperty
 import com.zalphion.featurecontrol.web.waitForAll
@@ -36,7 +35,7 @@ class FeatureEnvironmentUi(private val page: Page) {
 
     val applications get() = page.applicationsList()
     val application get() = page.application()
-    val environments = FeatureNavBarUi(page.getByRole(AriaRole.MAIN).getByRole(AriaRole.NAVIGATION), uriFeatureKey)
+    val environments = FeatureNavBarUi(page.getByRole(AriaRole.MAIN).getByRole(AriaRole.NAVIGATION))
 
     val variants = page
         .getByRole(AriaRole.MAIN)
@@ -47,12 +46,12 @@ class FeatureEnvironmentUi(private val page: Page) {
         .associateBy { it.name }
 
     fun update(block: (FeatureEnvironmentUi) -> Unit): FeatureEnvironmentUi {
-        page.getElement(AriaRole.BUTTON, "Update").click()
+        page.getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Update")).click()
         return FeatureEnvironmentUi(page).also(block)
     }
 
     fun reset(block: (FeatureEnvironmentUi) -> Unit): FeatureEnvironmentUi {
-        page.getElement(AriaRole.BUTTON, "Reset").click()
+        page.getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Reset")).click()
         return FeatureEnvironmentUi(page).also(block)
     }
 }

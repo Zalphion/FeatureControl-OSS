@@ -15,7 +15,7 @@ abstract class TableFormUi<RowUI: TableRowUi>(
         .map(getRowUi)
 
     fun add(block: (RowUI) -> Unit = {}): RowUI {
-        locator.getElement(AriaRole.BUTTON, "Add").click()
+        locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Add")).click()
         return locator
             .locator("tbody tr")
             .last()
@@ -25,5 +25,5 @@ abstract class TableFormUi<RowUI: TableRowUi>(
 }
 
 abstract class TableRowUi(protected val locator: Locator) {
-    fun remove() = locator.getElement(AriaRole.BUTTON, "Remove").click()
+    fun remove() = locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Remove")).click()
 }

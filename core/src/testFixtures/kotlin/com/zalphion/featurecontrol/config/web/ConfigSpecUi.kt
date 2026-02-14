@@ -1,12 +1,12 @@
 package com.zalphion.featurecontrol.config.web
 
+import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.web.application
 import com.zalphion.featurecontrol.applications.web.applicationsList
-import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.waitForAll
 import com.zalphion.featurecontrol.web.waitForReady
 
@@ -38,7 +38,7 @@ class ConfigSpecUi(private val page: Page) {
 
     fun update(block: (ConfigSpecUi) -> Unit = {}): ConfigSpecUi {
         page.getByRole(AriaRole.MAIN)
-            .getElement(AriaRole.BUTTON, "Update")
+            .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Update"))
             .click()
 
         return ConfigSpecUi(page).also(block)
@@ -46,7 +46,7 @@ class ConfigSpecUi(private val page: Page) {
 
     fun reset(block: (ConfigSpecUi) -> Unit = {}): ConfigSpecUi {
         page.getByRole(AriaRole.MAIN)
-            .getElement(AriaRole.BUTTON, "Reset")
+            .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Reset"))
             .click()
 
         return ConfigSpecUi(page).also(block)

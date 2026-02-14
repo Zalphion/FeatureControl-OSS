@@ -45,13 +45,13 @@ enum class AriaCurrent { Page, Step, Location, Date, Time, True, False }
 
 var HTMLTag.ariaHidden: Boolean
     get() = attributes["aria-hidden"]?.toBoolean() ?: false
-    set(value) { attributes["aria-hidden"] = if (value) "true" else "false" }
+    set(value) { if (value) { attributes["aria-hidden"] = "true" } else attributes.remove("aria-hidden") }
 
 var HTMLTag.ariaDisabled: Boolean
     get() = attributes["aria-disabled"]?.toBoolean() ?: false
-    set(value) { attributes["aria-disabled"] = if (value) "true" else "false" }
+    set(value) { if (value) { attributes["aria-disabled"] = "true" } else attributes.remove("aria-disabled") }
 
 var HTMLTag.tooltip: String?
     get() = attributes["uk-tooltip"]
-    set(value) { attributes["uk-tooltip"] = value.orEmpty() }
+    set(value) { if (value != null) { attributes["uk-tooltip"] = value } else attributes.remove("uk-tooltip") }
 

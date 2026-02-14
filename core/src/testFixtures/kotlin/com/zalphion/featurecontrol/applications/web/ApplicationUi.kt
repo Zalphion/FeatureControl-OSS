@@ -8,8 +8,7 @@ import com.zalphion.featurecontrol.config.web.ConfigSpecUi
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.web.FeatureCreateUI
 import com.zalphion.featurecontrol.features.web.FeatureUi
-import com.zalphion.featurecontrol.web.getElement
-import com.zalphion.featurecontrol.web.getModal
+import com.zalphion.featurecontrol.web.getControlled
 import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 
@@ -18,11 +17,12 @@ class ApplicationUi(private val section: Locator) {
     val name get() = section.getByRole(AriaRole.HEADING, Locator.GetByRoleOptions().setLevel(2))
         .let { AppName.parse(it.textContent().trim()) }
 
-    fun newFeature(block: (FeatureCreateUI) -> Unit): FeatureCreateUI {
-        section.getElement(AriaRole.BUTTON, "New Feature").click()
-        val modal = section.page().getModal("New Feature")
-        return FeatureCreateUI(modal).also(block)
-    }
+    fun newFeature(block: (FeatureCreateUI) -> Unit) = section
+        .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("New Feature"))
+        .also { it.click() }
+        .getControlled()
+        .let(::FeatureCreateUI)
+        .also(block)
 
     fun select(featureKey: FeatureKey, block: (FeatureUi) -> Unit = {}): FeatureUi {
         section
@@ -62,10 +62,12 @@ class ApplicationUi(private val section: Locator) {
         .takeIf { it.count() > 0 }
         ?.let { FeatureKey.parse(it.textContent().trim()) }
 
-    fun more(block: (ApplicationMenuUi) -> Unit = {}): ApplicationMenuUi {
-        section.getElement(AriaRole.BUTTON, "More Options").click()
-        return ApplicationMenuUi(section, name).also(block)
-    }
+    fun more(block: (ApplicationMenuUi) -> Unit = {}) = section
+        .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("More Options"))
+        .also { it.click() }
+        .getControlled()
+        .let(::ApplicationMenuUi)
+        .also(block)
 }
 
 fun Page.application() = getByRole(AriaRole.REGION, Page.GetByRoleOptions().setName("Application Details"))

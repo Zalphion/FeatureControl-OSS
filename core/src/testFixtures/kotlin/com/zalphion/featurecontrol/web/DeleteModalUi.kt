@@ -21,12 +21,12 @@ class DeleteModalUi<Name: StringValue, NextUi: Any>(
         .let(nameFactory::parse)
 
     fun confirm(block: (NextUi) -> Unit = {}): NextUi {
-        modal.getElement(AriaRole.BUTTON, "Delete").click()
+        modal.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Delete")).click()
         return newPage(modal.page()).also(block)
     }
 
     fun cancel(block: NextUi.() -> Unit = {}): NextUi {
-        modal.getElement(AriaRole.BUTTON, "Cancel").click()
+        modal.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Cancel")).click()
         return newPage(modal.page()).also(block)
     }
 }

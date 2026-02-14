@@ -3,12 +3,10 @@ package com.zalphion.featurecontrol.features.web
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.features.EnvironmentName
-import com.zalphion.featurecontrol.features.FeatureKey
-import com.zalphion.featurecontrol.web.getElement
 import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.shouldBe
 
-class FeatureNavBarUi(private val locator: Locator, private val featureKey: FeatureKey) {
+class FeatureNavBarUi(private val locator: Locator) {
 
     val options get() = locator
         .locator("uk-subnav")
@@ -37,7 +35,7 @@ class FeatureNavBarUi(private val locator: Locator, private val featureKey: Feat
     }
 
     fun more(block: (FeatureMenuUi) -> Unit = {}): FeatureMenuUi {
-        locator.getElement(AriaRole.BUTTON, "More Options").click()
-        return FeatureMenuUi(locator, featureKey).also(block)
+        locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("More Options")).click()
+        return FeatureMenuUi(locator).also(block)
     }
 }

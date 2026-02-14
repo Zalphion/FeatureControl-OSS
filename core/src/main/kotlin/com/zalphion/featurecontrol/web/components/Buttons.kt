@@ -3,7 +3,11 @@ package com.zalphion.featurecontrol.web.components
 import com.zalphion.featurecontrol.web.AriaPopup
 import com.zalphion.featurecontrol.web.PageLink
 import com.zalphion.featurecontrol.web.ariaControls
+import com.zalphion.featurecontrol.web.ariaDisabled
 import com.zalphion.featurecontrol.web.ariaHasPopup
+import com.zalphion.featurecontrol.web.ariaLabel
+import com.zalphion.featurecontrol.web.cssStyle
+import com.zalphion.featurecontrol.web.tooltip
 import dev.forkhandles.values.StringValue
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
@@ -32,8 +36,8 @@ fun FlowContent.modalIconButton(
         ariaControls = modalId
         attrs()
 
-        attributes["uk-tooltip"] = tooltip
-        attributes["aria-label"] = tooltip // icon-only means we need an assistive label
+        this.tooltip = tooltip
+        ariaLabel = tooltip // icon-only means we need an assistive label
         onClick = "${if (dropdownToCloseId == null) "" else "UIkit.dropdown('#$dropdownToCloseId').hide(true); "}UIkit.modal('#$modalId').show()"
         span {
             attributes["uk-icon"] = icon
@@ -51,6 +55,7 @@ fun FlowContent.modalTextButton(
 ) {
     button(type = ButtonType.button, classes = classes) {
         ariaHasPopup = AriaPopup.Dialog
+        ariaControls = modalId
         attrs()
 
         onClick = "${if (dropdownToCloseId == null) "" else "UIkit.dropdown('#$dropdownToCloseId').hide(true); "}UIkit.modal('#$modalId').show()"
@@ -64,12 +69,15 @@ fun FlowContent.modalTextButton(
 }
 
 fun FlowContent.moreMenu(resourceId: StringValue, icons: UL.(String) -> Unit) {
+    val dropdownId = "more-$resourceId"
+
     button(type = ButtonType.button, classes = "uk-icon-button") {
         attributes["uk-icon"] = "icon: more-vertical"
-        attributes["aria-label"] = "More Options"
+        ariaLabel = "More Options"
+        ariaControls = dropdownId
+        ariaHasPopup = AriaPopup.Menu
     }
 
-    val dropdownId = "more-$resourceId"
     div {
         id = dropdownId
         attributes["uk-dropdown"] = "mode: click"
@@ -81,11 +89,20 @@ fun FlowContent.moreMenu(resourceId: StringValue, icons: UL.(String) -> Unit) {
 }
 
 fun FlowContent.navButton(page: PageLink, selected: Boolean) {
-    a(page.uri.toString(), classes = "uk-button uk-button-large uk-width-1-1") {
-        if (page.tooltip != null) attributes["uk-tooltip"] = page.tooltip
-        if (!page.enabled) attributes["disabled"] = ""
+    a(
+        href = if (page.enabled) page.uri.toString() else "#",
+        classes = "uk-button uk-button-large uk-width-1-1"
+    ) {
+        tooltip = page.tooltip
+        ariaDisabled = !page.enabled
         classes += if (selected) "uk-button-primary" else "uk-button-default"
-        style = "padding-bottom: 10px; padding-top: 10px; margin-top: 10px; margin-bottom: 10px;"
+        if (!page.enabled) classes += "uk-text-muted"
+        style = cssStyle(
+            "padding-bottom" to "10px",
+            "padding-top" to "10px",
+            "margin-top" to "10px",
+            "margin-bottom" to "10px"
+        )
 
         span("uk-margin-small-right") {
             attributes["uk-icon"] = page.spec.icon
