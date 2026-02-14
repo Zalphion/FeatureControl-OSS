@@ -12,7 +12,7 @@ import com.zalphion.featurecontrol.web.waitForReady
 
 private val urlRegex = ".*/applications/([^/]+)/config.*".toRegex()
 
-class ConfigSpecPage(private val page: Page) {
+class ConfigSpecUi(private val page: Page) {
 
     init {
         page.waitForReady()
@@ -32,23 +32,23 @@ class ConfigSpecPage(private val page: Page) {
         .map { ConfigPropertyUi(it) }
 
     fun newProperty(block: (ConfigPropertyUi) -> Unit): ConfigPropertyUi {
-        page.getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Add Property")).click()
+        page.getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Add")).click()
         return properties.last().also(block)
     }
 
-    fun update(block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
+    fun update(block: (ConfigSpecUi) -> Unit = {}): ConfigSpecUi {
         page.getByRole(AriaRole.MAIN)
             .getElement(AriaRole.BUTTON, "Update")
             .click()
 
-        return ConfigSpecPage(page).also(block)
+        return ConfigSpecUi(page).also(block)
     }
 
-    fun reset(block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
+    fun reset(block: (ConfigSpecUi) -> Unit = {}): ConfigSpecUi {
         page.getByRole(AriaRole.MAIN)
             .getElement(AriaRole.BUTTON, "Reset")
             .click()
 
-        return ConfigSpecPage(page).also(block)
+        return ConfigSpecUi(page).also(block)
     }
 }

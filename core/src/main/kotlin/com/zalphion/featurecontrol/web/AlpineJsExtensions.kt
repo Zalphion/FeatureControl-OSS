@@ -66,6 +66,11 @@ inline fun HTMLTag.template(classes: String? = null, crossinline block: TEMPLATE
 }
 
 @HtmlTagMarker
+inline fun FlowContent.flowTemplate(classes: String? = null, crossinline block: TEMPLATE.() -> Unit = {}) {
+    TEMPLATE(attributesMapOf("class", classes), consumer).visit(block)
+}
+
+@HtmlTagMarker
 inline fun TEMPLATE.option(classes : String? = null, crossinline block : OPTION.() -> Unit = {}) {
     OPTION(attributesMapOf("class", classes), consumer).visit(block)
 }

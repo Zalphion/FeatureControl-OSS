@@ -16,7 +16,7 @@ class MariaDbStorageDriverTest: StorageDriverContract({ pageSize ->
     StorageDriver.mariaDb(
         // Base URL usually looks like jdbc:mariadb://localhost:port/test
         // We want to replace the 'test' database with a unique database per test
-        uri = Uri.of(mariaDb.jdbcUrl.substringBeforeLast("/") + "/$${UUID.randomUUID()}")
+        jdbcUrl = Uri.of(mariaDb.jdbcUrl.substringBeforeLast("/") + "/$${UUID.randomUUID()}")
             .query("createDatabaseIfNotExist", "true"),
         credentials = Credentials(mariaDb.username, mariaDb.password),
         pageSize = pageSize

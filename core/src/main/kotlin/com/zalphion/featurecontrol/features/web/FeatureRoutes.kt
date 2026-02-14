@@ -1,7 +1,7 @@
 package com.zalphion.featurecontrol.features.web
 
 import com.zalphion.featurecontrol.Core
-import com.zalphion.featurecontrol.applications.web.ApplicationsPageComponent
+import com.zalphion.featurecontrol.applications.web.ApplicationsPage
 import com.zalphion.featurecontrol.applications.web.render
 import com.zalphion.featurecontrol.web.environmentNameLens
 import com.zalphion.featurecontrol.web.featureKeyLens
@@ -50,7 +50,7 @@ internal fun Core.httpGetFeature(): HttpHandler = fn@{ request ->
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
 
-    ApplicationsPageComponent.forFeature(this, principal, teamId, appId, featureKey)
+    ApplicationsPage.forFeature(this, principal, teamId, appId, featureKey)
         .map { model -> model.render(
             core = this,
             messages = request.messages(),
@@ -102,7 +102,7 @@ internal fun Core.httpGetFeatureEnvironment(): HttpHandler = fn@{ request ->
     val featureKey = featureKeyLens(request)
     val environmentName = environmentNameLens(request)
 
-    val pageModel = ApplicationsPageComponent.forFeatureEnvironment(this, principal, teamId, appId, featureKey, environmentName)
+    val pageModel = ApplicationsPage.forFeatureEnvironment(this, principal, teamId, appId, featureKey, environmentName)
         .onFailure { return@fn request.samePageError(it.reason) }
 
     val page = pageModel.render(

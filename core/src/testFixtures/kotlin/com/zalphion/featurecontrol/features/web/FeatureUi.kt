@@ -5,7 +5,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppId
-import com.zalphion.featurecontrol.config.web.ConfigSpecPage
+import com.zalphion.featurecontrol.config.web.ConfigSpecUi
 import com.zalphion.featurecontrol.applications.web.application
 import com.zalphion.featurecontrol.applications.web.applicationsList
 import com.zalphion.featurecontrol.features.FeatureKey
@@ -16,7 +16,7 @@ import com.zalphion.featurecontrol.web.waitForReady
 
 private val urlRegex = ".*applications/([^/]+)/features/([^/]+).*".toRegex()
 
-class FeaturePage(private val page: Page) {
+class FeatureUi(private val page: Page) {
 
     init {
         page.waitForReady()
@@ -34,24 +34,24 @@ class FeaturePage(private val page: Page) {
     val environments = FeatureNavBarUi(main.getByRole(AriaRole.NAVIGATION), featureKey)
     val edit = FeatureEditUi(main)
 
-    fun update(block: (FeaturePage) -> Unit = {}): FeaturePage {
+    fun update(block: (FeatureUi) -> Unit = {}): FeatureUi {
         main.getElement(AriaRole.BUTTON, "Update").click()
-        return FeaturePage(page).also(block)
+        return FeatureUi(page).also(block)
     }
 
-    fun reset(block: (FeaturePage) -> Unit = {}): FeaturePage {
+    fun reset(block: (FeatureUi) -> Unit = {}): FeatureUi {
         main.getElement(AriaRole.BUTTON, "Reset").click()
-        return FeaturePage(page).also(block)
+        return FeatureUi(page).also(block)
     }
 }
 
 class FeatureMenuUi(private val section: Locator, private val key: FeatureKey) {
     fun delete(
-        block: (DeleteModalUi<FeatureKey, ConfigSpecPage>) -> Unit = {}
-    ): DeleteModalUi<FeatureKey, ConfigSpecPage> {
+        block: (DeleteModalUi<FeatureKey, ConfigSpecUi>) -> Unit = {}
+    ): DeleteModalUi<FeatureKey, ConfigSpecUi> {
         section.getElement(AriaRole.BUTTON, "Delete Feature").click()
 
         val deleteModal = section.page().getModal("Delete $key")
-        return DeleteModalUi(deleteModal, FeatureKey, ::ConfigSpecPage).also(block)
+        return DeleteModalUi(deleteModal, FeatureKey, ::ConfigSpecUi).also(block)
     }
 }

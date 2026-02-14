@@ -13,8 +13,8 @@ class FeatureCreateUI(private val section: Locator) {
 
     val edit = FeatureEditUi(section)
 
-    fun submit(block: (FeaturePage) -> Unit): FeaturePage {
+    fun submit(block: (FeatureUi) -> Unit): FeatureUi {
         section.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Create")).click()
-        return FeaturePage(section.page()).also(block)
+        return FeatureUi(section.page()).also(block)
     }
 }

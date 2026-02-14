@@ -2,7 +2,7 @@ package com.zalphion.featurecontrol.users.web
 
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.web.htmlLens
-import com.zalphion.featurecontrol.web.NavBar
+import com.zalphion.featurecontrol.web.MainNavBar
 import com.zalphion.featurecontrol.web.flash.messages
 import com.zalphion.featurecontrol.web.permissionsLens
 import org.http4k.core.HttpHandler
@@ -13,7 +13,7 @@ import org.http4k.core.with
 internal fun Core.showUserSettings(): HttpHandler = fn@{ request ->
     val permissions = permissionsLens(request)
 
-    val navBar = NavBar.get(this, permissions)
+    val navBar = MainNavBar.get(this, permissions)
 
     Response(Status.OK).with(htmlLens of userPageComponent(
         navBar = navBar,

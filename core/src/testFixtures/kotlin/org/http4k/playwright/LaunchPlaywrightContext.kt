@@ -6,30 +6,25 @@ import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.BrowserType.LaunchOptions
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.Playwright.create
-import com.microsoft.playwright.Request
-import com.microsoft.playwright.Route
-import org.http4k.core.Headers
 import org.http4k.core.HttpHandler
-import org.http4k.core.MemoryBody
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.core.Uri
-import org.http4k.core.then
-import org.http4k.filter.ResponseFilters
-import org.http4k.lens.location
+import org.http4k.server.SunHttp
+import org.http4k.server.asServer
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
-import java.util.function.Consumer
 
 class LaunchPlaywrightContext @JvmOverloads constructor(
-    private val http: HttpHandler,
+    http: HttpHandler,
     private val browserType: Playwright.() -> BrowserType = Playwright::chromium,
     private val launchOptions: LaunchOptions = LaunchOptions(),
     private val createPlaywright: () -> Playwright = ::create
 ) : ParameterResolver, AfterEachCallback {
+
+    private val server by lazy {
+        http.asServer(SunHttp(0)).start()
+    }
 
     private var playwright: Playwright? = null
     private var browser: Browser? = null
@@ -43,45 +38,17 @@ class LaunchPlaywrightContext @JvmOverloads constructor(
         pc.parameter.parameterizedType.typeName == BrowserContext::class.java.name
 
     override fun resolveParameter(pc: ParameterContext, ec: ExtensionContext): BrowserContext {
-        return getBrowser().newContext().apply {
-            route({ true }, http.toPlaywright())
+        val context = getBrowser().newContext()
+        val baseUri = Uri.of("http://localhost:${server.port()}")
+
+        return object: BrowserContext by context {
+            override fun newPage() = context.newPage().also { it.navigate(baseUri.toString()) }
         }
     }
 
     override fun afterEach(context: ExtensionContext) {
+        server.stop()
         browser?.close()
         playwright?.close()
     }
 }
-
-private fun HttpHandler.toPlaywright(): Consumer<Route> {
-    val withRedirects = ResponseFilters.Modify( { response ->
-        // playwright's route override doesn't support 3xx redirects, so return a script with the redirect
-        if (response.status.redirection) {
-            Response(Status.OK).body("<script>window.location.replace('${response.location()}')</script>")
-        } else {
-            response
-        }
-    }).then(this)
-
-    return Consumer<Route> { route ->
-        val response = withRedirects(route.request().toHttp4k())
-        route.fulfill(response.toPlaywright())
-    }
-}
-
-private fun Request.toHttp4k() = org.http4k.core.Request(
-    method = Method.valueOf(method().uppercase()),
-    uri = Uri.of(url())
-)
-    .headers(allHeaders().map { it.key to it.value })
-    .body(MemoryBody(postDataBuffer() ?: byteArrayOf()))
-
-private fun Response.toPlaywright() = Route.FulfillOptions()
-    .setStatus(status.code)
-    .setHeaders(headers.toPlaywright())
-    .setBodyBytes(body.stream.readBytes())
-
-// TODO test multiple headers in requests and responses
-private fun Headers.toPlaywright() = groupBy({ it.first }, { it.second })
-    .mapValues { it.value.filterNotNull().joinToString(",") }

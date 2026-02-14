@@ -12,6 +12,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import org.http4k.lens.BiDiMapping
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
 private class TestGroupId private constructor(value: String): StringValue(value) {
     companion object: StringValueFactory<TestGroupId>(::TestGroupId)
@@ -70,6 +71,7 @@ data class TestDocument(
     }
 }
 
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 abstract class StorageDriverContract(storageDriverFn: (PageSize) -> StorageDriver) {
 
     private val repo = storageDriverFn(PageSize.of(2)).create(

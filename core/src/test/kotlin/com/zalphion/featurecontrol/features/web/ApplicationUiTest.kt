@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 @Tag("playwright")
-class ApplicationPageTest: CoreTestDriver() {
+class ApplicationUiTest: CoreTestDriver() {
 
     @RegisterExtension
     val playwright = playwright()
@@ -52,16 +52,16 @@ class ApplicationPageTest: CoreTestDriver() {
 
         context.asUser(core, member.user) { page ->
             page.applications.new { form ->
-                form.setName(appName1)
+                form.name = appName1
                 form.newEnvironment { env ->
-                    env.setName(devName)
-                    env.setDescription("dev stuff")
-                    env.setColour(Colour.white)
+                    env.name = devName
+                    env.description = "dev stuff"
+                    env.colour = Colour.white
                 }
                 form.newEnvironment { env ->
-                    env.setName(prodName)
-                    env.setDescription("prod stuff")
-                    env.setColour(Colour.black)
+                    env.name = prodName
+                    env.description = "prod stuff"
+                    env.colour = Colour.black
                 }
             }.submit { page ->
                 page.applications.list.shouldContainExactly(appName1)
@@ -135,14 +135,14 @@ class ApplicationPageTest: CoreTestDriver() {
         context.asUser(core, member.user) { page ->
             page.applications.select(app2.appName)
                 .application.more().update { app ->
-                    app.setName(appName3)
+                    app.name = appName3
 
                     app.forEnvironment(dev.name) { env ->
-                        env.setDescription("cool stuff happens here")
+                        env.description = "cool stuff happens here"
                     }
 
                     app.newEnvironment { env ->
-                        env.setName(stagingName)
+                        env.name = stagingName
                     }
                 }.submit { page ->
                     page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, appName3)

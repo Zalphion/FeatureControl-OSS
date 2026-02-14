@@ -35,7 +35,7 @@ import kotlin.collections.plus
 import kotlin.collections.set
 import kotlin.collections.toList
 
-data class NavBar<T>(
+data class MainNavBar<T>(
     val permissions: Permissions<User>,
     val memberships: List<MemberDetails>,
     val selectedTeam: T,
@@ -48,7 +48,7 @@ data class NavBar<T>(
             permissions: Permissions<User>,
             teamId: TeamId,
             selected: PageSpec?
-        ): Result4k<NavBar<MemberDetails>, AppError> {
+        ): Result4k<MainNavBar<MemberDetails>, AppError> {
             // TODO could maybe user the permissions object to determine this
             val authorizedTeams = ListMembersForUser(permissions.principal.userId)
                 .invoke(permissions, core)
@@ -59,7 +59,7 @@ data class NavBar<T>(
                 .find { it.team.teamId == teamId }
                 ?: return teamNotFound(teamId).asFailure()
 
-            return NavBar(
+            return MainNavBar(
                 permissions = permissions,
                 memberships = authorizedTeams,
                 selectedTeam = team,
@@ -71,13 +71,13 @@ data class NavBar<T>(
         fun get(
             core: Core,
             permissions: Permissions<User>
-        ): NavBar<MemberDetails?> {
+        ): MainNavBar<MemberDetails?> {
             val authorizedTeams = ListMembersForUser(permissions.principal.userId)
                 .invoke(permissions, core)
                 .onFailure { error(it) }
                 .toList()
 
-            return NavBar(
+            return MainNavBar(
                 permissions = permissions,
                 memberships = authorizedTeams,
                 selectedTeam = null,
@@ -88,7 +88,7 @@ data class NavBar<T>(
     }
 }
 
-internal fun FlowContent.renderNavbar(model: NavBar<out MemberDetails?>) = with(model) {
+internal fun FlowContent.renderNavbar(model: MainNavBar<out MemberDetails?>) = with(model) {
     nav("uk-navbar-container uk-navbar-transparent uk-background-primary uk-light") {
         attributes["uk-navbar"] = ""
         div("uk-navbar-left") {
@@ -118,7 +118,14 @@ private fun UL.pageLink(page: PageLink, selectedPage: PageSpec?) {
         if (page.spec == selectedPage) {
             classes += "uk-active"
         }
-        a(page.uri.toString(), classes = "uk-navbar-item") {
+        a( if (page.enabled) page.uri.toString() else "#", classes = "uk-navbar-item") {
+            if (!page.enabled) {
+                classes += "uk-link-muted"
+                ariaDisabled = true
+            }
+            if (page.spec == selectedPage) {
+                ariaCurrent = AriaCurrent.Page
+            }
             span("uk-icon uk-margin-xsmall-right") {
                 attributes["uk-icon"] = page.spec.icon
             }

@@ -35,6 +35,23 @@ enum class AriaPopup {
     False, True, Menu, ListBox, Tree, Grid, Dialog;
 }
 
+var HTMLTag.ariaCurrent: AriaCurrent
+    get() = attributes["aria-current"]
+        ?.let { value -> AriaCurrent.entries.first { entry -> entry.toString().lowercase() == value } }
+        ?: AriaCurrent.False
+    set(value) { attributes["aria-current"] = value.toString().lowercase() }
+
+enum class AriaCurrent { Page, Step, Location, Date, Time, True, False }
+
 var HTMLTag.ariaHidden: Boolean
     get() = attributes["aria-hidden"]?.toBoolean() ?: false
     set(value) { attributes["aria-hidden"] = if (value) "true" else "false" }
+
+var HTMLTag.ariaDisabled: Boolean
+    get() = attributes["aria-disabled"]?.toBoolean() ?: false
+    set(value) { attributes["aria-disabled"] = if (value) "true" else "false" }
+
+var HTMLTag.tooltip: String?
+    get() = attributes["uk-tooltip"]
+    set(value) { attributes["uk-tooltip"] = value.orEmpty() }
+

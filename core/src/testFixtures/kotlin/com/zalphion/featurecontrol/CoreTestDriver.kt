@@ -49,7 +49,7 @@ abstract class CoreTestDriver(
         clock = clock,
         random = Random(1337),
         config = CoreConfig(
-            staticUri = Uri.of("/"),
+            staticUri = Uri.of("/static"),
             origin = Uri.of("http://fake"),
             appSecret = appSecret,
             teamsStorageName = "teams",

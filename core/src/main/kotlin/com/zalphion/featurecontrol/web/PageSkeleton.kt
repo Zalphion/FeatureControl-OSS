@@ -23,11 +23,13 @@ import kotlinx.html.stream.createHTML
 import kotlinx.html.style
 import kotlinx.html.title
 import kotlinx.html.unsafe
+import org.http4k.core.Uri
+import org.http4k.core.extend
 
 fun Core.pageSkeleton(
     messages: List<FlashMessageDto>,
     subTitle: String? = null,
-    topNav: NavBar<out MemberDetails?>? = null,
+    topNav: MainNavBar<out MemberDetails?>? = null,
     sideNav: SideNav? = null,
     innerNav: (SECTION.(Core) -> Unit)? = null,
     mainContent: (FlowContent.(Core) -> Unit),
@@ -44,18 +46,18 @@ fun Core.pageSkeleton(
         }
 
         // UI Kit
-        link(config.staticUri.path("/uikit/${WebAssetVersions.UI_KIT}/dist/css/uikit.min.css").toString(), "stylesheet", "text/css")
-        script(src = config.staticUri.path("/uikit/${WebAssetVersions.UI_KIT}/dist/js/uikit.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
-        script(src = config.staticUri.path("/uikit/${WebAssetVersions.UI_KIT}/dist/js/uikit-icons.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        link(config.staticUri.extend(Uri.of("uikit/${WebAssetVersions.UI_KIT}/dist/css/uikit.min.css")).toString(), "stylesheet", "text/css")
+        script(src = config.staticUri.extend(Uri.of("/uikit/${WebAssetVersions.UI_KIT}/dist/js/uikit.min.js")).toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        script(src = config.staticUri.extend(Uri.of("/uikit/${WebAssetVersions.UI_KIT}/dist/js/uikit-icons.min.js")).toString(), crossorigin = ScriptCrossorigin.anonymous) {}
 
         // alpine.js
-        script(src = config.staticUri.path("/alpinejs/${WebAssetVersions.ALPINE_JS}/dist/cdn.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {
+        script(src = config.staticUri.extend(Uri.of("/alpinejs/${WebAssetVersions.ALPINE_JS}/dist/cdn.min.js")).toString(), crossorigin = ScriptCrossorigin.anonymous) {
             defer = true
         }
 
         // Day.js
-        script(src = config.staticUri.path("/dayjs/${WebAssetVersions.DAY_JS}/dayjs.min.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
-        script(src = config.staticUri.path("/dayjs/${WebAssetVersions.DAY_JS}/plugin/utc.js").toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        script(src = config.staticUri.extend(Uri.of("/dayjs/${WebAssetVersions.DAY_JS}/dayjs.min.js")).toString(), crossorigin = ScriptCrossorigin.anonymous) {}
+        script(src = config.staticUri.extend(Uri.of("/dayjs/${WebAssetVersions.DAY_JS}/plugin/utc.js")).toString(), crossorigin = ScriptCrossorigin.anonymous) {}
     }
 
     body {

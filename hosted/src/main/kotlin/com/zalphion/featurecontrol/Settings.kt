@@ -27,13 +27,8 @@ object Settings {
 
     // postgres
     val postgresDatabaseUri = EnvironmentKey.uri().required("POSTGRES_URI")
-    val postgresDatabaseUsername = EnvironmentKey.string().optional("POSTGRES_USERNAME")
+    val postgresDatabaseUsername = EnvironmentKey.string().required("POSTGRES_USERNAME")
     val postgresDatabasePassword = EnvironmentKey.secret().required("POSTGRES_PASSWORD")
-    val postgresDatabaseCredentials = EnvironmentKey.composite { env ->
-        env[postgresDatabaseUsername]?.let { username ->
-            Credentials(username, env[postgresDatabasePassword].use { it })
-        }
-    }
 
     // smtp
     val smtpAuthority = EnvironmentKey.authority().required("SMTP_AUTHORITY")

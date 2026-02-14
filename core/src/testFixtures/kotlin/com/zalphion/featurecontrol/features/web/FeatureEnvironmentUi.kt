@@ -23,7 +23,7 @@ import com.zalphion.featurecontrol.web.waitForReady
 
 private val urlRegex = ".*applications/([^/]+)/features/([^/]+)/environments/([^/]+).*".toRegex()
 
-class FeatureEnvironmentPage(private val page: Page) {
+class FeatureEnvironmentUi(private val page: Page) {
 
     init {
         page.waitForReady()
@@ -46,14 +46,14 @@ class FeatureEnvironmentPage(private val page: Page) {
         .map { VariantEnvironmentUi(it) }
         .associateBy { it.name }
 
-    fun update(block: (FeatureEnvironmentPage) -> Unit): FeatureEnvironmentPage {
+    fun update(block: (FeatureEnvironmentUi) -> Unit): FeatureEnvironmentUi {
         page.getElement(AriaRole.BUTTON, "Update").click()
-        return FeatureEnvironmentPage(page).also(block)
+        return FeatureEnvironmentUi(page).also(block)
     }
 
-    fun reset(block: (FeatureEnvironmentPage) -> Unit): FeatureEnvironmentPage {
+    fun reset(block: (FeatureEnvironmentUi) -> Unit): FeatureEnvironmentUi {
         page.getElement(AriaRole.BUTTON, "Reset").click()
-        return FeatureEnvironmentPage(page).also(block)
+        return FeatureEnvironmentUi(page).also(block)
     }
 }
 

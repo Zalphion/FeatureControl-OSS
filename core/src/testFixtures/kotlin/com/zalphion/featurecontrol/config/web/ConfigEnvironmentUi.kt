@@ -14,7 +14,7 @@ import io.kotest.matchers.shouldBe
 
 private val urlRegex = ".*/applications/([^/]+)/config/([^/]+).*".toRegex()
 
-class ConfigEnvironmentPage(private val page: Page) {
+class ConfigEnvironmentUi(private val page: Page) {
 
     init {
         page.waitForReady()
@@ -34,22 +34,22 @@ class ConfigEnvironmentPage(private val page: Page) {
         .waitForAll()
         .map { ConfigValueUi(it) }
 
-    fun update(block: (ConfigEnvironmentPage) -> Unit = {}): ConfigEnvironmentPage {
+    fun update(block: (ConfigEnvironmentUi) -> Unit = {}): ConfigEnvironmentUi {
         page.getByRole(AriaRole.MAIN)
             .getElement(AriaRole.BUTTON, "Update")
             .click()
 
-        return ConfigEnvironmentPage(page)
+        return ConfigEnvironmentUi(page)
             .also { it.uriAppId shouldBe uriAppId }
             .also { it.uriEnvironmentName shouldBe uriEnvironmentName }
             .also(block)
     }
 
-    fun reset(block: (ConfigEnvironmentPage) -> Unit = {}): ConfigEnvironmentPage {
+    fun reset(block: (ConfigEnvironmentUi) -> Unit = {}): ConfigEnvironmentUi {
         page.getByRole(AriaRole.MAIN)
             .getElement(AriaRole.BUTTON, "Reset")
             .click()
 
-        return ConfigEnvironmentPage(page).also(block)
+        return ConfigEnvironmentUi(page).also(block)
     }
 }

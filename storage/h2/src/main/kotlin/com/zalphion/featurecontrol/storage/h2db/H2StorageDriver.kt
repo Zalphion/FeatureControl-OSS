@@ -22,7 +22,9 @@ import kotlin.use
  *
  * Suitable for testing, but not production use.
  */
-fun StorageDriver.Companion.h2DbInMemory(pageSize: PageSize) = driver(
+fun StorageDriver.Companion.h2DbInMemory(
+    pageSize: PageSize = PageSize.of(100)
+) = driver(
     url = Uri.of("jdbc:h2:mem:${UUID.randomUUID()}").query("DB_CLOSE_DELAY=-1"),
     pageSize = pageSize
 )
@@ -33,7 +35,10 @@ fun StorageDriver.Companion.h2DbInMemory(pageSize: PageSize) = driver(
  * WARNING: Only a single storage driver is supported per file.
  * Multi-replica deployments are unsuitable for this driver.
  */
-fun StorageDriver.Companion.h2Db(file: Path, pageSize: PageSize) = driver(
+fun StorageDriver.Companion.h2Db(
+    file: Path,
+    pageSize: PageSize = PageSize.of(100)
+) = driver(
     url = Uri.of("jdbc:h2:$file"),
     pageSize = pageSize
 )

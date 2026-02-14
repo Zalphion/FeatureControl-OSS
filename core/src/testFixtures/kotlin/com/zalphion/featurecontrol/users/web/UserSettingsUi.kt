@@ -4,7 +4,7 @@ import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
-import com.zalphion.featurecontrol.applications.web.ApplicationsPage
+import com.zalphion.featurecontrol.applications.web.ApplicationsUi
 import com.zalphion.featurecontrol.teams.TeamName
 import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.web.ModalUi
@@ -16,7 +16,7 @@ import com.zalphion.featurecontrol.web.waitForReady
 
 private val urlRegex = ".*profile.*".toRegex()
 
-class UserSettingsPage(private val page: Page) {
+class UserSettingsUi(private val page: Page) {
 
     init {
         page.waitForReady()
@@ -59,10 +59,10 @@ class UserMembershipUi(private val locator: Locator) {
 
 class LeaveTeamUi(locator: Locator): ModalUi(locator) {
 
-    fun confirm(block: (UserSettingsPage) -> Unit = {}) = locator
+    fun confirm(block: (UserSettingsUi) -> Unit = {}) = locator
         .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Leave"))
         .also { it.click() }
-        .let { UserSettingsPage(locator.page()) }
+        .let { UserSettingsUi(locator.page()) }
         .also(block)
 
 }
@@ -86,15 +86,15 @@ class UserInvitationUi(private val locator: Locator) {
         .takeIf { it.count() > 0 }
         ?.getTime()
 
-    fun accept(block: (ApplicationsPage) -> Unit = {}) = locator
+    fun accept(block: (ApplicationsUi) -> Unit = {}) = locator
         .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Accept"))
         .also { it.click() }
-        .let { ApplicationsPage(locator.page()) }
+        .let { ApplicationsUi(locator.page()) }
         .also(block)
 
-    fun reject(block: (UserSettingsPage) -> Unit = {}) = locator
+    fun reject(block: (UserSettingsUi) -> Unit = {}) = locator
         .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Reject"))
         .also { it.click() }
-        .let { UserSettingsPage(locator.page()) }
+        .let { UserSettingsUi(locator.page()) }
         .also(block)
 }

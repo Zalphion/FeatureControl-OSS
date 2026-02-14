@@ -1,5 +1,7 @@
 package com.zalphion.featurecontrol.web.components
 
+import com.zalphion.featurecontrol.web.AriaCurrent
+import com.zalphion.featurecontrol.web.ariaCurrent
 import kotlinx.html.FlowContent
 import kotlinx.html.a
 import kotlinx.html.classes
@@ -17,7 +19,7 @@ fun FlowContent.subNavLinks(options: List<Pair<String, Uri>>, selected: String) 
                 }
                 a(url.toString()) {
                     if (selected == name) {
-                        attributes["aria-current"] = "page"
+                        ariaCurrent = AriaCurrent.Page
                     }
                     +name
                 }

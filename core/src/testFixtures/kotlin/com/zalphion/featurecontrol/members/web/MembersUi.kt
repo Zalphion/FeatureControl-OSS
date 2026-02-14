@@ -14,7 +14,7 @@ import java.time.Instant
 
 private val urlRegex = ".*teams/([^/]+)/members.*".toRegex()
 
-class MembersPage(private val page: Page) {
+class MembersUi(private val page: Page) {
 
     init {
         page.waitForReady()
@@ -77,8 +77,8 @@ class InviteMemberUi(private val locator: Locator) {
         .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Email Address"))
         .toInputProperty(EmailAddress)
 
-    fun send(block: (MembersPage) -> Unit = {}): MembersPage {
+    fun send(block: (MembersUi) -> Unit = {}): MembersUi {
         locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Send")).click()
-        return MembersPage(locator.page()).also(block)
+        return MembersUi(locator.page()).also(block)
     }
 }

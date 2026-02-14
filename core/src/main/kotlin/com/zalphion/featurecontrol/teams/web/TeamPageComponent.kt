@@ -5,7 +5,7 @@ import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.User
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
-import com.zalphion.featurecontrol.web.NavBar
+import com.zalphion.featurecontrol.web.MainNavBar
 import com.zalphion.featurecontrol.web.PageLink
 import com.zalphion.featurecontrol.web.PageSpec
 import com.zalphion.featurecontrol.web.components.modalTextButton
@@ -31,7 +31,7 @@ import kotlinx.html.ul
 import kotlin.collections.set
 
 data class TeamPageComponent(
-    val navBar: NavBar<out MemberDetails?>,
+    val navBar: MainNavBar<out MemberDetails?>,
     val team: MemberDetails,
     val pages: List<PageLink>
 ) {
@@ -39,7 +39,7 @@ data class TeamPageComponent(
 
     companion object {
         fun create(core: Core, permissions: Permissions<User>, teamId: TeamId, selected: PageSpec?): Result4k<TeamPageComponent, AppError> {
-            val navBar = NavBar.get(core, permissions, teamId, selected).onFailure { return it }
+            val navBar = MainNavBar.get(core, permissions, teamId, selected).onFailure { return it }
             val team = navBar.memberships.find { (_, _, team) -> team.teamId == teamId } ?: return memberNotFound(teamId, permissions.principal.userId).asFailure()
 
             return TeamPageComponent(

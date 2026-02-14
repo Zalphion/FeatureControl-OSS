@@ -1,6 +1,8 @@
 package com.zalphion.featurecontrol.web.table
 
+import com.zalphion.featurecontrol.web.ariaDisabled
 import com.zalphion.featurecontrol.web.ariaLabel
+import com.zalphion.featurecontrol.web.tooltip
 import com.zalphion.featurecontrol.web.xModel
 import kotlinx.html.FlowContent
 import kotlinx.html.InputType
@@ -12,6 +14,7 @@ class InputTableElementSchema(
     override val key: String,
     private val type: InputType,
     default: String? = null,
+    private val enabled: Boolean = true,
     private val required: Boolean = true,
     private val placeholder: String? = null,
     override val headerClasses: String? = null,
@@ -27,7 +30,14 @@ class InputTableElementSchema(
         }
         ariaLabel = label
         xModel = "$currentRef.$key"
-        this@InputTableElementSchema.placeholder?.let { attributes["placeholder"] = it }
-        if (this@InputTableElementSchema.required) { attributes["required"] = "" }
+
+        if (!enabled) {
+            disabled = true
+            ariaDisabled = true
+            tooltip = "Upgrade to Pro"
+        }
+
+        this@InputTableElementSchema.placeholder?.let { placeholder = it }
+        if (this@InputTableElementSchema.required) { required = true }
     }
 }

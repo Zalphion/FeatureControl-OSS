@@ -23,14 +23,14 @@ class FeatureNavBarUi(private val locator: Locator, private val featureKey: Feat
         .takeIf { it.count() > 0 }
         ?.let { EnvironmentName.parse(it.textContent().trim()) }
 
-    fun selectGeneral(block: (FeaturePage) -> Unit = {}): FeaturePage {
+    fun selectGeneral(block: (FeatureUi) -> Unit = {}): FeatureUi {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName("General")).click()
-        return FeaturePage(locator.page()).also(block)
+        return FeatureUi(locator.page()).also(block)
     }
 
-    fun select(environment: EnvironmentName, block: (FeatureEnvironmentPage) -> Unit = {}): FeatureEnvironmentPage {
+    fun select(environment: EnvironmentName, block: (FeatureEnvironmentUi) -> Unit = {}): FeatureEnvironmentUi {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName(environment.value)).click()
-        return FeatureEnvironmentPage(locator.page())
+        return FeatureEnvironmentUi(locator.page())
             .also { it.uriEnvironment shouldBe environment }
             .also { it.environments.selected shouldBe environment }
             .also(block)

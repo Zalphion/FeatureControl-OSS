@@ -24,11 +24,11 @@ import org.http4k.core.Status
 import org.http4k.core.with
 import org.http4k.lens.location
 
-fun Core.showApplications(): HttpHandler = { request ->
+fun Core.httpGetApplications(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
 
-    ApplicationsPageComponent.forTeam(this, principal, teamId)
+    ApplicationsPage.forTeam(this, principal, teamId)
         .map {
             it.render(
                 core = this,
@@ -40,7 +40,7 @@ fun Core.showApplications(): HttpHandler = { request ->
         .recover { request.toIndex().withMessage(it) }
 }
 
-fun Core.createApplication(): HttpHandler = { request ->
+fun Core.httpPostApplications(): HttpHandler = { request ->
     CreateApplication(
         teamId = teamIdLens(request),
         data = extract(request)
@@ -54,7 +54,7 @@ fun Core.createApplication(): HttpHandler = { request ->
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun Core.deleteApplication(): HttpHandler = { request ->
+internal fun Core.httpDeleteApplication(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val applicationId = appIdLens(request)
@@ -65,7 +65,7 @@ internal fun Core.deleteApplication(): HttpHandler = { request ->
         .onFailure { error(it.reason) }
 }
 
-internal fun Core.updateApplication(): HttpHandler = { request ->
+internal fun Core.httpPostApplication(): HttpHandler = { request ->
     UpdateApplication(
         teamId = teamIdLens(request),
         appId = appIdLens(request),

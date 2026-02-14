@@ -7,7 +7,7 @@ import com.zalphion.featurecontrol.applications.ListApplications
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.User
-import com.zalphion.featurecontrol.web.NavBar
+import com.zalphion.featurecontrol.web.MainNavBar
 import com.zalphion.featurecontrol.web.PageSpec
 import com.zalphion.featurecontrol.web.components.deleteModal
 import com.zalphion.featurecontrol.web.components.modalIconButton
@@ -33,6 +33,8 @@ import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.SideNav
 import com.zalphion.featurecontrol.web.ariaLabel
 import com.zalphion.featurecontrol.web.uri
+import com.zalphion.featurecontrol.web.xData
+import com.zalphion.featurecontrol.web.xModel
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asFailure
 import dev.forkhandles.result4k.asSuccess
@@ -52,8 +54,8 @@ import kotlinx.html.style
 import kotlinx.html.ul
 import kotlin.collections.plus
 
-data class ApplicationsPageComponent<A, I, E>(
-    val navBar: NavBar<MemberDetails>,
+data class ApplicationsPage<A, I, E>(
+    val navBar: MainNavBar<MemberDetails>,
     val applications: List<Application>,
     val features: List<Feature>,
     val selectedApplication: A,
@@ -65,8 +67,8 @@ data class ApplicationsPageComponent<A, I, E>(
     companion object {
         fun forTeam(
             core: Core, permissions: Permissions<User>, teamId: TeamId
-        ): Result4k<ApplicationsPageComponent<Application?, Void?, Void?>, AppError> {
-            val navBar = NavBar
+        ): Result4k<ApplicationsPage<Application?, Void?, Void?>, AppError> {
+            val navBar = MainNavBar
                 .get(core, permissions, teamId, PageSpec.applications)
                 .onFailure { return it }
 
@@ -75,7 +77,7 @@ data class ApplicationsPageComponent<A, I, E>(
                 .onFailure { return it }
                 .toList()
 
-            return ApplicationsPageComponent<Application?, Void?, Void?>(
+            return ApplicationsPage<Application?, Void?, Void?>(
                 navBar = navBar,
                 applications = applications,
                 selectedApplication = null,
@@ -87,7 +89,7 @@ data class ApplicationsPageComponent<A, I, E>(
 
         fun forConfigSpec(
             core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId
-        ): Result4k<ApplicationsPageComponent<Application, ConfigSpec, ConfigEnvironment?>, AppError> {
+        ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment?>, AppError> {
             val application = GetApplication(teamId, appId)
                 .invoke(permissions, core)
                 .onFailure { return it }
@@ -106,11 +108,11 @@ data class ApplicationsPageComponent<A, I, E>(
                 .invoke(permissions, core)
                 .onFailure { return it }
 
-            val navBar = NavBar
+            val navBar = MainNavBar
                 .get(core, permissions, application.teamId, PageSpec.applications)
                 .onFailure { return it }
 
-            return ApplicationsPageComponent<Application, ConfigSpec, ConfigEnvironment?>(
+            return ApplicationsPage<Application, ConfigSpec, ConfigEnvironment?>(
                 navBar = navBar,
                 applications = applications,
                 selectedApplication = application,
@@ -126,13 +128,13 @@ data class ApplicationsPageComponent<A, I, E>(
             teamId: TeamId,
             appId: AppId,
             environmentName: EnvironmentName
-        ): Result4k<ApplicationsPageComponent<Application, ConfigSpec, ConfigEnvironment>, AppError> {
+        ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment>, AppError> {
             val model = forConfigSpec(core, permissions, teamId, appId).onFailure { return it }
             val environment = GetConfigEnvironment(teamId, appId, environmentName)
                 .invoke(permissions, core)
                 .onFailure { return it }
 
-            return ApplicationsPageComponent(
+            return ApplicationsPage(
                 navBar = model.navBar,
                 applications = model.applications,
                 features = model.features,
@@ -144,12 +146,12 @@ data class ApplicationsPageComponent<A, I, E>(
 
         fun forFeature(
             core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey
-        ): Result4k<ApplicationsPageComponent<Application, Feature, FeatureEnvironment?>, AppError> {
+        ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment?>, AppError> {
             val model = forConfigSpec(core, permissions, teamId, appId).onFailure { return it }
 
             val feature = model.features.find { it.key == featureKey } ?: return featureNotFound(appId, featureKey).asFailure()
 
-            return ApplicationsPageComponent<Application, Feature, FeatureEnvironment?>(
+            return ApplicationsPage<Application, Feature, FeatureEnvironment?>(
                 navBar = model.navBar,
                 applications = model.applications,
                 features = model.features,
@@ -161,13 +163,13 @@ data class ApplicationsPageComponent<A, I, E>(
 
         fun forFeatureEnvironment(
             core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName
-        ): Result4k<ApplicationsPageComponent<Application, Feature, FeatureEnvironment>, AppError> {
+        ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment>, AppError> {
             val model = forFeature(core, permissions, teamId, appId, featureKey).onFailure { return it }
             val environment = model.selectedApplication.getOrFail(environmentName)
                 .map { model.selectedItem[environmentName] }
                 .onFailure { return it }
 
-            return ApplicationsPageComponent(
+            return ApplicationsPage(
                 navBar = model.navBar,
                 applications = model.applications,
                 features = model.features,
@@ -179,7 +181,7 @@ data class ApplicationsPageComponent<A, I, E>(
     }
 }
 
-fun <A: Application?, I, E> ApplicationsPageComponent<A, I, E>.render(
+fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
     core: Core,
     messages: List<FlashMessageDto>,
     selectedFeature: FeatureKey?,
@@ -192,7 +194,7 @@ fun <A: Application?, I, E> ApplicationsPageComponent<A, I, E>.render(
         selected = null,
         topBar = {
             ariaLabel = "Applications Bar"
-            attributes["x-data"] = "{ $filterModel: ''}"
+            xData = "{ $filterModel: ''}"
             style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
 
             applicationsNavBar(
@@ -201,7 +203,7 @@ fun <A: Application?, I, E> ApplicationsPageComponent<A, I, E>.render(
                 filterModel = filterModel
             )
             div {
-                attributes["aria-label"] = "Application List"
+                ariaLabel = "Application List"
                 for (application in applications) {
                     core.render(this, ApplicationCardComponent(
                         application = application,
@@ -213,8 +215,8 @@ fun <A: Application?, I, E> ApplicationsPageComponent<A, I, E>.render(
         }
     ),
     innerNav = if (selectedApplication == null) null else {core: Core ->
-        attributes["aria-label"] = "Application Details"
-        attributes["x-data"] = "{ $filterModel: ''}"
+        ariaLabel = "Application Details"
+        xData = "{ $filterModel: ''}"
         style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
 
         applicationNavBar(core, selectedApplication, filterModel)
@@ -270,9 +272,9 @@ private fun FlowContent.applicationsNavBar(
             attributes["uk-search-icon"] = ""
         }
         input(InputType.search, classes = "uk-search-input uk-width-1-1") {
-            attributes["x-model"] = filterModel
+            xModel = filterModel
             placeholder = "Search Application"
-            attributes["aria-label"] = "Search"
+            ariaLabel = "Search"
         }
     }
 }
@@ -335,9 +337,9 @@ private fun FlowContent.applicationNavBar(
             attributes["uk-search-icon"] = ""
         }
         input(InputType.search, classes = "uk-search-input uk-width-1-1") {
-            attributes["x-model"] = filterModel
+            xModel = filterModel
             placeholder = "Search Features"
-            attributes["aria-label"] = "Search Features"
+            ariaLabel = "Search Features"
         }
     }
 }

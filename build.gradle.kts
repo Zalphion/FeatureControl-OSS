@@ -5,45 +5,19 @@ plugins {
     `java-test-fixtures`
 }
 
-val moshi: MinimalExternalModuleDependency = libs.moshi.get()
-
 allprojects {
     repositories {
         mavenCentral()
     }
 
-    val moshiVersion = moshi.versionConstraint.let {
-        it.requiredVersion ?: it.preferredVersion ?: it.strictVersion
-    }
-
-    // ksp brings in an old version of moshi which can break intelliJ sometimes
-    configurations.configureEach {
-        resolutionStrategy.dependencySubstitution {
-            substitute(module("${moshi.module.group}:${moshi.module.name}"))
-                .using(module("${moshi.module.group}:${moshi.module.name}:$moshiVersion"))
-        }
-    }
-
     apply(plugin = "kotlin")
     apply(plugin = "java-test-fixtures")
 
+    // TODO can upgrade to gradle convention plugin once the kotlin-dsl plugin supports JDK 25
+    apply(from = "$rootDir/gradle/build-conventions.gradle.kts")
+
     group = "com.zalphion.featurecontrol"
     version = "latest-SNAPSHOT"
-
-    tasks.test {
-        useJUnitPlatform {
-            if (System.getenv("FAST") == "true") {
-                excludeTags("playwright")
-            }
-            systemProperties(
-                "junit.jupiter.execution.parallel.enabled" to "true",
-                "junit.jupiter.execution.parallel.mode.classes.default" to "concurrent",
-                "junit.jupiter.execution.parallel.mode.default" to "concurrent",
-                "junit.jupiter.execution.parallel.config.dynamic.strategy" to "dynamic",
-                "junit.jupiter.execution.parallel.config.dynamic.factor" to "1",
-            )
-        }
-    }
 
     kotlin {
         jvmToolchain(25)

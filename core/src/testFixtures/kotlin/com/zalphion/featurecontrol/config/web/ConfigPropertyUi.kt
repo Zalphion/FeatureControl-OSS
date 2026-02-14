@@ -25,7 +25,7 @@ class ConfigPropertyUi(private val section: Locator) {
         .toInputProperty()
 
     fun remove() {
-        section.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Remove Property")).click()
+        section.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Remove")).click()
     }
 
     fun toDto() = ConfigPropertyDto(

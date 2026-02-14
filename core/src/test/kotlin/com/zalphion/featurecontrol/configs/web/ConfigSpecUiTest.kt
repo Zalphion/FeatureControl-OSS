@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 @Tag("playwright")
-class ConfigSpecPageTest: CoreTestDriver() {
+class ConfigSpecUiTest: CoreTestDriver() {
 
     @RegisterExtension
     val playwright = playwright()

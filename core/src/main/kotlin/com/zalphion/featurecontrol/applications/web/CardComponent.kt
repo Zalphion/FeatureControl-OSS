@@ -3,9 +3,12 @@ package com.zalphion.featurecontrol.applications.web
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.plugins.Component
+import com.zalphion.featurecontrol.web.AriaCurrent
 import com.zalphion.featurecontrol.web.PageSpec
+import com.zalphion.featurecontrol.web.ariaCurrent
 import com.zalphion.featurecontrol.web.configUri
 import com.zalphion.featurecontrol.web.cssStyle
+import com.zalphion.featurecontrol.web.flowTemplate
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.a
@@ -86,37 +89,41 @@ fun FlowContent.renderCard(
     filterModel: String,
     badge: FlowContent.() -> Unit
 ) {
-    a(link.toString()) {
-        if (selected) {
-            attributes["aria-current"] = "page"
-        } else {
-            // only filter if it's not currently selected
-            attributes["x-show"] = "'$name'.toLowerCase().includes($filterModel.toLowerCase())"
-        }
+    flowTemplate {
+        attributes["x-if"] = "'$name'.toLowerCase().includes($filterModel.toLowerCase())"
 
-        div("uk-card uk-card-hover uk-card-small uk-margin") {
-            classes += if (selected) "uk-card-primary" else "uk-card-default"
+        a(link.toString()) {
+            if (selected) {
+                ariaCurrent = AriaCurrent.Page
+            } else {
+                // only filter if it's not currently selected
+                attributes["x-show"] = "'$name'.toLowerCase().includes($filterModel.toLowerCase())"
+            }
+
+            div("uk-card uk-card-hover uk-card-small uk-margin") {
+                classes += if (selected) "uk-card-primary" else "uk-card-default"
 
 
-            div("uk-card-body") {
-                h3("uk-card-title") {
-                    +name
-                }
-
-                div {
-                    style = cssStyle(
-                        "position" to "absolute",
-                        "top" to "8px",
-                        "right" to "8px"
-                    )
-                    badge(this)
-                }
-
-                p {
-                    span("uk-margin-small-right") {
-                        attributes["uk-icon"] = icon
+                div("uk-card-body") {
+                    h3("uk-card-title") {
+                        +name
                     }
-                    +type
+
+                    div {
+                        style = cssStyle(
+                            "position" to "absolute",
+                            "top" to "8px",
+                            "right" to "8px"
+                        )
+                        badge(this)
+                    }
+
+                    p {
+                        span("uk-margin-small-right") {
+                            attributes["uk-icon"] = icon
+                        }
+                        +type
+                    }
                 }
             }
         }

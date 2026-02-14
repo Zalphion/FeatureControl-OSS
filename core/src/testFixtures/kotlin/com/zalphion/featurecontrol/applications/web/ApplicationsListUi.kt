@@ -5,16 +5,16 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.web.getElement
-import com.zalphion.featurecontrol.config.web.ConfigSpecPage
+import com.zalphion.featurecontrol.config.web.ConfigSpecUi
 import com.zalphion.featurecontrol.web.getModal
 import com.zalphion.featurecontrol.web.waitForAll
 import io.kotest.matchers.shouldBe
 
 open class ApplicationsListUi(private val section: Locator) {
 
-    fun select(appName: AppName, block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
+    fun select(appName: AppName, block: (ConfigSpecUi) -> Unit = {}): ConfigSpecUi {
         section.getElement(AriaRole.LINK, appName.value).click()
-        return ConfigSpecPage(section.page())
+        return ConfigSpecUi(section.page())
             .also { it.application.name shouldBe appName }
             .also(block)
     }

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 @Tag("playwright")
-class UserSettingsPageTest: CoreTestDriver() {
+class UserSettingsUiTest: CoreTestDriver() {
 
     private val member = users.create(idp1Email1).shouldBeSuccess()
 

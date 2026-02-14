@@ -13,7 +13,7 @@ import java.util.UUID
 
 @Testcontainers
 class PostgresStorageDriverTest: StorageDriverContract({ pageSize -> StorageDriver.postgres(
-    uri = Uri.of(postgres.jdbcUrl).query("currentSchema", UUID.randomUUID().toString()),
+    jdbcUrl = Uri.of(postgres.jdbcUrl).query("currentSchema", UUID.randomUUID().toString()),
     credentials = Credentials(postgres.username, postgres.password),
     pageSize = pageSize
 )}) {

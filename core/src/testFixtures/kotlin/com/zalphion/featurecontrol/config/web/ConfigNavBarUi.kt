@@ -22,14 +22,14 @@ class ConfigNavBarUi(private val locator: Locator) {
         .takeIf { it.count() > 0 }
         ?.let { EnvironmentName.parse(it.textContent().trim()) }
 
-    fun selectProperties(block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
+    fun selectProperties(block: (ConfigSpecUi) -> Unit = {}): ConfigSpecUi {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName("Properties")).click()
-        return ConfigSpecPage(locator.page()).also(block)
+        return ConfigSpecUi(locator.page()).also(block)
     }
 
-    fun select(environment: EnvironmentName, block: (ConfigEnvironmentPage) -> Unit = {}): ConfigEnvironmentPage {
+    fun select(environment: EnvironmentName, block: (ConfigEnvironmentUi) -> Unit = {}): ConfigEnvironmentUi {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName(environment.value)).click()
-        return ConfigEnvironmentPage(locator.page())
+        return ConfigEnvironmentUi(locator.page())
             .also { it.uriEnvironmentName shouldBe environment }
             .also { it.environments.selected shouldBe environment }
             .also(block)

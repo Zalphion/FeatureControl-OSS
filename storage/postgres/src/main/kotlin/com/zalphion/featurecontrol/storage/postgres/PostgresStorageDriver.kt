@@ -18,13 +18,13 @@ import org.http4k.lens.BiDiMapping
 import javax.sql.DataSource
 
 fun StorageDriver.Companion.postgres(
-    uri: Uri,
-    credentials: Http4kCredentials?,
-    pageSize: PageSize,
+    jdbcUrl: Uri, // e.g. jdbc:postgresql://localhost/myDb?currentSchema=feature-control
+    credentials: Http4kCredentials, // must have permission to create tables within the schema
+    pageSize: PageSize = PageSize.of(100),
 ) = object: StorageDriver {
     private val dataSource = HikariDataSource(HikariConfig().apply {
-        this.jdbcUrl = uri.toString()
-        this.credentials = credentials?.let { Credentials(it.user, it.password) }
+        this.jdbcUrl = jdbcUrl.toString()
+        this.credentials = Credentials(credentials.user, credentials.password)
     }).migrate()
 
     override fun <Doc : Any, GroupId : Any, ItemId : Any> create(

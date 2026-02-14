@@ -4,17 +4,17 @@ import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.AriaRole
-import com.zalphion.featurecontrol.applications.web.ApplicationsPage
+import com.zalphion.featurecontrol.applications.web.ApplicationsUi
 import com.zalphion.featurecontrol.teams.TeamName
-import com.zalphion.featurecontrol.members.web.MembersPage
+import com.zalphion.featurecontrol.members.web.MembersUi
 import com.zalphion.featurecontrol.users.web.UserWidgetUi
 
-class MainNavBarUi(private val locator: Locator) {
+class MainNavBarUi(val locator: Locator) {
 
-    fun goToApplications(block: (ApplicationsPage) -> Unit = {}) = locator
+    fun goToApplications(block: (ApplicationsUi) -> Unit = {}) = locator
         .getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName("Applications"))
         .also { it.click() }
-        .let { ApplicationsPage(locator.page()) }
+        .let { ApplicationsUi(locator.page()) }
         .also(block)
 
     val user get() = locator
@@ -24,6 +24,11 @@ class MainNavBarUi(private val locator: Locator) {
     val currentTeam get() = locator
         .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Team").setExact(true))
         .let { TeamName.parse(it.textContent().trim()) }
+
+    val selectedPage: String? = locator
+        .locator("a[aria-current=page]")
+        .takeIf { it.isVisible }
+        ?.textContent()?.trim()
 
     fun openTeams(block: (TeamMenuUi) -> Unit = {}) = locator
         .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Team").setExact(true))
@@ -43,14 +48,14 @@ class TeamMenuUi(private val locator: Locator) {
         .waitForAll()
         .map { TeamName.parse(it.textContent().trim()) }
 
-    fun goToTeam(team: TeamName, block: (ApplicationsPage) -> Unit): ApplicationsPage {
+    fun goToTeam(team: TeamName, block: (ApplicationsUi) -> Unit): ApplicationsUi {
         locator.getByRole(AriaRole.MENUITEM, Locator.GetByRoleOptions().setName(team.value)).click()
-        return ApplicationsPage(locator.page()).also(block)
+        return ApplicationsUi(locator.page()).also(block)
     }
 
-    fun manageTeam(block: (MembersPage) -> Unit): MembersPage {
+    fun manageTeam(block: (MembersUi) -> Unit): MembersUi {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName("Manage Team")).click()
-        return MembersPage(locator.page()).also(block)
+        return MembersUi(locator.page()).also(block)
     }
 
     fun createTeam(block: (CreateTeamUi) -> Unit = {}) = locator
@@ -67,8 +72,8 @@ class CreateTeamUi(private val locator: Locator) {
         .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Team Name"))
         .toInputProperty(TeamName)
 
-    fun create(block: (MembersPage) -> Unit): MembersPage {
+    fun create(block: (MembersUi) -> Unit): MembersUi {
         locator.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Create")).click()
-        return MembersPage(locator.page()).also(block)
+        return MembersUi(locator.page()).also(block)
     }
 }

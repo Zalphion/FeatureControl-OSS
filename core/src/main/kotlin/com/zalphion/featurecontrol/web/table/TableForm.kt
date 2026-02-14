@@ -1,10 +1,14 @@
 package com.zalphion.featurecontrol.web.table
 
+import com.zalphion.featurecontrol.web.ariaHidden
+import com.zalphion.featurecontrol.web.ariaLabel
 import com.zalphion.featurecontrol.web.cssStyle
 import com.zalphion.featurecontrol.web.onClick
 import com.zalphion.featurecontrol.web.template
+import com.zalphion.featurecontrol.web.tooltip
 import com.zalphion.featurecontrol.web.tr
 import com.zalphion.featurecontrol.web.xData
+import com.zalphion.featurecontrol.web.xText
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.InputType
@@ -45,7 +49,7 @@ fun <Element: Any> FlowContent.tableForm(
 
     if (debug) {
         p {
-            attributes["x-text"] = $$"JSON.stringify($data, null, 2)"
+            xText = $$"JSON.stringify($data, null, 2)"
         }
     }
 
@@ -78,7 +82,8 @@ fun <Element: Any> FlowContent.tableForm(
                     if (rowAriaLabel != null) {
                         td { // remove button
                             button(type = ButtonType.button, classes = "uk-icon-button uk-button-default") {
-                                attributes["aria-label"] = "Remove $rowAriaLabel"
+                                ariaLabel = "Remove"
+                                tooltip = "Remove $rowAriaLabel"
                                 attributes["uk-icon"] = "trash"
                                 onClick("$inputName.splice(index, 1)")
                             }
@@ -87,7 +92,7 @@ fun <Element: Any> FlowContent.tableForm(
                     if (debug) {
                         td {
                             p {
-                                attributes["x-text"] = "JSON.stringify($ELEMENT_KEY, null, 2)"
+                                xText = "JSON.stringify($ELEMENT_KEY, null, 2)"
                             }
                         }
                     }
@@ -107,8 +112,8 @@ fun <Element: Any> FlowContent.tableForm(
                                 .let { "{$it}" }
 
                             attributes["uk-icon"] = "plus"
-                            attributes["uk-tooltip"] = "Add $rowAriaLabel"
-                            attributes["aria-label"] = "Add $rowAriaLabel"
+                            tooltip = "Add $rowAriaLabel"
+                            ariaLabel = "Add"
                             onClick("$inputName.push($initialElement)")
                         }
                     }

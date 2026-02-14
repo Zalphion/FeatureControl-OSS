@@ -1,7 +1,6 @@
 package com.zalphion.featurecontrol.users.web
 
 import com.microsoft.playwright.Locator
-import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.web.getControlled
@@ -27,10 +26,10 @@ class UserWidgetUi(private val locator: Locator) {
 
 class UserMenuUi(private val locator: Locator) {
 
-    fun goToSettings(block: (UserSettingsPage) -> Unit = {}) = locator
+    fun goToSettings(block: (UserSettingsUi) -> Unit = {}) = locator
         .getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName("Settings"))
         .also { it.click() }
-        .let { UserSettingsPage(locator.page()) }
+        .let { UserSettingsUi(locator.page()) }
         .also(block)
 
     fun logout() {

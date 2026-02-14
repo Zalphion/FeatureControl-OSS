@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.web.components
 
+import com.zalphion.featurecontrol.web.ariaLabel
 import com.zalphion.featurecontrol.web.withRichMethod
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
@@ -49,6 +50,7 @@ fun FlowContent.renameModal(
                 div("uk-modal-body") {
                     input(InputType.text, classes = "uk-input") {
                         name = inputName
+                        ariaLabel = "Name"
                         placeholder = resourceName
                     }
                 }

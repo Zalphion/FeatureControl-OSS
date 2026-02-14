@@ -6,7 +6,8 @@ import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.lib.Colour
 import com.zalphion.featurecontrol.web.getElement
-import com.zalphion.featurecontrol.config.web.ConfigSpecPage
+import com.zalphion.featurecontrol.config.web.ConfigSpecUi
+import com.zalphion.featurecontrol.web.toInputProperty
 import com.zalphion.featurecontrol.web.waitForAll
 
 class ApplicationCreateUpdateUi private constructor(
@@ -19,41 +20,43 @@ class ApplicationCreateUpdateUi private constructor(
         fun update(modal: Locator) = ApplicationCreateUpdateUi(modal, "Update")
     }
 
-    fun setName(name: AppName) {
-        modal.getByLabel("Name").fill(name.value)
-    }
+    var name by modal
+        .getByLabel("Name")
+        .toInputProperty(AppName)
 
-    fun forEnvironment(name: EnvironmentName, block: (ProjectEnvironmentUi) -> Unit = {}): ProjectEnvironmentUi {
+    fun forEnvironment(name: EnvironmentName, block: (ApplicationEnvironmentUi) -> Unit = {}): ApplicationEnvironmentUi {
         val row = modal.locator("tbody tr:visible")
             .waitForAll()
             // can't use a locator by value because alpine.js doesn't populate the DOM with a value
             .find { it.locator("input[aria-label='Environment']").inputValue() == name.value }
             ?: error("Environment $name not found")
 
-        return ProjectEnvironmentUi(row).also(block)
+        return ApplicationEnvironmentUi(row).also(block)
     }
 
-    fun newEnvironment(block: (ProjectEnvironmentUi) -> Unit = {}): ProjectEnvironmentUi {
-        modal.getElement(AriaRole.BUTTON, "Add Environment").click()
+    fun newEnvironment(block: (ApplicationEnvironmentUi) -> Unit = {}): ApplicationEnvironmentUi {
+        modal.getElement(AriaRole.BUTTON, "Add").click()
         val row = modal.locator("tbody tr:visible").last()
-        return ProjectEnvironmentUi(row).also(block)
+        return ApplicationEnvironmentUi(row).also(block)
     }
 
-    fun submit(block: (ConfigSpecPage) -> Unit = {}): ConfigSpecPage {
+    fun submit(block: (ConfigSpecUi) -> Unit = {}): ConfigSpecUi {
         modal.getElement(AriaRole.BUTTON, submitButtonLabel).click()
-        return ConfigSpecPage(modal.page()).also(block)
+        return ConfigSpecUi(modal.page()).also(block)
     }
 }
 
-class ProjectEnvironmentUi(private val row: Locator) {
+class ApplicationEnvironmentUi(val locator: Locator) {
 
-    fun setName(name: EnvironmentName) {
-        row.getElement(AriaRole.TEXTBOX, "Environment").fill(name.value)
-    }
-    fun setDescription(description: String) {
-        row.getElement(AriaRole.TEXTBOX, "Description").fill(description)
-    }
-    fun setColour(colour: Colour) {
-        row.getElement(AriaRole.TEXTBOX, "Colour").fill(colour.value)
-    }
+    var name by locator
+        .getElement(AriaRole.TEXTBOX, "Environment")
+        .toInputProperty(EnvironmentName)
+
+    var description by locator
+        .getElement(AriaRole.TEXTBOX, "Description")
+        .toInputProperty()
+
+    var colour by locator
+        .getElement(AriaRole.TEXTBOX, "Colour")
+        .toInputProperty(Colour)
 }

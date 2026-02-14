@@ -8,7 +8,7 @@ import com.zalphion.featurecontrol.web.waitForReady
 
 private val applicationsPageRegex = ".*/teams/([^/]+)/applications.*".toRegex()
 
-class ApplicationsPage(private val page: Page) {
+class ApplicationsUi(private val page: Page) {
 
     init {
         page.waitForReady()

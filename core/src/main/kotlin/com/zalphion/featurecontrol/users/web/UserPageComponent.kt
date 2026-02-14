@@ -3,7 +3,7 @@ package com.zalphion.featurecontrol.users.web
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
-import com.zalphion.featurecontrol.web.NavBar
+import com.zalphion.featurecontrol.web.MainNavBar
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.web.withRichMethod
 import com.zalphion.featurecontrol.Core
@@ -42,7 +42,7 @@ import org.http4k.core.Uri
 
 fun Core.userPageComponent(
     permissions: Permissions<User>,
-    navBar: NavBar<MemberDetails?>,
+    navBar: MainNavBar<MemberDetails?>,
     messages: List<FlashMessageDto>,
 ) = pageSkeleton(
     messages = messages,

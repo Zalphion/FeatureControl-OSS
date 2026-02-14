@@ -31,13 +31,16 @@ fun hostedMain(
     random = SecureRandom().asKotlinRandom(),
     storage = StorageDriver.postgres(
         // TODO may want to add some validation to the original url (e.g. verify it was postgresql)
-        uri = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
-        credentials = env[Settings.postgresDatabaseCredentials],
+        jdbcUrl = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
+        credentials = Credentials(
+            user = env[Settings.postgresDatabaseUsername],
+            password = env[Settings.postgresDatabasePassword].use { it }
+        ),
         pageSize = PageSize.of(100)
     ),
     config = CoreConfig(
         appSecret = env[Settings.appSecret],
-        staticUri = Uri.of("/"), // provided by webjars
+        staticUri = Uri.of("/static"), // provided by webjars
         origin = env[Settings.origin],
         googleClientId = env[Settings.googleClientId],
         csrfTtl = env[Settings.csrfTtl],

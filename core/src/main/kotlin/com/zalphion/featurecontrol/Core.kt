@@ -8,12 +8,12 @@ import com.zalphion.featurecontrol.applications.web.ConfigCardComponent
 import com.zalphion.featurecontrol.applications.web.FeatureCardComponent
 import com.zalphion.featurecontrol.applications.web.NewApplicationModalComponent
 import com.zalphion.featurecontrol.applications.web.UpdateApplicationModalComponent
-import com.zalphion.featurecontrol.applications.web.createApplication
+import com.zalphion.featurecontrol.applications.web.httpPostApplications
 import com.zalphion.featurecontrol.applications.web.createCoreApplicationCreateDataLens
 import com.zalphion.featurecontrol.applications.web.createCoreApplicationUpdateDataLens
-import com.zalphion.featurecontrol.applications.web.deleteApplication
-import com.zalphion.featurecontrol.applications.web.showApplications
-import com.zalphion.featurecontrol.applications.web.updateApplication
+import com.zalphion.featurecontrol.applications.web.httpDeleteApplication
+import com.zalphion.featurecontrol.applications.web.httpGetApplications
+import com.zalphion.featurecontrol.applications.web.httpPostApplication
 import com.zalphion.featurecontrol.auth.PermissionsFactory
 import com.zalphion.featurecontrol.auth.web.Sessions
 import com.zalphion.featurecontrol.auth.web.SocialAuthorizer
@@ -330,16 +330,16 @@ class Core internal constructor(
                     ))
                 )),
                 "applications" bind routes(
-                    Method.GET bind showApplications(),
-                    Method.POST bind createApplication(),
+                    Method.GET bind httpGetApplications(),
+                    Method.POST bind httpPostApplications(),
                     "$appIdLens" bind routes(listOf(
                         Method.GET bind { request ->
                             val teamId = teamIdLens(request)
                             val appId = appIdLens(request)
                             Response(Status.FOUND).location(configUri(teamId, appId))
                         },
-                        isRichDelete bind deleteApplication(),
-                        Method.POST bind updateApplication(),
+                        isRichDelete bind httpDeleteApplication(),
+                        Method.POST bind httpPostApplication(),
 
                         "config" bind routes(listOf(
                             Method.GET bind httpGetConfigSpec(),

@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 @Tag("playwright")
-class MainNavBarTest: CoreTestDriver() {
+class MainMainNavBarUiTest: CoreTestDriver() {
 
     private val member = users.create(idp1Email1).shouldBeSuccess()
     private val team2 = CreateTeam(member.user.userId, TeamCreateUpdateData(TeamName.parse("new team")))
@@ -28,8 +28,7 @@ class MainNavBarTest: CoreTestDriver() {
 
     @Test
     fun `show team selector`(context: BrowserContext) {
-        context.asUser(core, member.user, member.team) { page ->
-            page.mainNavBar.currentTeam shouldBe member.team.teamName
+        context.asUser(core, member.user) { page ->
             page.mainNavBar.openTeams { teams ->
                 teams.options.shouldContainExactlyInAnyOrder(member.team.teamName, team2.teamName)
             }
@@ -38,7 +37,7 @@ class MainNavBarTest: CoreTestDriver() {
 
     @Test
     fun `switch teams`(context: BrowserContext) {
-        context.asUser(core, member.user, member.team) { page ->
+        context.asUser(core, member.user) { page ->
             page.mainNavBar.openTeams { teams ->
                 teams.goToTeam(team2.teamName) { result ->
                     result.mainNavBar.currentTeam shouldBe team2.teamName
