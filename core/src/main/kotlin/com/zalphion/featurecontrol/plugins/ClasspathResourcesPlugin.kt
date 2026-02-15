@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.plugins
 
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import org.http4k.core.Method
 import org.http4k.core.then
 import org.http4k.filter.CachingFilters
@@ -15,7 +15,7 @@ class ClasspathResourcesPlugin(
     val resourcePath: String,
     val cacheTtl: Duration,
 ): Plugin {
-    override fun getRoutes(core: Core) = routes(listOf(
+    override fun getRoutes(app: FeatureControl) = routes(listOf(
         webPath bind Method.GET to CachingFilters
             .CacheResponse.MaxAge(cacheTtl)
             .then(static(Classpath(resourcePath)))

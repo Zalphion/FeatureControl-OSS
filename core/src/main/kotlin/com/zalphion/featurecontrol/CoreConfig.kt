@@ -22,6 +22,6 @@ data class CoreConfig(
     val applicationsStorageName: String = "applications",
     val featuresStorageName: String = "features",
     val configsStorageName: String = "config_specs",
-    val configEnvironmentsTableName: String = "config_environments",
+    val configEnvironmentsStorageName: String = "config_environments",
     val apiKeysStorageName: String = "api_keys",
 )

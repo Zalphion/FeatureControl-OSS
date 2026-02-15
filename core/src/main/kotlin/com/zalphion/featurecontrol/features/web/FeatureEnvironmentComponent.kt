@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.FeatureEnvironment
@@ -30,8 +30,8 @@ class FeatureEnvironmentComponent(
     val environment: FeatureEnvironment
 ) {
     companion object {
-        internal fun core(core: Core) = create(
-            jsonMapper = core.json.asBiDiMapping<Array<CoreVariantEnvironmentDto>>().mapToList(),
+        internal fun core(app: FeatureControl) = create(
+            jsonMapper = app.core.json.asBiDiMapping<Array<CoreVariantEnvironmentDto>>().mapToList(),
             dtoMapper = { env, variant ->  env.toCoreDto(variant) }
         )
 

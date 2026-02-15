@@ -11,7 +11,6 @@ import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
 import com.zalphion.featurecontrol.storage.h2db.h2DbInMemory
 import com.zalphion.featurecontrol.teams.TeamId
-import com.zalphion.featurecontrol.users.UserService
 import org.http4k.core.Uri
 import java.time.Clock
 import java.time.Duration
@@ -44,27 +43,34 @@ abstract class CoreTestDriver(
         }.toFactory()
     )
 
-    val core = createCore(
-        storage = storageDriver,
-        clock = clock,
-        random = Random(1337),
-        config = CoreConfig(
-            staticUri = Uri.of("/static"),
-            origin = Uri.of("http://fake"),
-            appSecret = appSecret,
-            teamsStorageName = "teams",
-            usersStorageName = "users",
-            membersStorageName = "members",
-            applicationsStorageName = "applications",
-            featuresStorageName = "features",
-            configsStorageName = "configs",
-            configEnvironmentsTableName = "config_environments",
-            apiKeysStorageName = "api_keys",
-            invitationRetention = invitationRetention
-        ),
-        plugins = plugins,
-        eventBusFn = ::localEventBus
+    private val coreConfig = CoreConfig(
+        staticUri = Uri.of("/static"),
+        origin = Uri.of("http://fake"),
+        appSecret = appSecret,
+        teamsStorageName = "teams",
+        usersStorageName = "users",
+        membersStorageName = "members",
+        applicationsStorageName = "applications",
+        featuresStorageName = "features",
+        configsStorageName = "configs",
+        configEnvironmentsStorageName = "config_environments",
+        apiKeysStorageName = "api_keys",
+        invitationRetention = invitationRetention
     )
 
-    val users get() = UserService(core)
+    val core = Core.build(
+        storageDriver = storageDriver,
+        clock = clock,
+        random = Random(1337),
+        config = coreConfig,
+        plugins = plugins
+    )
+
+    val app = FeatureControl(
+        appName = "Test Control",
+        core = core,
+        plugins = plugins.map { it.create(core) },
+        eventBusFn = ::localEventBus,
+        config = coreConfig
+    )
 }

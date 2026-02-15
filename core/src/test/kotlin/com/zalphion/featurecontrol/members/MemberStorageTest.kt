@@ -1,9 +1,6 @@
 package com.zalphion.featurecontrol.members
 
-import com.zalphion.featurecontrol.CoreTestDriver
-import com.zalphion.featurecontrol.storage.PageSize
-import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.storage.h2db.h2DbInMemory
+import com.zalphion.featurecontrol.StorageTestDriver
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.UserId
 import dev.andrewohara.utils.pagination.Page
@@ -11,7 +8,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class MemberStorageTest: CoreTestDriver(storageDriver = StorageDriver.h2DbInMemory(PageSize.of(2))) {
+class MemberStorageTest {
 
     private val team1 = TeamId.of("team0001")
     private val team2 = TeamId.of("team0002")
@@ -22,7 +19,7 @@ class MemberStorageTest: CoreTestDriver(storageDriver = StorageDriver.h2DbInMemo
     private val user3 = UserId.of("user0003")
     private val user4 = UserId.of("user0004")
 
-    private val testObj = core.members
+    private val testObj = StorageTestDriver().create(MemberStorage)
 
     @Test
     fun `get - found`() {

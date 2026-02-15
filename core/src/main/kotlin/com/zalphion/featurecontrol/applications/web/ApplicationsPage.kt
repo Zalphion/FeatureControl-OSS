@@ -3,7 +3,6 @@ package com.zalphion.featurecontrol.applications.web
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.AppError
 import com.zalphion.featurecontrol.members.MemberDetails
-import com.zalphion.featurecontrol.applications.ListApplications
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.users.User
@@ -14,20 +13,16 @@ import com.zalphion.featurecontrol.web.components.modalIconButton
 import com.zalphion.featurecontrol.web.components.modalTextButton
 import com.zalphion.featurecontrol.web.components.moreMenu
 import com.zalphion.featurecontrol.web.pageSkeleton
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.applications.AppId
-import com.zalphion.featurecontrol.applications.GetApplication
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.configs.ConfigEnvironment
 import com.zalphion.featurecontrol.configs.ConfigSpec
-import com.zalphion.featurecontrol.configs.GetConfigEnvironment
-import com.zalphion.featurecontrol.configs.GetConfigSpec
 import com.zalphion.featurecontrol.featureNotFound
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.FeatureEnvironment
 import com.zalphion.featurecontrol.features.FeatureKey
-import com.zalphion.featurecontrol.features.ListFeatures
 import com.zalphion.featurecontrol.features.web.NewFeatureModalComponent
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.SideNav
@@ -66,14 +61,14 @@ data class ApplicationsPage<A, I, E>(
 
     companion object {
         fun forTeam(
-            core: Core, permissions: Permissions<User>, teamId: TeamId
+            app: FeatureControl, permissions: Permissions<User>, teamId: TeamId
         ): Result4k<ApplicationsPage<Application?, Void?, Void?>, AppError> {
             val navBar = MainNavBar
-                .get(core, permissions, teamId, PageSpec.applications)
+                .get(app, permissions, teamId, PageSpec.applications)
                 .onFailure { return it }
 
-            val applications = ListApplications(teamId)
-                .invoke(permissions, core)
+            val applications = app.core.applications.list(teamId)
+                .invoke(permissions, app)
                 .onFailure { return it }
                 .toList()
 
@@ -88,28 +83,28 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forConfigSpec(
-            core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId
+            app: FeatureControl, permissions: Permissions<User>, teamId: TeamId, appId: AppId
         ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment?>, AppError> {
-            val application = GetApplication(teamId, appId)
-                .invoke(permissions, core)
+            val application = app.core.applications.get(teamId, appId)
+                .invoke(permissions, app)
                 .onFailure { return it }
 
-            val features = ListFeatures(teamId, appId)
-                .invoke(permissions, core)
-                .onFailure { return it }
-                .toList()
-
-            val applications = ListApplications(application.teamId)
-                .invoke(permissions, core)
+            val features = app.core.features.list(teamId, appId)
+                .invoke(permissions, app)
                 .onFailure { return it }
                 .toList()
 
-            val configSpec = GetConfigSpec(teamId, appId)
-                .invoke(permissions, core)
+            val applications = app.core.applications.list(application.teamId)
+                .invoke(permissions, app)
+                .onFailure { return it }
+                .toList()
+
+            val configSpec = app.core.configs.getSpec(teamId, appId)
+                .invoke(permissions, app)
                 .onFailure { return it }
 
             val navBar = MainNavBar
-                .get(core, permissions, application.teamId, PageSpec.applications)
+                .get(app, permissions, application.teamId, PageSpec.applications)
                 .onFailure { return it }
 
             return ApplicationsPage<Application, ConfigSpec, ConfigEnvironment?>(
@@ -123,15 +118,15 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forConfigEnvironment(
-            core: Core,
+            app: FeatureControl,
             permissions: Permissions<User>,
             teamId: TeamId,
             appId: AppId,
             environmentName: EnvironmentName
         ): Result4k<ApplicationsPage<Application, ConfigSpec, ConfigEnvironment>, AppError> {
-            val model = forConfigSpec(core, permissions, teamId, appId).onFailure { return it }
-            val environment = GetConfigEnvironment(teamId, appId, environmentName)
-                .invoke(permissions, core)
+            val model = forConfigSpec(app, permissions, teamId, appId).onFailure { return it }
+            val environment = app.core.configs.getEnvironment(teamId, appId, environmentName)
+                .invoke(permissions, app)
                 .onFailure { return it }
 
             return ApplicationsPage(
@@ -145,9 +140,9 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forFeature(
-            core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey
+            app: FeatureControl, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey
         ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment?>, AppError> {
-            val model = forConfigSpec(core, permissions, teamId, appId).onFailure { return it }
+            val model = forConfigSpec(app, permissions, teamId, appId).onFailure { return it }
 
             val feature = model.features.find { it.key == featureKey } ?: return featureNotFound(appId, featureKey).asFailure()
 
@@ -162,9 +157,9 @@ data class ApplicationsPage<A, I, E>(
         }
 
         fun forFeatureEnvironment(
-            core: Core, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName
+            app: FeatureControl, permissions: Permissions<User>, teamId: TeamId, appId: AppId, featureKey: FeatureKey, environmentName: EnvironmentName
         ): Result4k<ApplicationsPage<Application, Feature, FeatureEnvironment>, AppError> {
-            val model = forFeature(core, permissions, teamId, appId, featureKey).onFailure { return it }
+            val model = forFeature(app, permissions, teamId, appId, featureKey).onFailure { return it }
             val environment = model.selectedApplication.getOrFail(environmentName)
                 .map { model.selectedItem[environmentName] }
                 .onFailure { return it }
@@ -182,11 +177,11 @@ data class ApplicationsPage<A, I, E>(
 }
 
 fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
-    core: Core,
+    app: FeatureControl,
     messages: List<FlashMessageDto>,
     selectedFeature: FeatureKey?,
     content: (FlowContent.() -> Unit)? = null,
-) = core.pageSkeleton(
+) = app.pageSkeleton(
     messages = messages,
     topNav = navBar,
     sideNav = SideNav(
@@ -198,14 +193,14 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
             style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
 
             applicationsNavBar(
-                core = core,
+                app = app,
                 team = navBar.selectedTeam.team,
                 filterModel = filterModel
             )
             div {
                 ariaLabel = "Application List"
                 for (application in applications) {
-                    core.render(this, ApplicationCardComponent(
+                    app.render(this, ApplicationCardComponent(
                         application = application,
                         selected = application == selectedApplication,
                         filterModel = filterModel
@@ -214,21 +209,21 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
             }
         }
     ),
-    innerNav = if (selectedApplication == null) null else {core: Core ->
+    innerNav = if (selectedApplication == null) null else { app: FeatureControl ->
         ariaLabel = "Application Details"
         xData = "{ $filterModel: ''}"
         style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
 
-        applicationNavBar(core, selectedApplication, filterModel)
+        applicationNavBar(app, selectedApplication, filterModel)
 
-        core.render(this, ConfigCardComponent(
+        app.render(this, ConfigCardComponent(
             application = selectedApplication,
             selected = selectedFeature == null,
             filterModel = filterModel
         ))
 
         for (feature in features) {
-            core.render(this, FeatureCardComponent(
+            app.render(this, FeatureCardComponent(
                 application = selectedApplication,
                 feature = feature,
                 selected = selectedFeature == feature.key,
@@ -240,7 +235,7 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
 )
 
 private fun FlowContent.applicationsNavBar(
-    core: Core,
+    app: FeatureControl,
     team: Team,
     filterModel: String
 ) {
@@ -254,7 +249,7 @@ private fun FlowContent.applicationsNavBar(
         }
 
         val newAppModalId = "team_${team.teamId}_new_application_modal"
-        core.render(this, NewApplicationModalComponent(team, newAppModalId))
+        app.render(this, NewApplicationModalComponent(team, newAppModalId))
 
         div("uk-navbar-right") {
             div("uk-navbar-item") {
@@ -280,7 +275,7 @@ private fun FlowContent.applicationsNavBar(
 }
 
 private fun FlowContent.applicationNavBar(
-    core: Core,
+    app: FeatureControl,
     application: Application,
     filterModel: String
 ) {
@@ -301,14 +296,14 @@ private fun FlowContent.applicationNavBar(
             ul("uk-iconnav") {
                 li {
                     val modalId = "application_${application.appId}_new_feature"
-                    core.render(this, NewFeatureModalComponent(application, modalId))
+                    app.render(this, NewFeatureModalComponent(application, modalId))
                     modalIconButton("New Feature", "icon: plus", modalId)
                 }
                 li {
                     moreMenu(application.appId) { dropdownId ->
                         li {
                             val updateModalId = "application_update_${application.appId}"
-                            core.render(this, UpdateApplicationModalComponent(application, updateModalId))
+                            app.render(this, UpdateApplicationModalComponent(application, updateModalId))
                             modalTextButton(
                                 label = "Update Application",
                                 modalId = updateModalId,

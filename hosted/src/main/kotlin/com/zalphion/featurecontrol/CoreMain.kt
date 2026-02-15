@@ -24,37 +24,18 @@ import kotlin.random.asKotlinRandom
 fun main() = hostedMain()
 
 fun hostedMain(
+    appName: String = "Feature Control",
     env: Environment = Environment.ENV,
-    plugins: List<PluginFactory<*>> = emptyList()
-) = createCore(
-    clock = Clock.systemUTC(),
-    random = SecureRandom().asKotlinRandom(),
-    storage = StorageDriver.postgres(
-        // TODO may want to add some validation to the original url (e.g. verify it was postgresql)
-        jdbcUrl = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
-        credentials = Credentials(
-            user = env[Settings.postgresDatabaseUsername],
-            password = env[Settings.postgresDatabasePassword].use { it }
-        ),
-        pageSize = PageSize.of(100)
-    ),
-    config = CoreConfig(
-        appSecret = env[Settings.appSecret],
-        staticUri = Uri.of("/static"), // provided by webjars
-        origin = env[Settings.origin],
-        googleClientId = env[Settings.googleClientId],
-        csrfTtl = env[Settings.csrfTtl],
-        sessionLength = env[Settings.sessionLength],
-        invitationRetention = env[Settings.invitationsRetention]
-    ),
-    eventBusFn = ::localEventBus,
-    plugins = listOf(
-        *plugins.toTypedArray(),
+    additionalPlugins: List<PluginFactory<*>> = emptyList()
+) {
+    val plugins = listOf(
+        *additionalPlugins.toTypedArray(),
         Plugin.webjars(),
         Plugin.email(
             loginUri = env[Settings.origin].path(LOGIN_PATH),
+            appName = appName,
             emails = EmailSender.smtp(
-                fromName = env[Settings.smtpFromName],
+                fromName = env[Settings.smtpFromName] ?: appName,
                 fromAddress = env[Settings.smtpFromAddress],
                 authority = env[Settings.smtpAuthority],
                 credentials = env[Settings.smtpUsername]?.let { username ->
@@ -62,12 +43,46 @@ fun hostedMain(
                 },
                 startTls = env[Settings.smtpStartTls],
             )
-        ),
+        )
     )
-)
-    .getRoutes()
-    .withFilter(ServerFilters.GZip())
-    .asServer(Undertow(env[Settings.port].value))
-    .start()
-    .also { println("Started on http://localhost:${it.port()}") }
-    .block()
+
+    val coreConfig = CoreConfig(
+        appSecret = env[Settings.appSecret],
+        staticUri = Uri.of("/static"), // provided by webjars
+        origin = env[Settings.origin],
+        googleClientId = env[Settings.googleClientId],
+        csrfTtl = env[Settings.csrfTtl],
+        sessionLength = env[Settings.sessionLength],
+        invitationRetention = env[Settings.invitationsRetention]
+    )
+
+    val core = Core.build(
+        clock = Clock.systemUTC(),
+        random = SecureRandom().asKotlinRandom(),
+        storageDriver = StorageDriver.postgres(
+            // TODO may want to add some validation to the original url (e.g. verify it was postgresql)
+            jdbcUrl = env[Settings.postgresDatabaseUri].scheme("jdbc:postgresql"),
+            credentials = Credentials(
+                user = env[Settings.postgresDatabaseUsername],
+                password = env[Settings.postgresDatabasePassword].use { it }
+            ),
+            pageSize = PageSize.of(100)
+        ),
+        plugins = plugins,
+        config = coreConfig
+    )
+
+    FeatureControl(
+        appName = appName,
+        core = core,
+        plugins = plugins.map { it.create(core) },
+        eventBusFn = ::localEventBus,
+        config = coreConfig
+    )
+        .getRoutes()
+        .withFilter(ServerFilters.GZip())
+        .asServer(Undertow(env[Settings.port].value))
+        .start()
+        .also { println("Started on http://localhost:${it.port()}") }
+        .block()
+}

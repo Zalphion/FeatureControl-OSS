@@ -11,7 +11,6 @@ import com.zalphion.featurecontrol.idp1Email3
 import com.zalphion.featurecontrol.idp1Email4
 import com.zalphion.featurecontrol.idp2Email1
 import com.zalphion.featurecontrol.invoke
-import com.zalphion.featurecontrol.members.InviteUser
 import com.zalphion.featurecontrol.members.MemberCreateData
 import com.zalphion.featurecontrol.web.asUser
 import com.zalphion.featurecontrol.web.playwright
@@ -29,27 +28,27 @@ class MembersUiTest: CoreTestDriver() {
     @RegisterExtension
     val playwright = playwright()
 
-    private val member1 = users.create(idp1Email1, userName = "lolcats").shouldBeSuccess()
+    private val member1 = core.users.create(idp1Email1, userName = "lolcats").shouldBeSuccess()
 
-    private val member2 = users.create(idp1Email2, userName = "user2")
+    private val member2 = core.users.create(idp1Email2, userName = "user2")
         .shouldBeSuccess()
         .user.addTo(core, member1.team)
 
-    private val member3 = users.create(idp1Email3)
+    private val member3 = core.users.create(idp1Email3)
         .shouldBeSuccess()
         .user.addTo(core, member1.team)
 
-    private val invitation = InviteUser(
+    private val invitation = core.members.invite(
         teamId = member1.team.teamId,
         sender = member1.user.userId,
         data = MemberCreateData(idp2Email1, emptyMap())
     )
-        .invoke(member1.user, core)
+        .invoke(member1.user, app)
         .shouldBeSuccess()
 
     @Test
     fun `show members`(context: BrowserContext) {
-        context.asUser(core, member1.user) { page ->
+        context.asUser(app, member1.user) { page ->
             page.mainNavBar.openTeams().manageTeam { page ->
                 page.members.map { it.emailAddress }.shouldContainExactlyInAnyOrder(
                     member1.user.emailAddress,
@@ -88,7 +87,7 @@ class MembersUiTest: CoreTestDriver() {
 
     @Test
     fun `search members`(context: BrowserContext) {
-        context.asUser(core, member1.user) { page ->
+        context.asUser(app, member1.user) { page ->
             page.mainNavBar.openTeams().manageTeam { page ->
                 page.searchTerm = IDP1
 
@@ -101,7 +100,7 @@ class MembersUiTest: CoreTestDriver() {
 
     @Test
     fun `invite member`(context: BrowserContext) {
-        context.asUser(core, member1.user) { page ->
+        context.asUser(app, member1.user) { page ->
             page.mainNavBar.openTeams().manageTeam { page ->
                 page.inviteMember { form ->
                     form.emailAddress = idp1Email4

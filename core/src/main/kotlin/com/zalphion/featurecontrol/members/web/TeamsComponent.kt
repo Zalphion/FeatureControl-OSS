@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.plugins.Component
@@ -36,7 +36,7 @@ class TeamsComponent(
 ) {
     companion object {
         fun core(
-            core: Core,
+            app: FeatureControl,
             extraColumnsFn: (TeamsComponent) -> List<Pair<String, TD.(MemberDetails) -> Unit>> = { emptyList() },
             extraActionsFn: (TeamsComponent) -> List<LI.(MemberDetails) -> Unit> = { emptyList() }
         ) = Component<TeamsComponent> { flow, data ->
@@ -64,7 +64,7 @@ class TeamsComponent(
 
                             td {
                                 ariaLabel = "Role"
-                                core.render(this, RoleComponent(details))
+                                app.render(this, RoleComponent(details))
                             }
 
                             for (render in extraColumns.map { it.second }) {

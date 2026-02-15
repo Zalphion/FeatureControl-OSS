@@ -1,9 +1,8 @@
 package com.zalphion.featurecontrol.configs.web
 
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.applications.web.ApplicationsPage
 import com.zalphion.featurecontrol.applications.web.render
-import com.zalphion.featurecontrol.configs.UpdateConfigSpec
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.environmentNameLens
 import com.zalphion.featurecontrol.web.flash.messages
@@ -15,7 +14,6 @@ import com.zalphion.featurecontrol.web.samePageError
 import com.zalphion.featurecontrol.web.flash.toFlashMessage
 import com.zalphion.featurecontrol.web.toIndex
 import com.zalphion.featurecontrol.web.flash.withMessage
-import com.zalphion.featurecontrol.configs.UpdateConfigEnvironment
 import com.zalphion.featurecontrol.configs.dto.ConfigEnvironmentDataDto
 import com.zalphion.featurecontrol.configs.dto.ConfigSpecDataDto
 import com.zalphion.featurecontrol.web.teamIdLens
@@ -28,7 +26,7 @@ import org.http4k.core.Status
 import org.http4k.core.with
 import org.http4k.lens.location
 
-internal fun Core.httpGetConfigSpec(): HttpHandler = fn@{ request ->
+internal fun FeatureControl.httpGetConfigSpec(): HttpHandler = fn@{ request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
@@ -36,7 +34,7 @@ internal fun Core.httpGetConfigSpec(): HttpHandler = fn@{ request ->
     ApplicationsPage.forConfigSpec(this, principal, teamId, appId)
         .map { model ->
             model.render(
-                core = this,
+                app = this,
                 messages = request.messages(),
                 selectedFeature = null
             ) {
@@ -47,13 +45,13 @@ internal fun Core.httpGetConfigSpec(): HttpHandler = fn@{ request ->
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun Core.httpPostConfigSpec(): HttpHandler = { request ->
+internal fun FeatureControl.httpPostConfigSpec(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val data = extract<ConfigSpecDataDto>(request)
 
-    val result = UpdateConfigSpec(teamId, appId, data.properties)
+    val result = core.configs.updateSpec(teamId, appId, data.properties)
         .invoke(principal, this)
         .map { FlashMessageDto(FlashMessageDto.Type.Success, "Config Properties Updated") }
         .recover { it.toFlashMessage() }
@@ -63,7 +61,7 @@ internal fun Core.httpPostConfigSpec(): HttpHandler = { request ->
         .withMessage(result)
 }
 
-internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
+internal fun FeatureControl.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
@@ -72,7 +70,7 @@ internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
     ApplicationsPage.forConfigEnvironment(this, principal, teamId, appId, environmentName)
         .map { model ->
             model.render(
-                core = this,
+                app = this,
                 messages = request.messages(),
                 selectedFeature = null
             ) {
@@ -83,14 +81,14 @@ internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun Core.httpPostConfigEnvironment(): HttpHandler = { request ->
+internal fun FeatureControl.httpPostConfigEnvironment(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val environmentName = environmentNameLens(request)
     val data = extract<ConfigEnvironmentDataDto>(request)
 
-    UpdateConfigEnvironment(teamId, appId, environmentName, data.properties)
+    core.configs.updateEnvironment(teamId, appId, environmentName, data.properties)
         .invoke(principal, this)
         .map { Response(Status.SEE_OTHER)
             .location(it.uri())

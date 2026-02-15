@@ -13,6 +13,7 @@ import com.zalphion.featurecontrol.createApplication
 import com.zalphion.featurecontrol.dev
 import com.zalphion.featurecontrol.devName
 import com.zalphion.featurecontrol.idp1Email1
+import com.zalphion.featurecontrol.invoke
 import com.zalphion.featurecontrol.lib.Colour
 import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.prodName
@@ -35,11 +36,11 @@ class ApplicationUiTest: CoreTestDriver() {
     @RegisterExtension
     val playwright = playwright()
 
-    private val member = users.create(idp1Email1).shouldBeSuccess()
+    private val member = core.users.create(idp1Email1).shouldBeSuccess()
 
     @Test
     fun `no applications`(context: BrowserContext) {
-        context.asUser(core, member.user) { page ->
+        context.asUser(app, member.user) { page ->
             page.uriTeamId shouldBe member.team.teamId
             page.applications.list.shouldBeEmpty()
             page.applications.selected.shouldBeNull()
@@ -50,7 +51,7 @@ class ApplicationUiTest: CoreTestDriver() {
     fun `create application`(context: BrowserContext) {
         lateinit var createdId: AppId
 
-        context.asUser(core, member.user) { page ->
+        context.asUser(app, member.user) { page ->
             page.applications.new { form ->
                 form.name = appName1
                 form.newEnvironment { env ->
@@ -72,7 +73,7 @@ class ApplicationUiTest: CoreTestDriver() {
             }
         }
 
-        core.applications[member.team.teamId, createdId] shouldBe Application(
+        core.applications.get(member.team.teamId, createdId).invoke(member.user, app) shouldBeSuccess Application(
             teamId = member.team.teamId,
             appId = createdId,
             appName = appName1,
@@ -99,7 +100,7 @@ class ApplicationUiTest: CoreTestDriver() {
         val app1 = createApplication(member, appName1)
         val app2 = createApplication(member, appName2)
 
-        context.asUser(core, member.user) { page ->
+        context.asUser(app, member.user) { page ->
             page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
             page.applications.selected.shouldBeNull()
 
@@ -117,7 +118,7 @@ class ApplicationUiTest: CoreTestDriver() {
         val app1 = createApplication(member, appName1)
         val app2 = createApplication(member, appName2)
 
-        context.asUser(core, member.user) { page ->
+        context.asUser(app, member.user) { page ->
             page.applications.select(app2.appName)
                 .application.more()
                 .delete().confirm { page ->
@@ -132,7 +133,7 @@ class ApplicationUiTest: CoreTestDriver() {
         val app1 = createApplication(member, appName1, listOf(dev, prod))
         val app2 = createApplication(member, appName2, listOf(dev, prod))
 
-        context.asUser(core, member.user) { page ->
+        context.asUser(app, member.user) { page ->
             page.applications.select(app2.appName)
                 .application.more().update { app ->
                     app.name = appName3
@@ -150,7 +151,7 @@ class ApplicationUiTest: CoreTestDriver() {
                 }
         }
 
-        core.applications[app2.teamId, app2.appId] shouldBe app2.copy(
+        core.applications.get(app2.teamId, app2.appId).invoke(member.user, app) shouldBeSuccess app2.copy(
             appName = appName3,
             environments = listOf(
                 dev.copy(description = "cool stuff happens here"),

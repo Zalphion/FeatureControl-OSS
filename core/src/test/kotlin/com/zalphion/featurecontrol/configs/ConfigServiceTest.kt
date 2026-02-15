@@ -21,36 +21,35 @@ import com.zalphion.featurecontrol.stagingName
 import com.zalphion.featurecontrol.strProperty
 import dev.forkhandles.result4k.kotest.shouldBeFailure
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
-import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class ConfigServiceTest: CoreTestDriver() {
 
-    private val user1 = users.create(idp1Email1).shouldBeSuccess()
+    private val user1 = core.users.create(idp1Email1).shouldBeSuccess()
     private val app1 = createApplication(user1, appName1, listOf(dev, prod))
 
-    private val user2 = users.create(idp1Email2).shouldBeSuccess()
+    private val user2 = core.users.create(idp1Email2).shouldBeSuccess()
     private val app2 = createApplication(user2, appName2, listOf(dev, prod))
 
     @Test
     fun `get config - not found`() {
         val id = AppId.random(core.random)
-        GetConfigSpec(user1.team.teamId,id)
-            .invoke(user1.user, core)
+        core.configs.getSpec(user1.team.teamId,id)
+            .invoke(user1.user, app)
             .shouldBeFailure(applicationNotFound(id))
     }
 
     @Test
     fun `get config - not on team`() {
-        GetConfigSpec(app1.teamId, app1.appId)
-            .invoke(user2.user, core)
+        core.configs.getSpec(app1.teamId, app1.appId)
+            .invoke(user2.user, app)
             .shouldBeFailure(forbidden)
     }
 
     @Test
     fun `get config - empty`() {
-        GetConfigSpec(app2.teamId, app2.appId)
-            .invoke(user2.user, core)
+        core.configs.getSpec(app2.teamId, app2.appId)
+            .invoke(user2.user, app)
             .shouldBeSuccess(
                 ConfigSpec(
                     teamId = app2.teamId,
@@ -62,22 +61,22 @@ class ConfigServiceTest: CoreTestDriver() {
 
     @Test
     fun `get config - not empty`() {
-        val expected = ConfigSpec(
+        val expected = core.configs.updateSpec(
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
-        ).also(core.configs::plusAssign)
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        GetConfigSpec(app1.teamId, app1.appId)
-            .invoke(user1.user, core)
+        core.configs.getSpec(app1.teamId, app1.appId)
+            .invoke(user1.user, app)
             .shouldBeSuccess(expected)
     }
 
     @Test
     fun `update config properties - not found`() {
         val id = AppId.random(core.random)
-        UpdateConfigSpec(user1.team.teamId, id, mapOf(strProperty, numberProperty))
-            .invoke(user1.user, core)
+        core.configs.updateSpec(user1.team.teamId, id, mapOf(strProperty, numberProperty))
+            .invoke(user1.user, app)
             .shouldBeFailure(applicationNotFound(id))
     }
 
@@ -89,37 +88,39 @@ class ConfigServiceTest: CoreTestDriver() {
             properties = mapOf(strProperty, numberProperty)
         )
 
-        UpdateConfigSpec(app1.teamId, app1.appId, mapOf(strProperty, numberProperty))
-            .invoke(user1.user, core)
+        core.configs.updateSpec(app1.teamId, app1.appId, mapOf(strProperty, numberProperty))
+            .invoke(user1.user, app)
             .shouldBeSuccess(expected)
 
-        core.configs[app1.teamId, app1.appId] shouldBe expected
+        core.configs.getSpec(app1.teamId, app1.appId)
+            .invoke(user1.user, app)
+            .shouldBeSuccess(expected)
     }
 
     @Test
     fun `update config values - application not found`() {
         val id = AppId.random(core.random)
-        UpdateConfigEnvironment(
+        core.configs.updateEnvironment(
             user1.team.teamId, id, devName, mapOf(
                 PropertyKey.parse("str") to "foo"
             )
-        )
+        ).invoke(user1.user, app) shouldBeFailure applicationNotFound(id)
     }
 
     @Test
     fun `update config values - environment not found`() {
-        UpdateConfigEnvironment(
+        core.configs.updateEnvironment(
             app1.teamId, app1.appId, stagingName, mapOf(
                 PropertyKey.parse("str") to "foo"
             )
         )
-            .invoke(user1.user, core)
+            .invoke(user1.user, app)
             .shouldBeFailure(environmentNotFound(app1.appId, stagingName))
     }
 
     @Test
     fun `update config values - property not found`() {
-        UpdateConfigEnvironment(
+        core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
@@ -127,19 +128,19 @@ class ConfigServiceTest: CoreTestDriver() {
                 PropertyKey.parse("str") to "foo"
             )
         )
-            .invoke(user1.user, core)
+            .invoke(user1.user, app)
             .shouldBeFailure(propertyNotFound(app1.appId, PropertyKey.parse("str")))
     }
 
     @Test
     fun `update config values - success`() {
-        core.configs += ConfigSpec(
+        core.configs.updateSpec(
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
-        )
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        UpdateConfigEnvironment(
+        core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
@@ -148,7 +149,7 @@ class ConfigServiceTest: CoreTestDriver() {
                 PropertyKey.parse("num") to "123",
             )
         )
-            .invoke(user1.user, core)
+            .invoke(user1.user, app)
             .shouldBeSuccess(
                 ConfigEnvironment(
                     teamId = app1.teamId,
@@ -161,36 +162,38 @@ class ConfigServiceTest: CoreTestDriver() {
                 )
             )
 
-        core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
-            teamId = app1.teamId,
-            appId = app1.appId,
-            name = devName,
-            values = mapOf(
-                PropertyKey.parse("str") to "lolcats",
-                PropertyKey.parse("num") to "123"
-            )
-        )
+        core.configs.getEnvironment(app1.teamId, app1.appId, devName)
+            .invoke(user1.user, app)
+            .shouldBeSuccess(ConfigEnvironment(
+                teamId = app1.teamId,
+                appId = app1.appId,
+                name = devName,
+                values = mapOf(
+                    PropertyKey.parse("str") to "lolcats",
+                    PropertyKey.parse("num") to "123"
+                )
+            ))
     }
 
     @Test
     fun `update config values - replaces omitted values`() {
-        core.configs += ConfigSpec(
+        core.configs.updateSpec(
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
-        )
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        core.configs += ConfigEnvironment(
+        core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
-            name = devName,
-            values = mapOf(
+            environmentName = devName,
+            data = mapOf(
                 PropertyKey.parse("str") to "foo",
                 PropertyKey.parse("num") to "123"
             )
-        )
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        UpdateConfigEnvironment(
+        core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
@@ -198,7 +201,7 @@ class ConfigServiceTest: CoreTestDriver() {
                 PropertyKey.parse("num") to "456"
             )
         )
-            .invoke(user1.user, core)
+            .invoke(user1.user, app)
             .shouldBeSuccess(
                 ConfigEnvironment(
                     teamId = app1.teamId,
@@ -210,86 +213,94 @@ class ConfigServiceTest: CoreTestDriver() {
                 )
             )
 
-        core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
-            teamId = app1.teamId,
-            appId = app1.appId,
-            name = devName,
-            values = mapOf(
-                PropertyKey.parse("num") to "456"
-            )
-        )
+        core.configs.getEnvironment(app1.teamId, app1.appId, devName)
+            .invoke(user1.user, app)
+            .shouldBeSuccess(ConfigEnvironment(
+                teamId = app1.teamId,
+                appId = app1.appId,
+                name = devName,
+                values = mapOf(
+                    PropertyKey.parse("num") to "456"
+                )
+            ))
     }
 
     @Test
     fun `update config values - blank values omitted`() {
-        core.configs += ConfigSpec(
+        core.configs.updateSpec(
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty)
-        )
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        UpdateConfigEnvironment(
+        core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             data = mapOf(strProperty.first to "  ")
-        ).invoke(user1.user, core).shouldBeSuccess()
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
-            teamId = app1.teamId,
-            appId = app1.appId,
-            name = devName,
-            values = emptyMap()
-        )
+        core.configs.getEnvironment(app1.teamId, app1.appId, devName)
+            .invoke(user1.user, app)
+            .shouldBeSuccess(ConfigEnvironment(
+                teamId = app1.teamId,
+                appId = app1.appId,
+                name = devName,
+                values = emptyMap()
+            ))
     }
 
     @Test
     fun `update config values - values trimmed`() {
-        core.configs += ConfigSpec(
+        core.configs.updateSpec(
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty)
-        )
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        UpdateConfigEnvironment(
+        core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             data = mapOf(strProperty.first to " lol ")
-        ).invoke(user1.user, core).shouldBeSuccess()
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
-            teamId = app1.teamId,
-            appId = app1.appId,
-            name = devName,
-            values = mapOf(
-                strProperty.first to "lol"
-            )
-        )
+        core.configs.getEnvironment(app1.teamId, app1.appId, devName)
+            .invoke(user1.user, app)
+            .shouldBeSuccess(ConfigEnvironment(
+                teamId = app1.teamId,
+                appId = app1.appId,
+                name = devName,
+                values = mapOf(
+                    strProperty.first to "lol"
+                )
+            ))
     }
 
     @Test
     fun `update config values - secrets encrypted`() {
-        core.configs += ConfigSpec(
+        core.configs.updateSpec(
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(secretProperty)
-        )
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        UpdateConfigEnvironment(
+        core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             data = mapOf(secretProperty.first to "lol")
-        ).invoke(user1.user, core).shouldBeSuccess()
+        ).invoke(user1.user, app).shouldBeSuccess()
 
-        core.configs[app1.appId, devName] shouldBe ConfigEnvironment(
-            teamId = app1.teamId,
-            appId = app1.appId,
-            name = devName,
-            values = mapOf(
-                secretProperty.first to "80c39b4246a0310e7a82df2078faa483f4069f8ab673797e7c9514d1be7c0b"
-            )
-        )
+        core.configs.getEnvironment(app1.teamId, app1.appId, devName)
+            .invoke(user1.user, app)
+            .shouldBeSuccess(ConfigEnvironment(
+                teamId = app1.teamId,
+                appId = app1.appId,
+                name = devName,
+                values = mapOf(
+                    secretProperty.first to "80c39b4246a0310e7a82df20883b9ec82dbcc13705f7e1889482a8a210e1aa"
+                )
+            ))
     }
 }

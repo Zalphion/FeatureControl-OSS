@@ -1,83 +1,87 @@
 package com.zalphion.featurecontrol.configs
 
-import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.AppError
 import com.zalphion.featurecontrol.crypto.Encryption
 import com.zalphion.featurecontrol.crypto.aesGcm
 import com.zalphion.featurecontrol.features.EnvironmentName
-import com.zalphion.featurecontrol.ActionAuth
 import com.zalphion.featurecontrol.applications.AppId
-import com.zalphion.featurecontrol.ServiceAction
-import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.applications.ApplicationStorage
+import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.lib.peekOrFail
+import com.zalphion.featurecontrol.preAuth
 import com.zalphion.featurecontrol.teams.TeamId
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.asSuccess
+import dev.forkhandles.result4k.flatMap
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.peek
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.random.Random
 
-class GetConfigSpec(val teamId: TeamId, val appId: AppId): ServiceAction<ConfigSpec>(
-    preAuth = ActionAuth.byApplication(teamId, appId, {it.configRead(teamId, appId)})
+class ConfigService(
+    private val appSecret: AppSecret,
+    private val random: Random,
+    private val applications: ApplicationStorage,
+    private val specs: ConfigSpecStorage,
+    private val environments: ConfigEnvironmentStorage
 ) {
-    override fun execute(core: Core) = core
-        .applications.getOrFail(teamId, appId)
-        .map { core.configs.getOrEmpty(teamId, appId) }
-}
+    private fun encryption(
+        appId: AppId,
+        environmentName: EnvironmentName
+    ) = Encryption.aesGcm(
+        appSecret = appSecret,
+        keySalt = "$appId:$environmentName".encodeToByteArray(),
+        usage = "config",
+        random = random
+    )
 
-class UpdateConfigSpec(
-    val teamId: TeamId,
-    val appId: AppId,
-    val properties: Map<PropertyKey, Property>
-): ServiceAction<ConfigSpec>(
-    preAuth = ActionAuth.byApplication(teamId, appId, {it.configUpdate(teamId, appId)})
-) {
-    override fun execute(core: Core) = core
-        .applications.getOrFail(teamId, appId)
-        .map { core.configs.getOrEmpty(teamId, appId) }
-        .map { config -> config.copy(properties = properties) }
-        .peek(core.configs::plusAssign)
-}
+    fun getSpec(teamId: TeamId, appId: AppId) = preAuth {
+        it.configRead(teamId, appId)
+    }.flatMap {
+        applications.getOrFail(teamId, appId)
+            .map { specs.getOrEmpty(teamId, appId) }
+    }
 
-/**
- * Secret values will not be decoded
- */
-class GetConfigEnvironment(
-    val teamId: TeamId,
-    val appId: AppId,
-    val environmentName: EnvironmentName
-): ServiceAction<ConfigEnvironment>(
-    preAuth = ActionAuth.byApplication(teamId, appId, { it.configRead(teamId, appId, environmentName) })
-) {
-    override fun execute(core: Core) = core
-        .applications.getOrFail(teamId, appId)
-        .peekOrFail { it.getOrFail(environmentName) }
-        .map { core.configs.getOrEmpty(teamId, appId, environmentName) }
-}
+    fun updateSpec(teamId: TeamId, appId: AppId, properties: Map<PropertyKey, Property>) = preAuth {
+        it.configUpdate(teamId, appId)
+    }.flatMap {
+        applications.getOrFail(teamId, appId)
+            .map { specs.getOrEmpty(teamId, appId) }
+            .map { it.copy(properties = properties) }
+            .peek(specs::plusAssign)
+    }
 
-class UpdateConfigEnvironment(
-    val teamId: TeamId,
-    val appId: AppId,
-    val environmentName: EnvironmentName,
-    val data: Map<PropertyKey, String>
-): ServiceAction<ConfigEnvironment>(
-    preAuth = ActionAuth.byApplication(teamId, appId, {it.configUpdate(teamId, appId, environmentName)})
-) {
-    override fun execute(core: Core) = this
-        .processValues(core)
-        .map { it.second }
-        .peek(core.configs::plusAssign)
+    /**
+     * Secret values will not be decoded
+     */
+    fun getEnvironment(teamId: TeamId, appId: AppId, environmentName: EnvironmentName) = preAuth {
+        it.configRead(teamId, appId, environmentName)
+    }.flatMap {
+        applications.getOrFail(teamId, appId)
+            .peekOrFail { it.getOrFail(environmentName) }
+            .map { environments.getOrEmpty(teamId, appId, environmentName) }
+    }
 
-    fun processValues(core: Core): Result4k<Pair<Application, ConfigEnvironment>, AppError> {
-        val application = core.applications
+    fun updateEnvironment(teamId: TeamId, appId: AppId, environmentName: EnvironmentName, data: Map<PropertyKey, String>) = preAuth {
+        it.configUpdate(teamId, appId, environmentName)
+    }.flatMap {
+        applications
             .getOrFail(teamId, appId)
             .peekOrFail { it.getOrFail(environmentName) }
-            .onFailure { return it }
+            .flatMap { processValues(teamId, appId, environmentName, data) }
+            .peek(environments::plusAssign)
+    }
 
-        val config = core.configs.getOrEmpty(teamId, appId)
-        val encryption = core.encryption(appId, environmentName)
+    fun processValues(
+        teamId: TeamId, appId: AppId, environment: EnvironmentName,
+        data: Map<PropertyKey, String>
+    ): Result4k<ConfigEnvironment, AppError> {
+        val config = specs.getOrEmpty(teamId, appId)
+        val encryption = encryption(appId, environment)
 
-        val newValues = data.mapNotNull { (key, value) ->
+        val processed = data.mapNotNull { (key, value) ->
             val property = config.getOrFail(key).onFailure { return it }
             val processedValue = when(property.type) {
                 PropertyType.Secret -> encryption.encrypt(value.trim()).toHexString() // TODO should derive a key per app/env
@@ -86,16 +90,6 @@ class UpdateConfigEnvironment(
             if (processedValue.isNotBlank()) key to processedValue else null
         }.toMap()
 
-        return (application to ConfigEnvironment(teamId, appId, environmentName, newValues)).asSuccess()
+        return ConfigEnvironment(teamId, appId, environment, processed).asSuccess()
     }
 }
-
-private fun Core.encryption(
-    appId: AppId,
-    environmentName: EnvironmentName
-) = Encryption.aesGcm(
-    appSecret = config.appSecret,
-    keySalt = "$appId:$environmentName".encodeToByteArray(),
-    usage = "configValues",
-    random = random
-)

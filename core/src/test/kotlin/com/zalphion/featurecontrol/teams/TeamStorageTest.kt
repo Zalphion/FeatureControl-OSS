@@ -1,13 +1,14 @@
 package com.zalphion.featurecontrol.teams
 
 import com.zalphion.featurecontrol.CoreTestDriver
+import com.zalphion.featurecontrol.StorageTestDriver
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class TeamStorageTest: CoreTestDriver() {
 
-    private val testObj = core.teams
+    private val testObj = StorageTestDriver().create(TeamStorage)
 
     private val id1 = TeamId.of("team0001")
     private val id2 = TeamId.of("team0002")

@@ -6,7 +6,7 @@ import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.confirmCancelButtons
 import com.zalphion.featurecontrol.web.applicationsUri
 import com.zalphion.featurecontrol.web.table.tableForm
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.table.InputTableElementSchema
@@ -17,14 +17,14 @@ import kotlin.collections.map
 
 class NewApplicationModalComponent(val team: Team, val modalId: String) {
     companion object {
-        fun core(core: Core) = Component<NewApplicationModalComponent> { flow, data ->
+        fun core(app: FeatureControl) = Component<NewApplicationModalComponent> { flow, data ->
             flow.applicationModal(
                 modalId = data.modalId,
                 title = "New Application",
                 formAction = applicationsUri(data.team.teamId),
                 appName = null,
                 environmentsTable = {
-                    environmentsTable(core, emptyList())
+                    environmentsTable(app, emptyList())
                 },
                 buttons = {
                     confirmCancelButtons("Create")
@@ -36,7 +36,7 @@ class NewApplicationModalComponent(val team: Team, val modalId: String) {
 
 class UpdateApplicationModalComponent(val application: Application, val modalId: String) {
     companion object {
-        fun core(core: Core) = Component<UpdateApplicationModalComponent> { flow, data ->
+        fun core(app: FeatureControl) = Component<UpdateApplicationModalComponent> { flow, data ->
             val application = data.application
             flow.applicationModal(
                 modalId = data.modalId,
@@ -44,7 +44,7 @@ class UpdateApplicationModalComponent(val application: Application, val modalId:
                 appName = application.appName,
                 formAction = application.uri(),
                 environmentsTable = {
-                    environmentsTable(core, application.environments.map { it.toDto() })
+                    environmentsTable(app, application.environments.map { it.toDto() })
                 },
                 buttons = {
                     confirmCancelButtons("Update")
@@ -103,13 +103,13 @@ fun FlowContent.applicationModal(
 }
 
 private fun FlowContent.environmentsTable(
-    core: Core,
+    app: FeatureControl,
     environments: List<EnvironmentDto>
 ) = div("uk-margin") {
     tableForm(
         inputName = "environments",
         schema = EnvironmentDto.tableSchema,
-        mapper = core.json.asBiDiMapping<Array<EnvironmentDto>>()
+        mapper = app.core.json.asBiDiMapping<Array<EnvironmentDto>>()
             .map(Array<EnvironmentDto>::toList, List<EnvironmentDto>::toTypedArray),
         elements = environments,
         rowAriaLabel = "Environment"

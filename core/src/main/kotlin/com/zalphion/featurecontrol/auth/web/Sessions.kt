@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.auth.web
 
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.users.UserId
 import com.zalphion.featurecontrol.web.INDEX_PATH
 import com.zalphion.featurecontrol.web.SESSION_COOKIE_NAME
@@ -15,7 +15,7 @@ interface Sessions {
     companion object
 }
 
-fun Core.createSessionCookie(userId: UserId): Cookie {
+fun FeatureControl.createSessionCookie(userId: UserId): Cookie {
     val (sessionId, expires) = sessions.create(userId)
     return Cookie(
         name = SESSION_COOKIE_NAME,

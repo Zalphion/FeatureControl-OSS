@@ -11,13 +11,10 @@ import com.zalphion.featurecontrol.idp2Email1
 import com.zalphion.featurecontrol.invoke
 import com.zalphion.featurecontrol.memberAlreadyExists
 import com.zalphion.featurecontrol.memberNotFound
-import com.zalphion.featurecontrol.members.InviteUser
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberCreateData
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.members.MemberUpdateData
-import com.zalphion.featurecontrol.members.RemoveMember
-import com.zalphion.featurecontrol.members.UpdateMember
 import dev.andrewohara.utils.pagination.Page
 import dev.forkhandles.result4k.kotest.shouldBeFailure
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
@@ -31,42 +28,42 @@ class TeamServiceTest: CoreTestDriver() {
 
     @Test
     fun `remove member - forbidden`() {
-        val myUser = users.create(idp1Email1).shouldBeSuccess().user
+        val myUser = core.users.create(idp1Email1).shouldBeSuccess().user
 
-        val otherOrgUser = users.create(idp2Email1).shouldBeSuccess().user
+        val otherOrgUser = core.users.create(idp2Email1).shouldBeSuccess().user
         val (otherOrg, _) = otherOrgUser.getMyTeam(core).shouldNotBeNull()
 
-        RemoveMember(otherOrg.teamId, otherOrgUser.userId)
-            .invoke(myUser, core)
+        core.members.remove(otherOrg.teamId, otherOrgUser.userId)
+            .invoke(myUser, app)
             .shouldBeFailure(forbidden)
     }
 
     @Test
     fun `remove member - success`() {
-        val (myMember, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (myMember, myUser, myTeam) = core.users.create(idp1Email1).shouldBeSuccess()
 
-        val otherUser = users.create(idp1Email2).shouldBeSuccess().user
+        val otherUser = core.users.create(idp1Email2).shouldBeSuccess().user
         val otherMember = otherUser.addTo(core, myTeam)
 
-        RemoveMember(teamId = otherMember.teamId, userId = otherMember.userId)
-            .invoke(myUser, core)
+        core.members.remove(teamId = otherMember.teamId, userId = otherMember.userId)
+            .invoke(myUser, app)
             .shouldBeSuccess(MemberDetails(otherMember, otherUser, myTeam))
 
-        core.members.list(myTeam.teamId).toList()
+        core.memberStorage.list(myTeam.teamId).toList()
             .shouldContainExactlyInAnyOrder(myMember)
     }
 
     @Test
     fun `invite user - success`() {
-        val (_, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
-        val otherUser = users.create(idp1Email2).shouldBeSuccess().user
+        val (_, myUser, myTeam) = core.users.create(idp1Email1).shouldBeSuccess()
+        val otherUser = core.users.create(idp1Email2).shouldBeSuccess().user
 
-        val memberDetails = InviteUser(
+        val memberDetails = core.members.invite(
             teamId = myTeam.teamId,
             sender = myUser.userId,
             data = MemberCreateData(otherUser.emailAddress, emptyMap())
         )
-            .invoke(myUser, core)
+            .invoke(myUser, app)
             .shouldBeSuccess()
 
         memberDetails shouldBe MemberDetails(
@@ -81,98 +78,98 @@ class TeamServiceTest: CoreTestDriver() {
             team = myTeam
         )
 
-        core.members.list(myTeam.teamId)
+        core.memberStorage.list(myTeam.teamId)
             .shouldContain(memberDetails.member)
     }
 
     @Test
     fun `invite user - forbidden`() {
-        val (_, myUser, _) = users.create(idp1Email1).shouldBeSuccess()
-        val otherTeam = users.create(idp1Email2).shouldBeSuccess().team
+        val (_, myUser, _) = core.users.create(idp1Email1).shouldBeSuccess()
+        val otherTeam = core.users.create(idp1Email2).shouldBeSuccess().team
 
-        InviteUser(otherTeam.teamId, myUser.userId, MemberCreateData(idp1Email2, emptyMap()))
-            .invoke(myUser, core)
+        core.members.invite(otherTeam.teamId, myUser.userId, MemberCreateData(idp1Email2, emptyMap()))
+            .invoke(myUser, app)
             .shouldBeFailure(forbidden)
     }
 
     @Test
     fun `invite user - cannot invite self`() {
-        val (myMember, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (myMember, myUser, myTeam) = core.users.create(idp1Email1).shouldBeSuccess()
 
-        InviteUser(myTeam.teamId, myUser.userId, MemberCreateData(myUser.emailAddress, emptyMap()))
-            .invoke(myUser, core)
+        core.members.invite(myTeam.teamId, myUser.userId, MemberCreateData(myUser.emailAddress, emptyMap()))
+            .invoke(myUser, app)
             .shouldBeFailure(memberAlreadyExists(myMember))
     }
 
     @Test
     fun `invite user - already a member`() {
-        val (_, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (_, myUser, myTeam) = core.users.create(idp1Email1).shouldBeSuccess()
 
-        val otherUser = users.create(idp1Email2).shouldBeSuccess().user
+        val otherUser = core.users.create(idp1Email2).shouldBeSuccess().user
         val otherMember = otherUser.addTo(core, myTeam)
 
-        InviteUser(myTeam.teamId, myUser.userId, MemberCreateData(otherUser.emailAddress, emptyMap()))
-            .invoke(myUser, core)
+        core.members.invite(myTeam.teamId, myUser.userId, MemberCreateData(otherUser.emailAddress, emptyMap()))
+            .invoke(myUser, app)
             .shouldBeFailure(memberAlreadyExists(otherMember))
     }
 
     @Test
     fun `update member - cannot change own`() {
-        val (member, user, _) = users.create(idp1Email1).shouldBeSuccess()
+        val (member, user, _) = core.users.create(idp1Email1).shouldBeSuccess()
 
-        UpdateMember(teamId = member.teamId, member.userId, MemberUpdateData((mapOf("foo" to "bar"))))
-            .invoke(user, core)
+        core.members.update(teamId = member.teamId, member.userId, MemberUpdateData((mapOf("foo" to "bar"))))
+            .invoke(user, app)
             .shouldBeFailure(forbidden)
     }
 
     @Test
     fun `update member - in other team`() {
-        val myUser = users.create(idp1Email1).shouldBeSuccess().user
-        val otherMember = users.create(idp2Email1).shouldBeSuccess().member
+        val myUser = core.users.create(idp1Email1).shouldBeSuccess().user
+        val otherMember = core.users.create(idp2Email1).shouldBeSuccess().member
 
-        UpdateMember(otherMember.teamId, otherMember.userId, MemberUpdateData(mapOf("foo" to "bar")))
-            .invoke(myUser, core)
+        core.members.update(otherMember.teamId, otherMember.userId, MemberUpdateData(mapOf("foo" to "bar")))
+            .invoke(myUser, app)
             .shouldBeFailure(forbidden)
     }
 
     @Test
     fun `update member - member not found`() {
-        val (_, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
-        val otherUser = users.create(idp1Email2).shouldBeSuccess().user
+        val (_, myUser, myTeam) = core.users.create(idp1Email1).shouldBeSuccess()
+        val otherUser = core.users.create(idp1Email2).shouldBeSuccess().user
 
-        UpdateMember(myTeam.teamId, otherUser.userId, MemberUpdateData(mapOf("foo" to "bar")))
-            .invoke(myUser, core)
+        core.members.update(myTeam.teamId, otherUser.userId, MemberUpdateData(mapOf("foo" to "bar")))
+            .invoke(myUser, app)
             .shouldBeFailure(memberNotFound(myTeam.teamId, otherUser.userId))
     }
 
     @Test
     fun `update member - success`() {
-        val (myMember, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (myMember, myUser, myTeam) = core.users.create(idp1Email1).shouldBeSuccess()
 
-        val otherUser = users.create(idp1Email2).shouldBeSuccess().user
+        val otherUser = core.users.create(idp1Email2).shouldBeSuccess().user
         val otherMember = otherUser.addTo(core, myTeam)
         val expected = otherMember.copy(extensions = mapOf("foo" to "bar"))
 
-        UpdateMember(otherMember.teamId, otherMember.userId, MemberUpdateData(mapOf("foo" to "bar")))
-            .invoke(myUser, core)
+        core.members.update(otherMember.teamId, otherMember.userId, MemberUpdateData(mapOf("foo" to "bar")))
+            .invoke(myUser, app)
             .shouldBeSuccess(expected)
 
-        core.members.list(myTeam.teamId).toList()
+        core.memberStorage.list(myTeam.teamId).toList()
             .shouldContainExactlyInAnyOrder(myMember, expected)
     }
 
     @Test
     fun `create team`() {
-        val (myMember, myUser, myTeam) = users.create(idp1Email1).shouldBeSuccess()
+        val (myMember, myUser, myTeam) = core.users.create(idp1Email1).shouldBeSuccess()
 
-        val otherTeam = CreateTeam(myUser.userId, TeamCreateUpdateData(TeamName.of("Other Team")))
-            .invoke(myUser, core)
+        val otherTeam = core.teams.create(myUser.userId, TeamCreateUpdateData(TeamName.of("Other Team")))
+            .invoke(myUser, app)
             .shouldBeSuccess()
 
-        core.teams[myTeam.teamId] shouldBe myTeam
-        core.teams[otherTeam.teamId] shouldBe otherTeam
+        core.teamStorage[myTeam.teamId] shouldBe myTeam
+        core.teamStorage[otherTeam.teamId] shouldBe otherTeam
 
-        core.members.list(myUser.userId)[null] shouldBe Page(
+        core.memberStorage.list(myUser.userId)[null] shouldBe Page(
             items = listOf(
                 Member(
                     teamId = otherTeam.teamId,

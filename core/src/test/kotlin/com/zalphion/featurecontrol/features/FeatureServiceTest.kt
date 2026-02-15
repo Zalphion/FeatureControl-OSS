@@ -34,7 +34,7 @@ import java.time.Duration
 
 class FeatureServiceTest: CoreTestDriver() {
 
-    private val user = users.create(idp1Email1).shouldBeSuccess()
+    private val user = core.users.create(idp1Email1).shouldBeSuccess()
 
     private val application1 = createApplication(user, appName1)
     private val application2 = createApplication(user, appName2)
@@ -44,8 +44,8 @@ class FeatureServiceTest: CoreTestDriver() {
     @Test
     fun `create feature - application not found`() {
         val appId = AppId.random(core.random)
-        CreateFeature(user.team.teamId, appId, oldNewData.toCreate(featureKey1))
-            .invoke(user.user, core)
+        core.features.create(user.team.teamId, appId, oldNewData.toCreate(featureKey1))
+            .invoke(user.user, app)
             .shouldBeFailure(applicationNotFound(appId))
     }
 
@@ -53,8 +53,8 @@ class FeatureServiceTest: CoreTestDriver() {
     fun `create feature - already exists`() {
         val existing = createFeature(user, application1, featureKey1)
 
-        CreateFeature(application1.teamId, application1.appId, oldNewData.toCreate(featureKey1))
-            .invoke(user.user, core)
+        core.features.create(application1.teamId, application1.appId, oldNewData.toCreate(featureKey1))
+            .invoke(user.user, app)
             .shouldBeFailure(featureAlreadyExists(existing.appId, existing.key))
     }
 
@@ -74,7 +74,7 @@ class FeatureServiceTest: CoreTestDriver() {
             extensions = mapOf("foo" to "bar")
         )
 
-        CreateFeature(
+        core.features.create(
             teamId = application1.teamId,
             appId = application1.appId,
             data = FeatureCreateData(
@@ -88,9 +88,12 @@ class FeatureServiceTest: CoreTestDriver() {
                 description = "cool stuff",
                 extensions = mapOf("foo" to "bar")
             )
-        ).invoke(user.user, core) shouldBeSuccess expected
+        ).invoke(user.user, app) shouldBeSuccess expected
 
-        core.features.list(application1.appId).toList().shouldContainExactlyInAnyOrder(expected)
+        core.features.list(application1.teamId, application1.appId)
+            .invoke(user.user, app)
+            .shouldBeSuccess()
+            .toList().shouldContainExactlyInAnyOrder(expected)
     }
 
     @Test
@@ -98,8 +101,15 @@ class FeatureServiceTest: CoreTestDriver() {
         val toggle1 = createFeature( user, application1, featureKey1)
         val toggle2 = createFeature( user, application2, featureKey1)
 
-        core.features.list(application1.appId).toList().shouldContainExactlyInAnyOrder(toggle1)
-        core.features.list(application2.appId).toList().shouldContainExactlyInAnyOrder(toggle2)
+        core.features.list(application1.teamId, application1.appId)
+            .invoke(user.user, app)
+            .shouldBeSuccess()
+            .toList().shouldContainExactlyInAnyOrder(toggle1)
+
+        core.features.list(application2.teamId, application2.appId)
+            .invoke(user.user, app)
+            .shouldBeSuccess()
+            .toList().shouldContainExactlyInAnyOrder(toggle2)
     }
 
     @Test
@@ -109,8 +119,8 @@ class FeatureServiceTest: CoreTestDriver() {
         val toggle3 = createFeature(user, application1, featureKey3)
         val toggle4 = createFeature(user, application2, featureKey1)
 
-        val paginator = ListFeatures(application1.teamId, application1.appId)
-            .invoke(user.user, core)
+        val paginator = core.features.list(application1.teamId, application1.appId)
+            .invoke(user.user, app)
             .shouldBeSuccess()
 
         paginator[null] shouldBe Page(
@@ -123,8 +133,8 @@ class FeatureServiceTest: CoreTestDriver() {
             next = null
         )
 
-        ListFeatures(application2.teamId, application2.appId)
-            .invoke(user.user, core)
+        core.features.list(application2.teamId, application2.appId)
+            .invoke(user.user, app)
             .shouldBeSuccess()
             .toList()
             .shouldContainExactlyInAnyOrder(toggle4)
@@ -132,8 +142,8 @@ class FeatureServiceTest: CoreTestDriver() {
 
     @Test
     fun `update feature - toggle not found`() {
-        UpdateFeature(application1.teamId, application1.appId, featureKey1, oldNewData)
-            .invoke(user.user, core)
+        core.features.update(application1.teamId, application1.appId, featureKey1, oldNewData)
+            .invoke(user.user, app)
             .shouldBeFailure(featureNotFound(application1.appId, featureKey1))
     }
 
@@ -141,8 +151,8 @@ class FeatureServiceTest: CoreTestDriver() {
     fun `update feature - application not found`() {
         val appId = AppId.random(core.random)
 
-        UpdateFeature(user.team.teamId, appId, featureKey1, oldNewData)
-            .invoke(user.user, core)
+        core.features.update(user.team.teamId, appId, featureKey1, oldNewData)
+            .invoke(user.user, app)
             .shouldBeFailure(applicationNotFound(appId))
     }
 
@@ -168,7 +178,7 @@ class FeatureServiceTest: CoreTestDriver() {
             extensions = emptyMap()
         )
 
-        UpdateFeature(
+        core.features.update(
             teamId = application1.teamId,
             appId = application1.appId,
             featureKey = featureKey2,
@@ -183,24 +193,27 @@ class FeatureServiceTest: CoreTestDriver() {
                 description = Update("new description"),
                 extensions = null
             )
-        ).invoke(user.user, core) shouldBeSuccess expected
+        ).invoke(user.user, app) shouldBeSuccess expected
 
-        core.features.list(application1.appId).toList()
+        core.features.list(application1.teamId, application1.appId)
+            .invoke(user.user, app)
+            .shouldBeSuccess()
+            .toList()
             .shouldContainExactlyInAnyOrder(toggle1, expected)
     }
 
     @Test
     fun `get feature - application not found`() {
         val appId = AppId.random(core.random)
-        GetFeature(user.team.teamId, appId, featureKey1)
-            .invoke(user.user, core)
+        core.features.get(user.team.teamId, appId, featureKey1)
+            .invoke(user.user, app)
             .shouldBeFailure(applicationNotFound(appId))
     }
 
     @Test
     fun `get feature - feature not found`() {
-        GetFeature(application1.teamId, application1.appId, featureKey1)
-            .invoke(user.user, core)
+        core.features.get(application1.teamId, application1.appId, featureKey1)
+            .invoke(user.user, app)
             .shouldBeFailure(featureNotFound(application1.appId, featureKey1))
     }
 
@@ -208,22 +221,22 @@ class FeatureServiceTest: CoreTestDriver() {
     fun `get feature - success`() {
         val toggle = createFeature(user, application1, featureKey1)
 
-        GetFeature(application1.teamId, application1.appId, featureKey1)
-            .invoke(user.user, core) shouldBeSuccess toggle
+        core.features.get(application1.teamId, application1.appId, featureKey1)
+            .invoke(user.user, app) shouldBeSuccess toggle
     }
 
     @Test
     fun `delete feature - application not found`() {
         val appId = AppId.random(core.random)
-        DeleteFeature(user.team.teamId, appId, featureKey1)
-            .invoke(user.user, core)
+        core.features.delete(user.team.teamId, appId, featureKey1)
+            .invoke(user.user, app)
             .shouldBeFailure(applicationNotFound(appId))
     }
 
     @Test
     fun `delete feature - feature not found`() {
-        DeleteFeature(application1.teamId, application1.appId, featureKey1)
-            .invoke(user.user, core)
+        core.features.delete(application1.teamId, application1.appId, featureKey1)
+            .invoke(user.user, app)
             .shouldBeFailure(featureNotFound(application1.appId, featureKey1))
     }
 
@@ -233,10 +246,13 @@ class FeatureServiceTest: CoreTestDriver() {
 
         val feature2 = createFeature(user, application1, featureKey2)
 
-        DeleteFeature(application1.teamId, application1.appId, featureKey1)
-            .invoke(user.user, core)
+        core.features.delete(application1.teamId, application1.appId, featureKey1)
+            .invoke(user.user, app)
             .shouldBeSuccess(feature1)
 
-        core.features.list(application1.appId).toList().shouldContainExactlyInAnyOrder(feature2)
+        core.features.list(application1.teamId, application1.appId)
+            .invoke(user.user, app)
+            .shouldBeSuccess()
+            .toList().shouldContainExactlyInAnyOrder(feature2)
     }
 }

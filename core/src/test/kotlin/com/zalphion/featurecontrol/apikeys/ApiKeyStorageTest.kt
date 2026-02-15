@@ -1,9 +1,10 @@
 package com.zalphion.featurecontrol.apikeys
 
-import com.zalphion.featurecontrol.CoreTestDriver
+import com.zalphion.featurecontrol.StorageTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.applications.ApplicationStorage
 import com.zalphion.featurecontrol.auth.EnginePrincipal
 import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.crypto.Base64String
@@ -19,23 +20,25 @@ import com.zalphion.featurecontrol.teams.TeamId
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class ApiKeyStorageTest: CoreTestDriver() {
+class ApiKeyStorageTest {
 
-    private val apiKeys = core.apiKeys
+    private val driver = StorageTestDriver()
+    private val applications = driver.create(ApplicationStorage)
+    private val apiKeys = driver.create(ApiKeyStorage)
 
     private val application = Application(
-        teamId = TeamId.random(core.random),
-        appId = AppId.random(core.random),
+        teamId = TeamId.random(driver.random),
+        appId = AppId.random(driver.random),
         appName = appName1,
         environments = listOf(dev, prod),
         extensions = emptyMap()
-    ).also(core.applications::plusAssign)
+    ).also(applications::plusAssign)
 
     private val principal1 = EnginePrincipal.of(application.appId, devName)
     private val principal2 = EnginePrincipal.of(application.appId, prodName)
 
     private val signing = Signing.hMacSha256(AppSecret.of("secret"))
-    private val encryption = Encryption.aesGcm(AppSecret.of("secret"), "encryption", core.random, null)
+    private val encryption = Encryption.aesGcm(AppSecret.of("secret"), "encryption", driver.random, null)
 
     private val apiKey1 = ApiKey.secureRandom()
     private val apiKey1Hash = signing(apiKey1)

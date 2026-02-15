@@ -1,9 +1,13 @@
 package com.zalphion.featurecontrol.emails
 
-import com.zalphion.featurecontrol.APP_NAME
 import com.zalphion.featurecontrol.members.MemberDetails
+import org.http4k.core.Uri
 
-fun FullEmailMessage.Companion.invitation(emails: Email, details: MemberDetails): FullEmailMessage {
+fun FullEmailMessage.Companion.invitation(
+    appName: String,
+    loginUri: Uri,
+    details: MemberDetails
+): FullEmailMessage {
     val invitedBy = details.member.invitedBy
 
     return FullEmailMessage(
@@ -12,12 +16,12 @@ fun FullEmailMessage.Companion.invitation(emails: Email, details: MemberDetails)
             subject = "You've been invited to join ${details.team.teamName}",
             textBody = """
             ${if (invitedBy != null) {
-                "${invitedBy.toEmailAddress()} has invited you to join ${details.team.teamName} on $APP_NAME."
+                "${invitedBy.toEmailAddress()} has invited you to join ${details.team.teamName} on $appName."
             } else {
                 "You've been invited to join ${details.team.teamName}."
             }}
             
-            To accept, log in at ${emails.loginUri} 
+            To accept, log in at $loginUri 
             
             ${
                 if (details.member.invitationExpiresOn != null) {

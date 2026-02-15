@@ -2,11 +2,9 @@ package com.zalphion.featurecontrol.web
 
 import com.zalphion.featurecontrol.teams.web.teamSelector
 import com.zalphion.featurecontrol.users.web.avatarView
-import com.zalphion.featurecontrol.APP_NAME
-import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.AppError
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.auth.Permissions
-import com.zalphion.featurecontrol.members.ListMembersForUser
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teamNotFound
 import com.zalphion.featurecontrol.teams.TeamId
@@ -36,6 +34,7 @@ import kotlin.collections.set
 import kotlin.collections.toList
 
 data class MainNavBar<T>(
+    val appName: String,
     val permissions: Permissions<User>,
     val memberships: List<MemberDetails>,
     val selectedTeam: T,
@@ -44,14 +43,14 @@ data class MainNavBar<T>(
 ) {
     companion object {
         fun get(
-            core: Core,
+            app: FeatureControl,
             permissions: Permissions<User>,
             teamId: TeamId,
             selected: PageSpec?
         ): Result4k<MainNavBar<MemberDetails>, AppError> {
             // TODO could maybe user the permissions object to determine this
-            val authorizedTeams = ListMembersForUser(permissions.principal.userId)
-                .invoke(permissions, core)
+            val authorizedTeams = app.core.members.list(permissions.principal.userId)
+                .invoke(permissions, app)
                 .onFailure { error(it) }
                 .toList()
 
@@ -60,24 +59,26 @@ data class MainNavBar<T>(
                 ?: return teamNotFound(teamId).asFailure()
 
             return MainNavBar(
+                appName = app.appName,
                 permissions = permissions,
                 memberships = authorizedTeams,
                 selectedTeam = team,
-                pages = core.getPages(teamId),
+                pages = app.getPages(teamId),
                 selectedPage = selected
             ).asSuccess()
         }
 
         fun get(
-            core: Core,
+            app: FeatureControl,
             permissions: Permissions<User>
         ): MainNavBar<MemberDetails?> {
-            val authorizedTeams = ListMembersForUser(permissions.principal.userId)
-                .invoke(permissions, core)
+            val authorizedTeams = app.core.members.list(permissions.principal.userId)
+                .invoke(permissions, app)
                 .onFailure { error(it) }
                 .toList()
 
             return MainNavBar(
+                appName = app.appName,
                 permissions = permissions,
                 memberships = authorizedTeams,
                 selectedTeam = null,
@@ -94,7 +95,7 @@ internal fun FlowContent.renderNavbar(model: MainNavBar<out MemberDetails?>) = w
         div("uk-navbar-left") {
             ul("uk-navbar-nav") {
                 div("uk-navbar-item uk-logo") {
-                    +APP_NAME
+                    +model.appName
                 }
                 for (page in pages) {
                     pageLink(page, selectedPage)

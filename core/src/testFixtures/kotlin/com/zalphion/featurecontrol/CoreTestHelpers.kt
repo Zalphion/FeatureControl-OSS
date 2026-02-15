@@ -2,7 +2,6 @@ package com.zalphion.featurecontrol
 
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.FeatureEnvironment
-import com.zalphion.featurecontrol.features.CreateFeature
 import com.zalphion.featurecontrol.features.FeatureCreateData
 import com.zalphion.featurecontrol.features.FeatureKey
 import com.zalphion.featurecontrol.features.FeatureUpdateData
@@ -10,13 +9,12 @@ import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.plugins.Extensions
-import com.zalphion.featurecontrol.applications.CreateApplication
 import com.zalphion.featurecontrol.applications.Environment
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.applications.ApplicationCreateData
 import com.zalphion.featurecontrol.applications.AppName
-import com.zalphion.featurecontrol.auth.Permissions
-import com.zalphion.featurecontrol.auth.teamMembership
+import com.zalphion.featurecontrol.configs.Property
+import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.users.EmailAddress
 import com.zalphion.featurecontrol.users.User
@@ -41,11 +39,11 @@ fun CoreTestDriver.createApplication(
     appName: AppName,
     environments: List<Environment> = listOf(dev, prod),
     extensions: Extensions = emptyMap()
-) = CreateApplication(
+) = core.applications.create(
     teamId = principal.team.teamId,
     data = ApplicationCreateData(appName, environments, extensions)
 )
-    .invoke(Permissions.teamMembership(principal.user, listOf(principal.team.teamId)), core)
+    .invoke(principal.user, app)
     .shouldBeSuccess()
 
 fun CoreTestDriver.createFeature(
@@ -60,7 +58,7 @@ fun CoreTestDriver.createFeature(
         prodName to mostlyOff
     ),
     extensions: Extensions = emptyMap()
-) = CreateFeature(
+) = core.features.create(
     teamId = application.teamId,
     appId = application.appId,
     data = FeatureCreateData(
@@ -72,8 +70,30 @@ fun CoreTestDriver.createFeature(
         extensions = extensions
     )
 )
-    .invoke(Permissions.teamMembership(principal.user, listOf(principal.team.teamId)), core)
+    .invoke(principal.user, app)
     .shouldBeSuccess()
+
+fun CoreTestDriver.updateConfigSpec(
+    principal: MemberDetails,
+    application: Application,
+    properties: Map<PropertyKey, Property>
+) = core.configs.updateSpec(
+    teamId = application.teamId,
+    appId = application.appId,
+    properties = properties
+).invoke(principal.user, app).shouldBeSuccess()
+
+fun CoreTestDriver.updateConfigEnvironment(
+    principal: MemberDetails,
+    application: Application,
+    environmentName: EnvironmentName,
+    values: Map<PropertyKey, String>
+) = core.configs.updateEnvironment(
+    teamId = application.teamId,
+    appId = application.appId,
+    environmentName = environmentName,
+    data = values
+).invoke(principal.user, app).shouldBeSuccess()
 
 fun UserService.create(
     emailAddress: EmailAddress,
@@ -85,13 +105,13 @@ fun UserService.create(
     photoUrl = photoUrl
 ))
 
-fun User.getMyTeam(core: Core): MemberDetails = core.members.list(userId)
+fun User.getMyTeam(core: Core): MemberDetails = core.memberStorage.list(userId)
     .find { it.invitedBy == null }
     .shouldNotBeNull()
     .let { MemberDetails(
         member = it,
         user = this,
-        team =core.teams[it.teamId].shouldNotBeNull()
+        team = core.teamStorage[it.teamId].shouldNotBeNull()
     ) }
 
 fun User.addTo(core: Core, team: Team) = Member(
@@ -100,9 +120,9 @@ fun User.addTo(core: Core, team: Team) = Member(
     invitedBy = null,
     invitationExpiresOn = null,
     extensions = emptyMap()
-).also(core.members::plusAssign)
+).also(core.memberStorage::plusAssign)
 
-fun <T: Any> ServiceAction<T>.invoke(user: User, core: Core): Result4k<T, AppError> {
-    val permissions = core.permissions.create(user.userId).shouldNotBeNull()
-    return invoke(permissions, core)
+fun <T: Any> ServiceAction<T>.invoke(user: User, app: FeatureControl): Result4k<T, AppError> {
+    val permissions = app.permissions.create(user.userId).shouldNotBeNull()
+    return invoke(permissions, app)
 }

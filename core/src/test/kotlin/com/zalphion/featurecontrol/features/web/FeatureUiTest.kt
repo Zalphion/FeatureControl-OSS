@@ -11,6 +11,7 @@ import com.zalphion.featurecontrol.featureKey2
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.idp1Email1
+import com.zalphion.featurecontrol.invoke
 import com.zalphion.featurecontrol.new
 import com.zalphion.featurecontrol.old
 import com.zalphion.featurecontrol.web.asUser
@@ -31,13 +32,13 @@ class FeatureUiTest: CoreTestDriver() {
     @RegisterExtension
     val playwright = playwright()
 
-    private val member = users.create(idp1Email1).shouldBeSuccess()
-    private val app = createApplication(member, appName1)
+    private val member = core.users.create(idp1Email1).shouldBeSuccess()
+    private val app1 = createApplication(member, appName1)
 
     @Test
     fun `list features - empty`(context: BrowserContext) {
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
             .application.features
             .shouldBeEmpty()
         }
@@ -45,8 +46,8 @@ class FeatureUiTest: CoreTestDriver() {
 
     @Test
     fun `new feature`(context: BrowserContext) {
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
             .application.newFeature { form ->
                 form.key = featureKey1
                 form.edit.description = "cool stuff"
@@ -67,9 +68,9 @@ class FeatureUiTest: CoreTestDriver() {
             }
         }
 
-        core.features[app.appId, featureKey1] shouldBe Feature(
+        core.features.get(app1.teamId, app1.appId, featureKey1).invoke(member.user, app) shouldBeSuccess Feature(
             teamId = member.team.teamId,
-            appId = app.appId,
+            appId = app1.appId,
             key = featureKey1,
             description = "cool stuff",
             variants = mapOf(old to "old stuff", new to "new stuff"),
@@ -81,17 +82,17 @@ class FeatureUiTest: CoreTestDriver() {
 
     @Test
     fun `edit feature`(context: BrowserContext) {
-        val feature1 = createFeature(member, app, featureKey1)
+        val feature1 = createFeature(member, app1, featureKey1)
         val feature2 = createFeature(
             principal = member,
-            application = app,
+            application = app1,
             featureKey = featureKey2,
             variants = mapOf(old to "old"),
             defaultVariant = old
         )
 
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
                 .application.select(feature2.key) { page ->
                     page.edit.let { feature ->
                         feature.description = "really cool stuff"
@@ -114,7 +115,7 @@ class FeatureUiTest: CoreTestDriver() {
                 }
         }
 
-        core.features[app.appId, feature2.key] shouldBe feature2.copy(
+        core.features.get(app1.teamId, app1.appId, feature2.key).invoke(member.user, app) shouldBeSuccess feature2.copy(
             description = "really cool stuff",
             variants = mapOf(old to "legacy", new to "modern"),
             defaultVariant = new
@@ -125,14 +126,14 @@ class FeatureUiTest: CoreTestDriver() {
     fun `remove variant`(context: BrowserContext) {
         val feature = createFeature(
             principal = member,
-            application = app,
+            application = app1,
             featureKey = featureKey1,
             defaultVariant = old,
             variants = mapOf(old to "old", new to "new")
         )
 
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
             .application.select(feature.key) { page ->
                 page.edit.variants
                     .find { it.name == old }
@@ -143,7 +144,7 @@ class FeatureUiTest: CoreTestDriver() {
             }
         }
 
-        core.features[app.appId, feature.key] shouldBe feature.copy(
+        core.features.get(app1.teamId, app1.appId, feature.key).invoke(member.user, app) shouldBeSuccess feature.copy(
             defaultVariant = new,
             variants = mapOf(new to "new")
         )
@@ -151,14 +152,14 @@ class FeatureUiTest: CoreTestDriver() {
 
     @Test
     fun `delete feature`(context: BrowserContext) {
-        val feature1 = createFeature(member, app, featureKey1)
-        val feature2 = createFeature(member, app, featureKey2)
+        val feature1 = createFeature(member, app1, featureKey1)
+        val feature2 = createFeature(member, app1, featureKey2)
 
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
                 .application.select(feature2.key)
                 .environments.more().delete().confirm { page ->
-                    page.application.name shouldBe app.appName
+                    page.application.name shouldBe app1.appName
                     page.application.selectedFeature.shouldBeNull()
                     page.application.features.shouldContainExactly(feature1.key)
                 }
@@ -169,14 +170,14 @@ class FeatureUiTest: CoreTestDriver() {
     fun `reset feature`(context: BrowserContext) {
         val feature = createFeature(
             principal = member,
-            application = app,
+            application = app1,
             featureKey = featureKey1,
             description = "lolcats",
             variants = mapOf(old to "old", new to "new")
         )
 
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
                 .application.select(feature.key) { page ->
                     page.edit.description = "foobar"
                     page.edit.newVariant { variant ->

@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teams.Team
@@ -22,7 +22,7 @@ import kotlin.collections.plus
 private const val FILTER_MODEL = "members_filter"
 
 fun FlowContent.membersView(
-    core: Core,
+    app: FeatureControl,
     team: Team,
     members: List<MemberDetails>,
     permissions: Permissions<User>
@@ -38,7 +38,7 @@ fun FlowContent.membersView(
             }
             div("uk-navbar-item") {
                 val modalId = "invite_member_modal_${team.teamId}"
-                core.render(this, InviteMemberModalComponent(team, modalId))
+                app.render(this, InviteMemberModalComponent(team, modalId))
                 button(type = ButtonType.button, classes = "uk-button uk-button-primary") {
                     ariaControls = modalId
                     ariaHasPopup = AriaPopup.Dialog
@@ -52,5 +52,5 @@ fun FlowContent.membersView(
         }
     }
 
-    core.render(this, MembersComponent(team, members, permissions, FILTER_MODEL))
+    app.render(this, MembersComponent(team, members, permissions, FILTER_MODEL))
 }

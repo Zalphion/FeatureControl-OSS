@@ -6,7 +6,7 @@ import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.MainNavBar
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.web.withRichMethod
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.web.TeamsComponent
@@ -40,7 +40,7 @@ import kotlinx.html.ul
 import org.http4k.core.Method
 import org.http4k.core.Uri
 
-fun Core.userPageComponent(
+fun FeatureControl.userPageComponent(
     permissions: Permissions<User>,
     navBar: MainNavBar<MemberDetails?>,
     messages: List<FlashMessageDto>,
@@ -59,7 +59,7 @@ fun Core.userPageComponent(
 }
 
 private fun FlowContent.teams(
-    core: Core,
+    app: FeatureControl,
     teams: List<MemberDetails>,
     permissions: Permissions<User>
 ) = section {
@@ -80,7 +80,7 @@ private fun FlowContent.teams(
         }
     }
 
-    core.render(this, TeamsComponent(teams, permissions))
+    app.render(this, TeamsComponent(teams, permissions))
 }
 
 private fun FlowContent.invitations(

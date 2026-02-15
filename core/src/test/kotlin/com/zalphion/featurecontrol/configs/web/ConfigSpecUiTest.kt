@@ -4,7 +4,6 @@ import com.microsoft.playwright.BrowserContext
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.booleanProperty
-import com.zalphion.featurecontrol.configs.ConfigSpec
 import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.create
 import com.zalphion.featurecontrol.createApplication
@@ -16,6 +15,7 @@ import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.prodName
 import com.zalphion.featurecontrol.secretProperty
 import com.zalphion.featurecontrol.strProperty
+import com.zalphion.featurecontrol.updateConfigSpec
 import com.zalphion.featurecontrol.web.asUser
 import com.zalphion.featurecontrol.web.playwright
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
@@ -34,8 +34,8 @@ class ConfigSpecUiTest: CoreTestDriver() {
     @RegisterExtension
     val playwright = playwright()
 
-    private val member = users.create(idp1Email1).shouldBeSuccess()
-    private val app = createApplication(
+    private val member = core.users.create(idp1Email1).shouldBeSuccess()
+    private val app1 = createApplication(
         principal = member,
         appName = appName1,
         environments = listOf(dev, prod)
@@ -43,8 +43,8 @@ class ConfigSpecUiTest: CoreTestDriver() {
 
     @Test
     fun `no properties`(context: BrowserContext) {
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName) { page ->
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName) { page ->
                 page.environments.options.shouldContainExactly(devName, prodName)
                 page.environments.selected.shouldBeNull()
                 page.properties.shouldBeEmpty()
@@ -54,8 +54,8 @@ class ConfigSpecUiTest: CoreTestDriver() {
 
     @Test
     fun `add properties`(context: BrowserContext) {
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName) { page ->
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName) { page ->
                 page.newProperty { prop ->
                     prop.key = strProperty.first
                     prop.type = PropertyTypeDto.String
@@ -88,14 +88,14 @@ class ConfigSpecUiTest: CoreTestDriver() {
 
     @Test
     fun `edit properties`(context: BrowserContext) {
-        core.configs += ConfigSpec(
-            teamId = app.teamId,
-            appId = app.appId,
+        updateConfigSpec(
+            principal = member,
+            application = app1,
             properties = mapOf(strProperty, secretProperty, numberProperty, booleanProperty)
         )
 
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName) { page ->
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName) { page ->
                 page.properties
                     .find { it.key == secretProperty.first }
                     .shouldNotBeNull()
@@ -124,14 +124,14 @@ class ConfigSpecUiTest: CoreTestDriver() {
 
     @Test
     fun `reset properties`(context: BrowserContext) {
-        core.configs += ConfigSpec(
-            teamId = app.teamId,
-            appId = app.appId,
+        updateConfigSpec(
+            principal = member,
+            application = app1,
             properties = mapOf(strProperty, secretProperty, numberProperty, booleanProperty)
         )
 
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName) { page ->
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName) { page ->
                 page.properties
                     .find { it.key == secretProperty.first }
                     .shouldNotBeNull()

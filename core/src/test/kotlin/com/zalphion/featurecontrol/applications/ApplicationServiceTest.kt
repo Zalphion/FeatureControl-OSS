@@ -26,18 +26,20 @@ import org.junit.jupiter.api.Test
 
 class ApplicationServiceTest: CoreTestDriver() {
 
-    private val principal = users.create(idp1Email1).shouldBeSuccess()
+    private val principal = core.users.create(idp1Email1).shouldBeSuccess()
     private val user = principal.user
     private val team = principal.team
 
     @Test
     fun `create application - success`() {
-        val expected = CreateApplication(
+        val expected = core.applications.create(
             teamId = team.teamId,
             data = ApplicationCreateData(appName1, listOf(dev, prod), emptyMap())
-        ).invoke(user, core).shouldBeSuccess()
+        ).invoke(user, app).shouldBeSuccess()
 
-        core.applications.list(team.teamId).toList().shouldContainExactlyInAnyOrder(expected)
+        core.applications.list(team.teamId)
+            .invoke(user, app).shouldBeSuccess()
+            .toList().shouldContainExactlyInAnyOrder(expected)
     }
 
     @Test
@@ -45,12 +47,15 @@ class ApplicationServiceTest: CoreTestDriver() {
         val app1 = createApplication(principal, appName1)
         val app2 = createApplication(principal, appName1)
 
-        core.applications.list(team.teamId).toList().shouldContainExactlyInAnyOrder(app1, app2)
+        core.applications.list(team.teamId)
+            .invoke(user, app).shouldBeSuccess()
+            .toList().shouldContainExactlyInAnyOrder(app1, app2)
     }
 
     @Test
     fun `list applications - empty`() {
-        ListApplications(team.teamId).invoke(user, core)
+        core.applications.list(team.teamId)
+            .invoke(user, app)
             .shouldBeSuccess()
             .toList().shouldBeEmpty()
     }
@@ -61,11 +66,11 @@ class ApplicationServiceTest: CoreTestDriver() {
         val app2 = createApplication(principal, appName2)
         val app3 = createApplication(principal, appName3)
 
-        val page1 = ListApplications(team.teamId).invoke(user, core).shouldBeSuccess()[null]
+        val page1 = core.applications.list(team.teamId).invoke(user, app).shouldBeSuccess()[null]
         page1.items.shouldHaveSize(2)
         page1.next.shouldNotBeNull()
 
-        val page2 = ListApplications(team.teamId).invoke(user, core).shouldBeSuccess()[page1.next]
+        val page2 = core.applications.list(team.teamId).invoke(user, app).shouldBeSuccess()[page1.next]
         page2.items.shouldHaveSize(1)
         page2.next.shouldBeNull()
 
@@ -75,7 +80,7 @@ class ApplicationServiceTest: CoreTestDriver() {
     @Test
     fun `delete application - not found`() {
         val appId = AppId.random(core.random)
-        DeleteApplication(team.teamId, appId).invoke(user, core).shouldBeFailure(applicationNotFound(appId))
+        core.applications.delete(team.teamId, appId).invoke(user, app).shouldBeFailure(applicationNotFound(appId))
     }
 
     @Test
@@ -83,43 +88,49 @@ class ApplicationServiceTest: CoreTestDriver() {
         val app1 = createApplication(principal, appName1)
         val app2 = createApplication(principal, appName2)
 
-        DeleteApplication(app1.teamId, app1.appId).invoke(user, core).shouldBeSuccess()
+        core.applications.delete(app1.teamId, app1.appId).invoke(user, app).shouldBeSuccess()
 
-        core.applications.list(team.teamId).toList().shouldContainExactlyInAnyOrder(app2)
+        core.applications.list(team.teamId)
+            .invoke(user, app).shouldBeSuccess()
+            .toList().shouldContainExactlyInAnyOrder(app2)
     }
 
     @Test
     fun `delete application - still has features`() {
-        val app = createApplication(principal, appName1)
+        val app1 = createApplication(principal, appName1)
 
-        createFeature(principal, app, featureKey1)
+        createFeature(principal, app1, featureKey1)
 
-        DeleteApplication(app.teamId, app.appId)
-            .invoke(user, core)
+        core.applications.delete(app1.teamId, app1.appId)
+            .invoke(user, app)
             .shouldBeFailure(
-                applicationNotEmpty(app.appId)
+                applicationNotEmpty(app1.appId)
         )
     }
 
     @Test
     fun `update application - doesn't delete features`() {
-        val app = createApplication(principal, appName1)
-        createFeature(principal, app, featureKey1)
-        core.features.list(app.appId).toList().shouldHaveSize(1)
+        val app1 = createApplication(principal, appName1)
+        createFeature(principal, app1, featureKey1)
+        core.features.list(app1.teamId, app1.appId)
+            .invoke(user, app).shouldBeSuccess()
+            .toList().shouldHaveSize(1)
 
-        UpdateApplication(
+        core.applications.update(
             teamId = team.teamId,
-            appId = app.appId,
+            appId = app1.appId,
             data = ApplicationUpdateData(
                 appName = appName2,
                 environments = listOf(dev, staging, prod),
                 extensions = emptyMap()
             )
-        ).invoke(user, core) shouldBeSuccess app.copy(
+        ).invoke(user, app) shouldBeSuccess app1.copy(
             appName = appName2,
             environments = listOf(dev, staging, prod)
         )
 
-        core.features.list(app.appId).toList().shouldHaveSize(1)
+        core.features.list(app1.teamId, app1.appId)
+            .invoke(user, app).shouldBeSuccess()
+            .toList().shouldHaveSize(1)
     }
 }

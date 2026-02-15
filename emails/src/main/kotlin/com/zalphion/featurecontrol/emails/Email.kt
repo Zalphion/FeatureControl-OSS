@@ -12,16 +12,18 @@ import org.http4k.core.Uri
 
 fun Plugin.Companion.email(
     emails: EmailSender,
+    appName: String,
     loginUri: Uri,
-) = Email(emails, loginUri).toFactory()
+) = Email(emails, loginUri, appName).toFactory()
 
 class Email internal constructor(
-    val emails: EmailSender,
-    val loginUri: Uri
+    private val emails: EmailSender,
+    private val loginUri: Uri,
+    private val appName: String
 ): Plugin {
     override fun onEvent(event: Event): Result4k<Unit, AppError> {
         val message = when(event) {
-            is MemberCreatedEvent -> FullEmailMessage.invitation(this, event.member)
+            is MemberCreatedEvent -> FullEmailMessage.invitation(appName, loginUri, event.member)
             else -> null
         } ?: return Unit.asSuccess()
 

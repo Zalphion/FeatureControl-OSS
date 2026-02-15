@@ -8,7 +8,6 @@ import com.zalphion.featurecontrol.idp1Email1
 import com.zalphion.featurecontrol.idp1Email4
 import com.zalphion.featurecontrol.idp2Email1
 import com.zalphion.featurecontrol.invoke
-import com.zalphion.featurecontrol.members.InviteUser
 import com.zalphion.featurecontrol.members.MemberCreateData
 import com.zalphion.featurecontrol.web.asUser
 import com.zalphion.featurecontrol.web.playwright
@@ -25,14 +24,14 @@ import org.junit.jupiter.api.extension.RegisterExtension
 @Tag("playwright")
 class UserSettingsUiTest: CoreTestDriver() {
 
-    private val member = users.create(idp1Email1).shouldBeSuccess()
+    private val member = core.users.create(idp1Email1).shouldBeSuccess()
 
     @RegisterExtension
     val playwright = playwright()
 
     @Test
     fun `show blank page`(context: BrowserContext) {
-        context.asUser(core, member.user) { page ->
+        context.asUser(app, member.user) { page ->
             page.mainNavBar.user.username shouldBe null
             page.mainNavBar.user.email shouldBe idp1Email1
 
@@ -50,17 +49,17 @@ class UserSettingsUiTest: CoreTestDriver() {
 
     @Test
     fun `show additional memberships and invitations`(context: BrowserContext) {
-        val otherMember1 = users.create(idp2Email1).shouldBeSuccess()
+        val otherMember1 = core.users.create(idp2Email1).shouldBeSuccess()
         member.user.addTo(core, otherMember1.team)
 
-        val otherMember2 = users.create(idp1Email4).shouldBeSuccess()
-        val invitation = InviteUser(
+        val otherMember2 = core.users.create(idp1Email4).shouldBeSuccess()
+        val invitation = core.members.invite(
             teamId = otherMember2.team.teamId,
             sender = otherMember2.user.userId,
             data = MemberCreateData(member.user.emailAddress, emptyMap())
-        ).invoke(otherMember2.user, core).shouldBeSuccess()
+        ).invoke(otherMember2.user, app).shouldBeSuccess()
 
-        context.asUser(core, member.user) { page ->
+        context.asUser(app, member.user) { page ->
             page.mainNavBar.user.open().goToSettings { settings ->
                 settings.memberships
                     .map { it.teamName }
@@ -86,10 +85,10 @@ class UserSettingsUiTest: CoreTestDriver() {
 
     @Test
     fun `leave team`(context: BrowserContext) {
-        val otherMember = users.create(idp1Email4).shouldBeSuccess()
+        val otherMember = core.users.create(idp1Email4).shouldBeSuccess()
         member.user.addTo(core, otherMember.team)
 
-        context.asUser(core, member.user) { page ->
+        context.asUser(app, member.user) { page ->
             page.mainNavBar.user.open().goToSettings { settings ->
                 settings.memberships
                     .find { it.teamName == otherMember.team.teamName }
@@ -103,14 +102,14 @@ class UserSettingsUiTest: CoreTestDriver() {
 
     @Test
     fun `accept invitation`(context: BrowserContext) {
-        val otherMember = users.create(idp1Email4).shouldBeSuccess()
-        InviteUser(
+        val otherMember = core.users.create(idp1Email4).shouldBeSuccess()
+        core.members.invite(
             teamId = otherMember.team.teamId,
             sender = otherMember.user.userId,
             data = MemberCreateData(member.user.emailAddress, emptyMap())
-        ).invoke(otherMember.user, core).shouldBeSuccess()
+        ).invoke(otherMember.user, app).shouldBeSuccess()
 
-        context.asUser(core, member.user) { page ->
+        context.asUser(app, member.user) { page ->
             page.mainNavBar.user.open().goToSettings { settings ->
                 settings.invitations
                     .find { it.teamName == otherMember.team.teamName }

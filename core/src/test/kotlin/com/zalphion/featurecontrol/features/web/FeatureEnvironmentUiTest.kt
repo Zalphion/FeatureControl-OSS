@@ -36,8 +36,8 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
     @RegisterExtension
     val playwright = playwright()
 
-    private val member = users.create(idp1Email1).shouldBeSuccess()
-    private val app = createApplication(
+    private val member = core.users.create(idp1Email1).shouldBeSuccess()
+    private val app1 = createApplication(
         principal = member,
         appName = appName1,
         environments = listOf(dev, prod)
@@ -45,7 +45,7 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
 
     private val feature = createFeature(
         principal = member,
-        application = app,
+        application = app1,
         featureKey = featureKey1,
         variants = mapOf(old to "old", new to "new"),
         environments = mapOf(
@@ -72,13 +72,13 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
     fun `no variants`(context: BrowserContext) {
         val emptyFeature = createFeature(
             principal = member,
-            application = app,
+            application = app1,
             featureKey = featureKey2,
             variants = emptyMap()
         )
 
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
             .application.select(emptyFeature.key)
             .environments.options.shouldBeEmpty()
         }
@@ -86,8 +86,8 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
 
     @Test
     fun `show environment`(context: BrowserContext) {
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
             .application.select(feature.key)
             .environments.select(devName) { page ->
                 page.uriEnvironment shouldBe devName
@@ -135,8 +135,8 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
 
     @Test
     fun `update environment`(context: BrowserContext) {
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
                 .application.select(feature.key)
                 .environments.select(devName) { page ->
                     page.variants[old].shouldNotBeNull().also { variant ->
@@ -161,8 +161,8 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
 
     @Test
     fun `reset environment`(context: BrowserContext) {
-        context.asUser(core, member.user) { page ->
-            page.applications.select(app.appName)
+        context.asUser(app, member.user) { page ->
+            page.applications.select(app1.appName)
                 .application.select(feature.key)
                 .environments.select(prodName) { page ->
                     page.variants[old].shouldNotBeNull().also { variant ->

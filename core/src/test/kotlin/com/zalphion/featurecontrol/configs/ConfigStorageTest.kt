@@ -1,10 +1,11 @@
 package com.zalphion.featurecontrol.configs
 
-import com.zalphion.featurecontrol.CoreTestDriver
+import com.zalphion.featurecontrol.StorageTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.appName2
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.applications.ApplicationStorage
 import com.zalphion.featurecontrol.booleanProperty
 import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.crypto.Encryption
@@ -18,34 +19,40 @@ import com.zalphion.featurecontrol.secretProperty
 import com.zalphion.featurecontrol.staging
 import com.zalphion.featurecontrol.strProperty
 import com.zalphion.featurecontrol.teams.TeamId
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class ConfigStorageTest: CoreTestDriver() {
+class ConfigStorageTest {
 
-    private val encryption = Encryption.aesGcm(AppSecret.of("secret"), "encryption", core.random, null)
+    private val driver = StorageTestDriver()
+    private val encryption = Encryption.aesGcm(AppSecret.of("secret"), "encryption", driver.random, null)
+
+    private val applications = driver.create(ApplicationStorage)
 
     private val application1 = Application(
-        teamId = TeamId.random(core.random),
-        appId = AppId.random(core.random),
+        teamId = TeamId.random(driver.random),
+        appId = AppId.random(driver.random),
         appName = appName1,
         environments = listOf(dev, prod),
         extensions = emptyMap()
-    ).also(core.applications::plusAssign)
+    ).also(applications::plusAssign)
 
     private val application2 = Application(
-        teamId = TeamId.random(core.random),
-        appId = AppId.random(core.random),
+        teamId = TeamId.random(driver.random),
+        appId = AppId.random(driver.random),
         appName = appName2,
         environments = listOf(dev, staging, prod),
         extensions = emptyMap()
-    ).also(core.applications::plusAssign)
+    ).also(applications::plusAssign)
 
-    private val testObj = core.configs
+    private val specs = driver.create(ConfigSpecStorage)
+    private val environments = driver.create(ConfigEnvironmentStorage)
 
     @Test
     fun `get properties - missing`() {
-        testObj[application1.teamId, application1.appId] shouldBe null
+        specs[application1.teamId, application1.appId] shouldBe null
     }
 
     @Test
@@ -54,16 +61,16 @@ class ConfigStorageTest: CoreTestDriver() {
             teamId = application1.teamId,
             appId = application1.appId,
             properties = mapOf(strProperty, numberProperty, booleanProperty, secretProperty)
-        ).also(testObj::plusAssign)
+        ).also(specs::plusAssign)
 
         val config2 = ConfigSpec(
             teamId = application2.teamId,
             appId = application2.appId,
             properties = mapOf(strProperty)
-        ).also(testObj::plusAssign)
+        ).also(specs::plusAssign)
 
-        testObj[application1.teamId, application1.appId] shouldBe config1
-        testObj[application2.teamId, application2.appId] shouldBe config2
+        specs[application1.teamId, application1.appId] shouldBe config1
+        specs[application2.teamId, application2.appId] shouldBe config2
     }
 
     @Test
@@ -73,9 +80,9 @@ class ConfigStorageTest: CoreTestDriver() {
             appId = application1.appId,
             properties = emptyMap()
         )
-        testObj += properties
+        specs += properties
 
-        testObj[application1.teamId, application1.appId] shouldBe properties
+        specs[application1.teamId, application1.appId] shouldBe properties
     }
 
     @Test
@@ -84,13 +91,13 @@ class ConfigStorageTest: CoreTestDriver() {
             teamId = application1.teamId,
             appId = application1.appId,
             properties = mapOf(strProperty)
-        ).also(testObj::plusAssign)
+        ).also(specs::plusAssign)
 
         val updated = properties.copy(
             properties = mapOf(strProperty, numberProperty, booleanProperty, secretProperty),
-        ).also(testObj::plusAssign)
+        ).also(specs::plusAssign)
 
-        testObj[application1.teamId, application1.appId] shouldBe updated
+        specs[application1.teamId, application1.appId] shouldBe updated
     }
 
     @Test
@@ -105,15 +112,15 @@ class ConfigStorageTest: CoreTestDriver() {
                 booleanProperty.first to "true",
                 secretProperty.first to encryption.encrypt("lolcats").decodeToString(),
             )
-        ).also(testObj::plusAssign)
+        ).also(environments::plusAssign)
 
-        testObj[application1.appId, devName] shouldBe values
-        testObj[application1.appId, prodName] shouldBe null
+        environments[application1.appId, devName] shouldBe values
+        environments[application1.appId, prodName] shouldBe null
     }
 
     @Test
     fun `get values - not found`() {
-        testObj[application1.appId, devName] shouldBe null
+        environments[application1.appId, devName] shouldBe null
     }
 
     @Test
@@ -125,30 +132,30 @@ class ConfigStorageTest: CoreTestDriver() {
             values = mapOf(
                 strProperty.first to "foo",
             )
-        ).also(testObj::plusAssign)
+        ).also(environments::plusAssign)
 
         val updated = original.copy(
             values = mapOf(
                 numberProperty.first to "123",
                 booleanProperty.first to "true",
             )
-        ).also(testObj::plusAssign)
+        ).also(environments::plusAssign)
 
-        testObj[application1.appId, devName] shouldBe updated
+        environments[application1.appId, devName] shouldBe updated
     }
 
     @Test
     fun `delete properties - not found`() {
-        testObj.delete(application1.teamId, application1.appId)
+        specs.delete(application1.teamId, application1.appId)
     }
 
     @Test
-    fun `delete properties - deletes values too`() {
+    fun `delete properties - doesn't delete values`() {
         ConfigSpec(
             teamId = application1.teamId,
             appId = application1.appId,
             properties = mapOf(strProperty)
-        ).also(testObj::plusAssign)
+        ).also(specs::plusAssign)
 
         ConfigEnvironment(
             teamId = application1.teamId,
@@ -157,17 +164,17 @@ class ConfigStorageTest: CoreTestDriver() {
             values = mapOf(
                 strProperty.first to "foo"
             )
-        )
+        ).also(environments::plusAssign)
 
-        testObj.delete(application1.teamId, application1.appId)
+        specs.delete(application1.teamId, application1.appId)
 
-        testObj[application1.teamId, application1.appId] shouldBe null
-        testObj[application1.appId, devName] shouldBe null
+        specs[application1.teamId, application1.appId].shouldBeNull()
+        environments[application1.appId, devName].shouldNotBeNull()
     }
 
     @Test
     fun `delete values - not found`() {
-        testObj.delete(application1.appId, devName)
+        environments.delete(application1.appId, devName)
     }
 
     @Test
@@ -176,7 +183,7 @@ class ConfigStorageTest: CoreTestDriver() {
             teamId = application1.teamId,
             appId = application1.appId,
             properties = mapOf(strProperty)
-        ).also(testObj::plusAssign)
+        ).also(specs::plusAssign)
 
         ConfigEnvironment(
             teamId = application1.teamId,
@@ -185,10 +192,10 @@ class ConfigStorageTest: CoreTestDriver() {
             values = mapOf(
                 strProperty.first to "foo"
             )
-        ).also(testObj::plusAssign)
+        ).also(environments::plusAssign)
 
-        testObj.delete(application1.appId, devName)
-        testObj[application1.appId, devName] shouldBe null
-        testObj[application1.teamId, application1.appId] shouldBe config
+        environments.delete(application1.appId, devName)
+        environments[application1.appId, devName] shouldBe null
+        specs[application1.teamId, application1.appId] shouldBe config
     }
 }

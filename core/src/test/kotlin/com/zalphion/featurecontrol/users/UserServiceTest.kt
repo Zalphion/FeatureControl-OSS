@@ -37,7 +37,7 @@ class UserServiceTest: CoreTestDriver() {
             )
         )
 
-        users.create(
+        core.users.create(
             UserCreateData(
                 emailAddress = idp1Email1,
                 userName = "User One",
@@ -45,14 +45,14 @@ class UserServiceTest: CoreTestDriver() {
             )
         ) shouldBeSuccess expected
 
-        core.users[expected.user.userId] shouldBe expected.user
-        core.members[expected.member.teamId, expected.member.userId] shouldBe expected.member
-        core.teams[expected.member.teamId] shouldBe expected.team
+        core.userStorage[expected.user.userId] shouldBe expected.user
+        core.memberStorage[expected.member.teamId, expected.member.userId] shouldBe expected.member
+        core.teamStorage[expected.member.teamId] shouldBe expected.team
     }
 
     @Test
     fun `create user - already exists`() {
-        users.create(idp1Email1).shouldBeSuccess()
-        users.create(idp1Email1) shouldBeFailure userAlreadyExists(idp1Email1)
+        core.users.create(idp1Email1).shouldBeSuccess()
+        core.users.create(idp1Email1) shouldBeFailure userAlreadyExists(idp1Email1)
     }
 }

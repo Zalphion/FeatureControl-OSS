@@ -1,16 +1,10 @@
 package com.zalphion.featurecontrol.members.web
 
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.teams.web.TeamPageComponent
 import com.zalphion.featurecontrol.teams.web.teamPage
-import com.zalphion.featurecontrol.members.AcceptInvitation
-import com.zalphion.featurecontrol.members.InviteUser
-import com.zalphion.featurecontrol.members.ListMembersForTeam
 import com.zalphion.featurecontrol.members.MemberCreateData
 import com.zalphion.featurecontrol.members.MemberUpdateData
-import com.zalphion.featurecontrol.members.RemoveMember
-import com.zalphion.featurecontrol.members.ResendInvitation
-import com.zalphion.featurecontrol.members.UpdateMember
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.PageSpec
 import com.zalphion.featurecontrol.web.flash.messages
@@ -36,11 +30,11 @@ import org.http4k.core.with
 import org.http4k.lens.location
 import kotlin.collections.toList
 
-internal fun Core.showMembers(): HttpHandler = fn@{ request ->
+internal fun FeatureControl.showMembers(): HttpHandler = fn@{ request ->
     val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
 
-    val members = ListMembersForTeam(teamId)
+    val members = core.members.list(teamId)
         .invoke(permissions, this)
         .onFailure { return@fn request.toIndex().withMessage(it.reason) }
         .toList()
@@ -55,11 +49,11 @@ internal fun Core.showMembers(): HttpHandler = fn@{ request ->
     ))
 }
 
-internal fun Core.acceptInvitation(): HttpHandler = { request ->
+internal fun FeatureControl.acceptInvitation(): HttpHandler = { request ->
     val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
 
-    AcceptInvitation(teamId, permissions.principal.userId)
+    core.members.acceptInvitation(teamId, permissions.principal.userId)
         .invoke(permissions, this)
         .map {
             Response(Status.SEE_OTHER)
@@ -73,12 +67,12 @@ internal fun Core.acceptInvitation(): HttpHandler = { request ->
         }
 }
 
-internal fun Core.updateMember(): HttpHandler = { request ->
+internal fun FeatureControl.updateMember(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
-    UpdateMember(
+    core.members.update(
         teamId = teamId,
         userId = userId,
         data = extract<MemberUpdateData>(request)
@@ -94,12 +88,12 @@ internal fun Core.updateMember(): HttpHandler = { request ->
         }
 }
 
-internal fun Core.deleteMember(): HttpHandler = { request ->
+internal fun FeatureControl.deleteMember(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
-    RemoveMember(teamId, userId)
+    core.members.remove(teamId, userId)
         .invoke(principal, this)
         .map {
             Response(Status.SEE_OTHER)
@@ -112,12 +106,12 @@ internal fun Core.deleteMember(): HttpHandler = { request ->
         }
 }
 
-internal fun Core.resendInvitation(): HttpHandler = { request ->
+internal fun FeatureControl.resendInvitation(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
-    ResendInvitation(teamId, userId).invoke(principal, this).map {
+    core.members.resendInvitation(teamId, userId).invoke(principal, this).map {
         Response(Status.SEE_OTHER)
             .location(referrerLens(request))
             .withSuccess("Invitation resent")
@@ -128,11 +122,11 @@ internal fun Core.resendInvitation(): HttpHandler = { request ->
     }
 }
 
-internal fun Core.createMember(): HttpHandler = { request ->
+internal fun FeatureControl.createMember(): HttpHandler = { request ->
     val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
 
-    val result = InviteUser(
+    val result = core.members.invite(
         teamId = teamId,
         sender = permissions.principal.userId,
         data = extract<MemberCreateData>(request)

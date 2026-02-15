@@ -1,25 +1,23 @@
 package com.zalphion.featurecontrol.teams
 
-import com.zalphion.featurecontrol.Core
-import com.zalphion.featurecontrol.AppError
 import com.zalphion.featurecontrol.members.Member
-import com.zalphion.featurecontrol.ActionAuth
-import com.zalphion.featurecontrol.ServiceAction
-import com.zalphion.featurecontrol.forbidden
+import com.zalphion.featurecontrol.members.MemberStorage
+import com.zalphion.featurecontrol.preAuth
 import com.zalphion.featurecontrol.users.UserId
-import dev.forkhandles.result4k.Result4k
-import dev.forkhandles.result4k.asFailure
 import dev.forkhandles.result4k.asSuccess
 import dev.forkhandles.result4k.map
-import dev.forkhandles.result4k.peek
+import kotlin.random.Random
 
-class CreateTeam(
-    val ownerId: UserId,
-    val data: TeamCreateUpdateData
-): ServiceAction<Team>({ _, permissions -> if (permissions.teamCreate()) Unit.asSuccess() else forbidden.asFailure() }) {
-    override fun execute(core: Core): Result4k<Team, AppError> {
+class TeamService(
+    private val random: Random,
+    private val teams: TeamStorage,
+    private val members: MemberStorage
+) {
+    fun create(ownerId: UserId, data: TeamCreateUpdateData) = preAuth {
+        it.teamCreate()
+    }.map {
         val team = Team(
-            teamId = TeamId.random(core.random),
+            teamId = TeamId.random(random),
             teamName = data.teamName,
         )
         val member = Member(
@@ -30,19 +28,17 @@ class CreateTeam(
             extensions = emptyMap()
         )
 
-        core.teams += team
-        core.members += member
+        teams += team
+        members += member
 
-        return team.asSuccess()
+        team
     }
-}
 
-class UpdateTeam(
-    val teamId: TeamId,
-    val data: TeamCreateUpdateData
-): ServiceAction<Team>(ActionAuth.byTeam(teamId, {it.teamUpdate(teamId)})) {
-    override fun execute(core: Core) = core
-        .teams.getOrFail(teamId)
-        .map { it.copy(teamName = data.teamName) }
-        .peek(core.teams::plusAssign)
+    fun update(teamId: TeamId, data: TeamCreateUpdateData) = preAuth {
+        it.teamUpdate(teamId)
+    }.flatMap {
+        teams.getOrFail(teamId).map { team ->
+            teams += team.copy(teamName = data.teamName)
+        }
+    }
 }

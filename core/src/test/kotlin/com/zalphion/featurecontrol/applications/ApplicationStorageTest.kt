@@ -1,15 +1,12 @@
 package com.zalphion.featurecontrol.applications
 
-import com.zalphion.featurecontrol.CoreTestDriver
+import com.zalphion.featurecontrol.StorageTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.appName2
 import com.zalphion.featurecontrol.appName3
 import com.zalphion.featurecontrol.dev
 import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.staging
-import com.zalphion.featurecontrol.storage.PageSize
-import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.storage.h2db.h2DbInMemory
 import com.zalphion.featurecontrol.teams.TeamId
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -19,14 +16,15 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import kotlin.collections.plus
 
-class ApplicationStorageTest: CoreTestDriver(storageDriver = StorageDriver.h2DbInMemory(PageSize.of(2))) {
+class ApplicationStorageTest {
+    private val driver = StorageTestDriver()
 
-    private val applications = core.applications
+    private val applications = driver.create(ApplicationStorage)
     private val teamId = TeamId.of("team1234")
 
     private val application1 = Application(
         teamId = teamId,
-        appId = AppId.random(core.random),
+        appId = AppId.random(driver.random),
         appName = appName1,
         environments = listOf(dev, prod),
         extensions = emptyMap()
@@ -34,7 +32,7 @@ class ApplicationStorageTest: CoreTestDriver(storageDriver = StorageDriver.h2DbI
 
     private val application2 = Application(
         teamId = teamId,
-        appId = AppId.random(core.random),
+        appId = AppId.random(driver.random),
         appName = appName2,
         environments = listOf(dev, prod),
         extensions = emptyMap()
@@ -42,7 +40,7 @@ class ApplicationStorageTest: CoreTestDriver(storageDriver = StorageDriver.h2DbI
 
     private val  application3 = Application(
         teamId = teamId,
-        appId = AppId.random(core.random),
+        appId = AppId.random(driver.random),
         appName = appName3,
         environments = listOf(dev, prod),
         extensions = emptyMap()
@@ -73,7 +71,7 @@ class ApplicationStorageTest: CoreTestDriver(storageDriver = StorageDriver.h2DbI
 
     @Test
     fun `get application - not found`() {
-        applications[teamId, AppId.random(core.random)] shouldBe null
+        applications[teamId, AppId.random(driver.random)] shouldBe null
     }
 
     @Test

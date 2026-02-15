@@ -10,7 +10,7 @@ import com.zalphion.featurecontrol.web.template
 import com.zalphion.featurecontrol.web.tr
 import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.web.withRichMethod
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.ButtonType
@@ -42,7 +42,7 @@ class NewFeatureModalComponent(
 ) {
     companion object {
         fun core(
-            core: Core,
+            app: FeatureControl,
             extraControls: FlowContent.() -> Unit = {}
         ) = Component<NewFeatureModalComponent> { flow, data ->
             flow.div("uk-modal uk-modal-container") {
@@ -80,7 +80,7 @@ class NewFeatureModalComponent(
                             }
 
                             editControls(
-                                core = core,
+                                app = app,
                                 idPrefix = "new-feature",
                                 description = "",
                                 variants = emptyMap(),
@@ -102,7 +102,7 @@ class NewFeatureModalComponent(
 class FeatureComponent(val application: Application, val feature: Feature) {
     companion object {
         fun core(
-            core: Core,
+            app: FeatureControl,
             extraControls: FlowContent.(FeatureComponent) -> Unit = {}
         ) = Component<FeatureComponent> { flow, data ->
             val feature = data.feature
@@ -112,7 +112,7 @@ class FeatureComponent(val application: Application, val feature: Feature) {
                     withRichMethod(Method.PUT)
                     editControls(
                         idPrefix = "feature-${feature.key}",
-                        core = core,
+                        app = app,
                         description = feature.description,
                         variants = feature.variants,
                         defaultVariant = feature.defaultVariant,
@@ -140,7 +140,7 @@ private fun Map<Variant, String>.toViewModel() = map {
 }
 
 private fun FlowContent.editControls(
-    core: Core,
+    app: FeatureControl,
     description: String,
     variants: Map<Variant, String>,
     defaultVariant: Variant?,
@@ -152,7 +152,7 @@ private fun FlowContent.editControls(
         ?: listOf(VariantViewModel("", ""))
 
     attributes["x-data"] = $$"""{
-        variants: $${core.json.asFormatString(variantsViewModel)},
+        variants: $${app.core.json.asFormatString(variantsViewModel)},
         defaultIndex: $${variantsViewModel.indexOfFirst { it.name == defaultVariant?.value }.coerceAtLeast(0)},
         init() {
             this.$watch('variants', (list) => {

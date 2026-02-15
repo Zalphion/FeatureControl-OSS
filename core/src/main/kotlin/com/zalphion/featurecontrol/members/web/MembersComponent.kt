@@ -1,6 +1,7 @@
 package com.zalphion.featurecontrol.members.web
 
 import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
@@ -38,7 +39,7 @@ class MembersComponent(
 ) {
     companion object {
         fun core(
-            core: Core,
+            app: FeatureControl,
             extraColumnsFn: (MembersComponent) -> List<Pair<String, TD.(MemberDetails) -> Unit>> = { emptyList() },
             extraActionsFn: (MembersComponent) -> List<LI.(MemberDetails) -> Unit> = { emptyList() }
         ) = Component<MembersComponent> { flow, data ->
@@ -66,12 +67,12 @@ class MembersComponent(
                                     attributes["x-if"] = "'$searchTerms'.includes(${data.filterModel}.toLowerCase())"
 
                                     tr {
-                                        memberRow(core, data.permissions, details, extraColumns, extraActions)
+                                        memberRow(app, data.permissions, details, extraColumns, extraActions)
                                     }
                                 }
                             } else {
                                 tr {
-                                    memberRow(core, data.permissions, details, extraColumns, extraActions)
+                                    memberRow(app, data.permissions, details, extraColumns, extraActions)
                                 }
                             }
                         }
@@ -83,7 +84,7 @@ class MembersComponent(
 }
 
 private fun TR.memberRow(
-    core: Core,
+    app: FeatureControl,
     permissions: Permissions<*>,
     details: MemberDetails,
     extraColumns: List<Pair<String, TD.(MemberDetails) -> Unit>>,
@@ -101,7 +102,7 @@ private fun TR.memberRow(
 
     td {
         ariaLabel = "Role"
-        core.render(this, RoleComponent(details))
+        app.render(this, RoleComponent(details))
     }
 
     // status

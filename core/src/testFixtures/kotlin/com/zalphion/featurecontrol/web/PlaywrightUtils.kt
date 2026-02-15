@@ -7,8 +7,8 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions
 import com.microsoft.playwright.options.Cookie
 import com.microsoft.playwright.options.LoadState
-import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.CoreTestDriver
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.applications.web.ApplicationsUi
 import com.zalphion.featurecontrol.auth.web.createSessionCookie
 import com.zalphion.featurecontrol.users.User
@@ -20,12 +20,12 @@ import java.time.Instant
 private val ci = System.getenv("CI")?.toBoolean() == true
 
 fun BrowserContext.asUser(
-    core: Core,
+    app: FeatureControl,
     user: User,
     waitTimeout: Duration = Duration.ofSeconds(5),
     block: (ApplicationsUi) -> Unit = {}
 ) {
-    val sessionCookie = core.createSessionCookie(user.userId)
+    val sessionCookie = app.createSessionCookie(user.userId)
 
     setDefaultTimeout(waitTimeout.toMillis().toDouble())
     addCookies(
@@ -42,7 +42,7 @@ fun BrowserContext.asUser(
 }
 
 fun CoreTestDriver.playwright() = LaunchPlaywrightContext(
-    http = core.getRoutes(),
+    http = app.getRoutes(),
     launchOptions = BrowserType.LaunchOptions().setHeadless(ci)
 )
 

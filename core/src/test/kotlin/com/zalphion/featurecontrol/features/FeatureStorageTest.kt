@@ -1,10 +1,11 @@
 package com.zalphion.featurecontrol.features
 
-import com.zalphion.featurecontrol.CoreTestDriver
+import com.zalphion.featurecontrol.StorageTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.appName2
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.applications.ApplicationStorage
 import com.zalphion.featurecontrol.dev
 import com.zalphion.featurecontrol.featureKey1
 import com.zalphion.featurecontrol.featureKey2
@@ -16,9 +17,6 @@ import com.zalphion.featurecontrol.on
 import com.zalphion.featurecontrol.onOffData
 import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.staging
-import com.zalphion.featurecontrol.storage.PageSize
-import com.zalphion.featurecontrol.storage.StorageDriver
-import com.zalphion.featurecontrol.storage.h2db.h2DbInMemory
 import com.zalphion.featurecontrol.teams.TeamId
 import com.zalphion.featurecontrol.toCreate
 import dev.andrewohara.utils.pagination.Page
@@ -27,26 +25,29 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class FeatureStorageTest: CoreTestDriver(storageDriver = StorageDriver.h2DbInMemory(PageSize.of(2))) {
+class FeatureStorageTest {
+
+    private val driver = StorageTestDriver()
+    private val features = driver.create(FeatureStorage)
+    private val applications = driver.create(ApplicationStorage)
 
     private val teamId = TeamId.of("team1234")
-    private val features = core.features
 
     private val app1 = Application(
         teamId = teamId,
-        appId = AppId.random(core.random),
+        appId = AppId.random(driver.random),
         appName = appName1,
         environments = listOf(dev, prod),
         extensions = emptyMap()
-    ).also(core.applications::plusAssign)
+    ).also(applications::plusAssign)
 
     private val app2 = Application(
         teamId = teamId,
-        appId = AppId.random(core.random),
+        appId = AppId.random(driver.random),
         appName = appName2,
         environments = listOf(dev, staging, prod),
         extensions = emptyMap()
-    ).also(core.applications::plusAssign)
+    ).also(applications::plusAssign)
 
     private val feature1 = oldNewData
         .toCreate(featureKey1)

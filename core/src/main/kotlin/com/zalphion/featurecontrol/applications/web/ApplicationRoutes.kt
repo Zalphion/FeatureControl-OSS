@@ -1,11 +1,8 @@
 package com.zalphion.featurecontrol.applications.web
 
-import com.zalphion.featurecontrol.Core
+import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.web.htmlLens
-import com.zalphion.featurecontrol.applications.CreateApplication
-import com.zalphion.featurecontrol.applications.DeleteApplication
 import com.zalphion.featurecontrol.web.appIdLens
-import com.zalphion.featurecontrol.applications.UpdateApplication
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.flash.messages
 import com.zalphion.featurecontrol.web.permissionsLens
@@ -24,14 +21,14 @@ import org.http4k.core.Status
 import org.http4k.core.with
 import org.http4k.lens.location
 
-fun Core.httpGetApplications(): HttpHandler = { request ->
+fun FeatureControl.httpGetApplications(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
 
     ApplicationsPage.forTeam(this, principal, teamId)
         .map {
             it.render(
-                core = this,
+                app = this,
                 messages = request.messages(),
                 selectedFeature = null
             )
@@ -40,8 +37,8 @@ fun Core.httpGetApplications(): HttpHandler = { request ->
         .recover { request.toIndex().withMessage(it) }
 }
 
-fun Core.httpPostApplications(): HttpHandler = { request ->
-    CreateApplication(
+fun FeatureControl.httpPostApplications(): HttpHandler = { request ->
+    core.applications.create(
         teamId = teamIdLens(request),
         data = extract(request)
     )
@@ -54,24 +51,24 @@ fun Core.httpPostApplications(): HttpHandler = { request ->
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun Core.httpDeleteApplication(): HttpHandler = { request ->
+internal fun FeatureControl.httpDeleteApplication(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val applicationId = appIdLens(request)
 
-    DeleteApplication(teamId, applicationId)
+    core.applications.delete(teamId, applicationId)
         .invoke(principal, this)
         .map { request.samePage(FlashMessageDto(FlashMessageDto.Type.Success, "Deleted ${it.appName}")) }
         .onFailure { error(it.reason) }
 }
 
-internal fun Core.httpPostApplication(): HttpHandler = { request ->
-    UpdateApplication(
+internal fun FeatureControl.httpPostApplication(): HttpHandler = { request ->
+    core.applications.update(
         teamId = teamIdLens(request),
         appId = appIdLens(request),
         data = extract(request)
     )
-        .invoke( permissionsLens(request), this)
+        .invoke(permissionsLens(request), this)
         .map { Response(Status.SEE_OTHER).location(it.uri()) }
         .onFailure { error(it.reason) }
 }
