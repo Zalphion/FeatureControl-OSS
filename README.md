@@ -3,6 +3,13 @@
 
 # Feature Control
 
+The Complete FOSS Edition of Feature Control.
+Fully extendable, no limitations, no DRM.
+Build it yourself or use the official docker image.
+
+None of the dependencies place any limitations on commercial use of this software.
+See the [Allowed Licenses](https://github.com/Zalphion/FeatureControl/blob/main/allowed-licenses.json) for details.
+
 > [!WARNING]
 > **Work in Progress**: This project is still under active development and is not yet ready for production use.
 
@@ -13,6 +20,6 @@
 - **hosted**: The official self-hosted distribution of Feature Control OSS
 - **storage**: Bring your own storage backend with a wide variety of integrations
   - **postgres**: The ubiquitous relational database
-  - **mariadb**: The FOSS continuation of MySQL; retaining high compatibility with its proprietary parent
-  - **h2**: An embedded database stored on disk; suitable for single-node deployments or testing
-  - **couchdb**: A highly scalable document database for NoSQL aficionados (smallest artifact size)
+  - **mariadb**: The FOSS continuation of MySQL by the original author; retaining high compatibility with its commercial parent
+  - **h2**: An embedded database on disk; suitable for single-node deployments or testing
+  - **couchdb**: A highly scalable document database for NoSQL aficionados
