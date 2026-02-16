@@ -34,7 +34,7 @@ class TeamServiceTest: CoreTestDriver() {
         val (otherOrg, _) = otherOrgUser.getMyTeam(core).shouldNotBeNull()
 
         core.members.remove(otherOrg.teamId, otherOrgUser.userId)
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeFailure(forbidden)
     }
 
@@ -46,7 +46,7 @@ class TeamServiceTest: CoreTestDriver() {
         val otherMember = otherUser.addTo(core, myTeam)
 
         core.members.remove(teamId = otherMember.teamId, userId = otherMember.userId)
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeSuccess(MemberDetails(otherMember, otherUser, myTeam))
 
         core.memberStorage.list(myTeam.teamId).toList()
@@ -63,7 +63,7 @@ class TeamServiceTest: CoreTestDriver() {
             sender = myUser.userId,
             data = MemberCreateData(otherUser.emailAddress, emptyMap())
         )
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeSuccess()
 
         memberDetails shouldBe MemberDetails(
@@ -88,7 +88,7 @@ class TeamServiceTest: CoreTestDriver() {
         val otherTeam = core.users.create(idp1Email2).shouldBeSuccess().team
 
         core.members.invite(otherTeam.teamId, myUser.userId, MemberCreateData(idp1Email2, emptyMap()))
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeFailure(forbidden)
     }
 
@@ -97,7 +97,7 @@ class TeamServiceTest: CoreTestDriver() {
         val (myMember, myUser, myTeam) = core.users.create(idp1Email1).shouldBeSuccess()
 
         core.members.invite(myTeam.teamId, myUser.userId, MemberCreateData(myUser.emailAddress, emptyMap()))
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeFailure(memberAlreadyExists(myMember))
     }
 
@@ -109,7 +109,7 @@ class TeamServiceTest: CoreTestDriver() {
         val otherMember = otherUser.addTo(core, myTeam)
 
         core.members.invite(myTeam.teamId, myUser.userId, MemberCreateData(otherUser.emailAddress, emptyMap()))
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeFailure(memberAlreadyExists(otherMember))
     }
 
@@ -118,7 +118,7 @@ class TeamServiceTest: CoreTestDriver() {
         val (member, user, _) = core.users.create(idp1Email1).shouldBeSuccess()
 
         core.members.update(teamId = member.teamId, member.userId, MemberUpdateData((mapOf("foo" to "bar"))))
-            .invoke(user, app)
+            .invoke(core, user)
             .shouldBeFailure(forbidden)
     }
 
@@ -128,7 +128,7 @@ class TeamServiceTest: CoreTestDriver() {
         val otherMember = core.users.create(idp2Email1).shouldBeSuccess().member
 
         core.members.update(otherMember.teamId, otherMember.userId, MemberUpdateData(mapOf("foo" to "bar")))
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeFailure(forbidden)
     }
 
@@ -138,7 +138,7 @@ class TeamServiceTest: CoreTestDriver() {
         val otherUser = core.users.create(idp1Email2).shouldBeSuccess().user
 
         core.members.update(myTeam.teamId, otherUser.userId, MemberUpdateData(mapOf("foo" to "bar")))
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeFailure(memberNotFound(myTeam.teamId, otherUser.userId))
     }
 
@@ -151,7 +151,7 @@ class TeamServiceTest: CoreTestDriver() {
         val expected = otherMember.copy(extensions = mapOf("foo" to "bar"))
 
         core.members.update(otherMember.teamId, otherMember.userId, MemberUpdateData(mapOf("foo" to "bar")))
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeSuccess(expected)
 
         core.memberStorage.list(myTeam.teamId).toList()
@@ -163,7 +163,7 @@ class TeamServiceTest: CoreTestDriver() {
         val (myMember, myUser, myTeam) = core.users.create(idp1Email1).shouldBeSuccess()
 
         val otherTeam = core.teams.create(myUser.userId, TeamCreateUpdateData(TeamName.of("Other Team")))
-            .invoke(myUser, app)
+            .invoke(core, myUser)
             .shouldBeSuccess()
 
         core.teamStorage[myTeam.teamId] shouldBe myTeam

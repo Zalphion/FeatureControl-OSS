@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
-import com.zalphion.featurecontrol.FeatureControl
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.FeatureEnvironment
@@ -21,6 +21,7 @@ import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
 import kotlinx.html.form
+import org.http4k.format.AutoMarshalling
 import org.http4k.lens.BiDiMapping
 
 class FeatureEnvironmentComponent(
@@ -30,19 +31,19 @@ class FeatureEnvironmentComponent(
     val environment: FeatureEnvironment
 ) {
     companion object {
-        internal fun core(app: FeatureControl) = create(
-            jsonMapper = app.core.json.asBiDiMapping<Array<CoreVariantEnvironmentDto>>().mapToList(),
+        internal fun core(json: AutoMarshalling) = create(
+            jsonMapper = json.asBiDiMapping<Array<CoreVariantEnvironmentDto>>().mapToList(),
             dtoMapper = { env, variant ->  env.toCoreDto(variant) }
         )
 
         fun <DTO: VariantEnvironmentDto> create(
             jsonMapper: BiDiMapping<String, List<DTO>>,
             dtoMapper: (FeatureEnvironment, Variant) -> DTO,
-            extraInputs: FlowContent.(FeatureEnvironmentComponent) -> Unit = {},
-            extraTableSchema: (FeatureEnvironmentComponent) -> List<TableElementSchema> = { emptyList() },
-        ) = Component<FeatureEnvironmentComponent> { flow, data ->
+            extraInputs: FlowContent.(FeatureEnvironmentComponent, Core) -> Unit = { _, _ -> },
+            extraTableSchema: (FeatureEnvironmentComponent, Core) -> List<TableElementSchema> = { _, _ -> emptyList() },
+        ) = Component<FeatureEnvironmentComponent> { flow, core, data ->
             flow.form(method = FormMethod.post) {
-                extraInputs(data)
+                extraInputs(data, core)
 
                 val subjectIdsModalId = "subject-ids-modal"
                 val subjectIdsEventId = "subject-ids-event"
@@ -79,7 +80,7 @@ class FeatureEnvironmentComponent(
                             modalId = subjectIdsModalId,
                             dispatchEventId = subjectIdsEventId
                         )
-                    ) + extraTableSchema(data),
+                    ) + extraTableSchema(data, core),
                     elements = data.feature.variants.keys.map { variant -> dtoMapper(data.environment, variant) },
                     mapper = jsonMapper
                 )

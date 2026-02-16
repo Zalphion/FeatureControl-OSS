@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.configs.web
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.configs.ConfigEnvironment
 import com.zalphion.featurecontrol.plugins.Component
@@ -21,8 +22,8 @@ class ConfigNavBarComponent(
 ) {
     companion object {
         fun core(
-            extraNavBarLeft: FlowContent.(ConfigNavBarComponent) -> Unit = {}
-        ) = Component<ConfigNavBarComponent> { flow, data ->
+            extraNavBarLeft: FlowContent.(ConfigNavBarComponent, Core) -> Unit = { _, _ ->}
+        ) = Component<ConfigNavBarComponent> { flow, core, data ->
             flow.nav {
                 div("uk-navbar-container uk-navbar-transparent") {
                     attributes["uk-navbar"] = ""
@@ -34,7 +35,7 @@ class ConfigNavBarComponent(
                             }
                             +"Config"
                         }
-                        extraNavBarLeft(data)
+                        extraNavBarLeft(data, core)
                     }
 
                     div("uk-navbar-right") {

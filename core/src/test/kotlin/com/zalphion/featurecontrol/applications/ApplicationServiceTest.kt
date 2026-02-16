@@ -35,10 +35,10 @@ class ApplicationServiceTest: CoreTestDriver() {
         val expected = core.applications.create(
             teamId = team.teamId,
             data = ApplicationCreateData(appName1, listOf(dev, prod), emptyMap())
-        ).invoke(user, app).shouldBeSuccess()
+        ).invoke(core, user).shouldBeSuccess()
 
         core.applications.list(team.teamId)
-            .invoke(user, app).shouldBeSuccess()
+            .invoke(core, user).shouldBeSuccess()
             .toList().shouldContainExactlyInAnyOrder(expected)
     }
 
@@ -48,14 +48,14 @@ class ApplicationServiceTest: CoreTestDriver() {
         val app2 = createApplication(principal, appName1)
 
         core.applications.list(team.teamId)
-            .invoke(user, app).shouldBeSuccess()
+            .invoke(core, user).shouldBeSuccess()
             .toList().shouldContainExactlyInAnyOrder(app1, app2)
     }
 
     @Test
     fun `list applications - empty`() {
         core.applications.list(team.teamId)
-            .invoke(user, app)
+            .invoke(core, user)
             .shouldBeSuccess()
             .toList().shouldBeEmpty()
     }
@@ -66,11 +66,11 @@ class ApplicationServiceTest: CoreTestDriver() {
         val app2 = createApplication(principal, appName2)
         val app3 = createApplication(principal, appName3)
 
-        val page1 = core.applications.list(team.teamId).invoke(user, app).shouldBeSuccess()[null]
+        val page1 = core.applications.list(team.teamId).invoke(core, user).shouldBeSuccess()[null]
         page1.items.shouldHaveSize(2)
         page1.next.shouldNotBeNull()
 
-        val page2 = core.applications.list(team.teamId).invoke(user, app).shouldBeSuccess()[page1.next]
+        val page2 = core.applications.list(team.teamId).invoke(core, user).shouldBeSuccess()[page1.next]
         page2.items.shouldHaveSize(1)
         page2.next.shouldBeNull()
 
@@ -80,7 +80,7 @@ class ApplicationServiceTest: CoreTestDriver() {
     @Test
     fun `delete application - not found`() {
         val appId = AppId.random(core.random)
-        core.applications.delete(team.teamId, appId).invoke(user, app).shouldBeFailure(applicationNotFound(appId))
+        core.applications.delete(team.teamId, appId).invoke(core, user).shouldBeFailure(applicationNotFound(appId))
     }
 
     @Test
@@ -88,10 +88,10 @@ class ApplicationServiceTest: CoreTestDriver() {
         val app1 = createApplication(principal, appName1)
         val app2 = createApplication(principal, appName2)
 
-        core.applications.delete(app1.teamId, app1.appId).invoke(user, app).shouldBeSuccess()
+        core.applications.delete(app1.teamId, app1.appId).invoke(core, user).shouldBeSuccess()
 
         core.applications.list(team.teamId)
-            .invoke(user, app).shouldBeSuccess()
+            .invoke(core, user).shouldBeSuccess()
             .toList().shouldContainExactlyInAnyOrder(app2)
     }
 
@@ -102,7 +102,7 @@ class ApplicationServiceTest: CoreTestDriver() {
         createFeature(principal, app1, featureKey1)
 
         core.applications.delete(app1.teamId, app1.appId)
-            .invoke(user, app)
+            .invoke(core, user)
             .shouldBeFailure(
                 applicationNotEmpty(app1.appId)
         )
@@ -113,7 +113,7 @@ class ApplicationServiceTest: CoreTestDriver() {
         val app1 = createApplication(principal, appName1)
         createFeature(principal, app1, featureKey1)
         core.features.list(app1.teamId, app1.appId)
-            .invoke(user, app).shouldBeSuccess()
+            .invoke(core, user).shouldBeSuccess()
             .toList().shouldHaveSize(1)
 
         core.applications.update(
@@ -124,13 +124,13 @@ class ApplicationServiceTest: CoreTestDriver() {
                 environments = listOf(dev, staging, prod),
                 extensions = emptyMap()
             )
-        ).invoke(user, app) shouldBeSuccess app1.copy(
+        ).invoke(core, user) shouldBeSuccess app1.copy(
             appName = appName2,
             environments = listOf(dev, staging, prod)
         )
 
         core.features.list(app1.teamId, app1.appId)
-            .invoke(user, app).shouldBeSuccess()
+            .invoke(core, user).shouldBeSuccess()
             .toList().shouldHaveSize(1)
     }
 }

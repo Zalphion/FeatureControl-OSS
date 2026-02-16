@@ -1,7 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
 import com.zalphion.featurecontrol.Core
-import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.MemberDetails
@@ -39,12 +38,11 @@ class MembersComponent(
 ) {
     companion object {
         fun core(
-            app: FeatureControl,
-            extraColumnsFn: (MembersComponent) -> List<Pair<String, TD.(MemberDetails) -> Unit>> = { emptyList() },
-            extraActionsFn: (MembersComponent) -> List<LI.(MemberDetails) -> Unit> = { emptyList() }
-        ) = Component<MembersComponent> { flow, data ->
-            val extraColumns = extraColumnsFn(data)
-            val extraActions = extraActionsFn(data)
+            extraColumnsFn: (MembersComponent, Core) -> List<Pair<String, TD.(MemberDetails) -> Unit>> = { _, _ -> emptyList() },
+            extraActionsFn: (MembersComponent, Core) -> List<LI.(MemberDetails) -> Unit> = { _, _ -> emptyList() }
+        ) = Component<MembersComponent> { flow, core, data ->
+            val extraColumns = extraColumnsFn(data, core)
+            val extraActions = extraActionsFn(data, core)
             with(flow) {
                 table("uk-table uk-table-hover") {
                     thead {
@@ -67,12 +65,12 @@ class MembersComponent(
                                     attributes["x-if"] = "'$searchTerms'.includes(${data.filterModel}.toLowerCase())"
 
                                     tr {
-                                        memberRow(app, data.permissions, details, extraColumns, extraActions)
+                                        memberRow(core, data.permissions, details, extraColumns, extraActions)
                                     }
                                 }
                             } else {
                                 tr {
-                                    memberRow(app, data.permissions, details, extraColumns, extraActions)
+                                    memberRow(core, data.permissions, details, extraColumns, extraActions)
                                 }
                             }
                         }
@@ -84,7 +82,7 @@ class MembersComponent(
 }
 
 private fun TR.memberRow(
-    app: FeatureControl,
+    core: Core,
     permissions: Permissions<*>,
     details: MemberDetails,
     extraColumns: List<Pair<String, TD.(MemberDetails) -> Unit>>,
@@ -102,7 +100,7 @@ private fun TR.memberRow(
 
     td {
         ariaLabel = "Role"
-        app.render(this, RoleComponent(details))
+        core.render(this, RoleComponent(details))
     }
 
     // status

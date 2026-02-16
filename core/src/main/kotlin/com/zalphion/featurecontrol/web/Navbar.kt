@@ -3,7 +3,7 @@ package com.zalphion.featurecontrol.web
 import com.zalphion.featurecontrol.teams.web.teamSelector
 import com.zalphion.featurecontrol.users.web.avatarView
 import com.zalphion.featurecontrol.AppError
-import com.zalphion.featurecontrol.FeatureControl
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teamNotFound
@@ -43,14 +43,14 @@ data class MainNavBar<T>(
 ) {
     companion object {
         fun get(
-            app: FeatureControl,
+            core: Core,
             permissions: Permissions<User>,
             teamId: TeamId,
             selected: PageSpec?
         ): Result4k<MainNavBar<MemberDetails>, AppError> {
             // TODO could maybe user the permissions object to determine this
-            val authorizedTeams = app.core.members.list(permissions.principal.userId)
-                .invoke(permissions, app)
+            val authorizedTeams = core.members.list(permissions.principal.userId)
+                .invoke(permissions)
                 .onFailure { error(it) }
                 .toList()
 
@@ -59,26 +59,26 @@ data class MainNavBar<T>(
                 ?: return teamNotFound(teamId).asFailure()
 
             return MainNavBar(
-                appName = app.appName,
+                appName = core.appName,
                 permissions = permissions,
                 memberships = authorizedTeams,
                 selectedTeam = team,
-                pages = app.getPages(teamId),
+                pages = core.getPages(teamId),
                 selectedPage = selected
             ).asSuccess()
         }
 
         fun get(
-            app: FeatureControl,
+            core: Core,
             permissions: Permissions<User>
         ): MainNavBar<MemberDetails?> {
-            val authorizedTeams = app.core.members.list(permissions.principal.userId)
-                .invoke(permissions, app)
+            val authorizedTeams = core.members.list(permissions.principal.userId)
+                .invoke(permissions)
                 .onFailure { error(it) }
                 .toList()
 
             return MainNavBar(
-                appName = app.appName,
+                appName = core.appName,
                 permissions = permissions,
                 memberships = authorizedTeams,
                 selectedTeam = null,

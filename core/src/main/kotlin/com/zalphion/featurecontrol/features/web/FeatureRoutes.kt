@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
-import com.zalphion.featurecontrol.FeatureControl
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.web.ApplicationsPage
 import com.zalphion.featurecontrol.applications.web.render
 import com.zalphion.featurecontrol.web.environmentNameLens
@@ -29,19 +29,19 @@ import org.http4k.core.Status
 import org.http4k.core.with
 import org.http4k.lens.location
 
-internal fun FeatureControl.httpPostFeature(): HttpHandler = { request ->
+internal fun Core.httpPostFeature(): HttpHandler = { request ->
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val principal = permissionsLens(request)
     val data = extract<FeatureCreateData>(request)
 
-    core.features.create(teamId, appId, data)
-        .invoke(principal, this)
+    features.create(teamId, appId, data)
+        .invoke(principal)
         .map { Response(Status.SEE_OTHER).location(it.uri()) }
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun FeatureControl.httpGetFeature(): HttpHandler = fn@{ request ->
+internal fun Core.httpGetFeature(): HttpHandler = fn@{ request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
@@ -49,7 +49,7 @@ internal fun FeatureControl.httpGetFeature(): HttpHandler = fn@{ request ->
 
     ApplicationsPage.forFeature(this, principal, teamId, appId, featureKey)
         .map { model -> model.render(
-            app = this,
+            core = this,
             messages = request.messages(),
             selectedFeature = featureKey,
             content = {
@@ -64,27 +64,27 @@ internal fun FeatureControl.httpGetFeature(): HttpHandler = fn@{ request ->
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun FeatureControl.httpDeleteFeature(): HttpHandler = { request ->
+internal fun Core.httpDeleteFeature(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
 
-    core.features.delete(teamId, appId, featureKey)
-        .invoke(principal, this)
+    features.delete(teamId, appId, featureKey)
+        .invoke(principal)
         .map { Response(Status.SEE_OTHER).location(applicationUri(teamId, appId)) }
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun FeatureControl.httpPutFeature(): HttpHandler = { request ->
+internal fun Core.httpPutFeature(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val featureKey = featureKeyLens(request)
     val data = extract<FeatureUpdateData>(request)
 
-    core.features.update(teamId, appId, featureKey, data)
-        .invoke(principal, this)
+    features.update(teamId, appId, featureKey, data)
+        .invoke(principal)
         .map { Response(Status.SEE_OTHER)
             .location(it.uri())
             .withMessage("Feature updated", FlashMessageDto.Type.Success)
@@ -92,7 +92,7 @@ internal fun FeatureControl.httpPutFeature(): HttpHandler = { request ->
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun FeatureControl.httpGetFeatureEnvironment(): HttpHandler = fn@{ request ->
+internal fun Core.httpGetFeatureEnvironment(): HttpHandler = fn@{ request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
@@ -103,7 +103,7 @@ internal fun FeatureControl.httpGetFeatureEnvironment(): HttpHandler = fn@{ requ
         .onFailure { return@fn request.samePageError(it.reason) }
 
     val page = pageModel.render(
-        app = this,
+        core = this,
         messages = request.messages(),
         selectedFeature = featureKey,
         content = {
@@ -120,7 +120,7 @@ internal fun FeatureControl.httpGetFeatureEnvironment(): HttpHandler = fn@{ requ
     Response(Status.OK).with(htmlLens of page)
 }
 
-internal fun FeatureControl.httpPostFeatureEnvironment(): HttpHandler = fn@{ request ->
+internal fun Core.httpPostFeatureEnvironment(): HttpHandler = fn@{ request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
@@ -132,8 +132,8 @@ internal fun FeatureControl.httpPostFeatureEnvironment(): HttpHandler = fn@{ req
         environmentsToUpdate = Update(mapOf(environmentName to environment))
     )
 
-    core.features.update(teamId, appId, featureKey, data)
-        .invoke(principal, this)
+    features.update(teamId, appId, featureKey, data)
+        .invoke(principal)
         .map { Response(Status.SEE_OTHER)
             .location(it.uri(environmentName))
             .withMessage("Environment updated", FlashMessageDto.Type.Success)

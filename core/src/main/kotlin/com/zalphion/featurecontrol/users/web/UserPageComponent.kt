@@ -1,12 +1,12 @@
 package com.zalphion.featurecontrol.users.web
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.web.MainNavBar
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.web.withRichMethod
-import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.Member
 import com.zalphion.featurecontrol.members.web.TeamsComponent
@@ -40,7 +40,7 @@ import kotlinx.html.ul
 import org.http4k.core.Method
 import org.http4k.core.Uri
 
-fun FeatureControl.userPageComponent(
+fun Core.userPageComponent(
     permissions: Permissions<User>,
     navBar: MainNavBar<MemberDetails?>,
     messages: List<FlashMessageDto>,
@@ -55,11 +55,11 @@ fun FeatureControl.userPageComponent(
     )
 ) {
     invitations(navBar.memberships.filter { details -> !details.member.active }, permissions)
-    teams(this@userPageComponent, navBar.memberships.filter { details -> details.member.active }, permissions)
+    teams(it, navBar.memberships.filter { details -> details.member.active }, permissions)
 }
 
 private fun FlowContent.teams(
-    app: FeatureControl,
+    core: Core,
     teams: List<MemberDetails>,
     permissions: Permissions<User>
 ) = section {
@@ -80,7 +80,7 @@ private fun FlowContent.teams(
         }
     }
 
-    app.render(this, TeamsComponent(teams, permissions))
+    core.render(this, TeamsComponent(teams, permissions))
 }
 
 private fun FlowContent.invitations(

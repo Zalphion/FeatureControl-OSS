@@ -6,30 +6,19 @@ import com.zalphion.featurecontrol.applications.AppName
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.lib.Colour
 import com.zalphion.featurecontrol.config.web.ConfigSpecUi
+import com.zalphion.featurecontrol.web.TableFormUi
+import com.zalphion.featurecontrol.web.TableRowUi
 import com.zalphion.featurecontrol.web.toInputProperty
-import com.zalphion.featurecontrol.web.waitForAll
 
-class ApplicationCreateUpdateUi(private val modal: Locator) {
+class ApplicationCreateUpdateUi(private val modal: Locator): TableFormUi<ApplicationEnvironmentUi, EnvironmentName>(
+    table = modal.locator("table"),
+    getRowUi = ::ApplicationEnvironmentUi,
+    getKey = ApplicationEnvironmentUi::name
+) {
 
     var name by modal
         .getByLabel("Name")
         .toInputProperty(AppName)
-
-    fun forEnvironment(name: EnvironmentName, block: (ApplicationEnvironmentUi) -> Unit = {}): ApplicationEnvironmentUi {
-        val row = modal.locator("tbody tr")
-            .waitForAll()
-            // can't use a locator by value because alpine.js doesn't populate the DOM with a value
-            .find { it.locator("input[aria-label='Environment']").inputValue() == name.value }
-            ?: error("Environment $name not found")
-
-        return ApplicationEnvironmentUi(row).also(block)
-    }
-
-    fun newEnvironment(block: (ApplicationEnvironmentUi) -> Unit = {}): ApplicationEnvironmentUi {
-        modal.getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Add")).click()
-        val row = modal.locator("tbody tr").last()
-        return ApplicationEnvironmentUi(row).also(block)
-    }
 
     fun submit(block: (ConfigSpecUi) -> Unit = {}) = modal
         .locator("button[type=submit]")
@@ -38,7 +27,7 @@ class ApplicationCreateUpdateUi(private val modal: Locator) {
         .also(block)
 }
 
-class ApplicationEnvironmentUi(val locator: Locator) {
+class ApplicationEnvironmentUi(locator: Locator): TableRowUi(locator) {
 
     var name by locator
         .getByRole(AriaRole.TEXTBOX, Locator.GetByRoleOptions().setName("Environment"))

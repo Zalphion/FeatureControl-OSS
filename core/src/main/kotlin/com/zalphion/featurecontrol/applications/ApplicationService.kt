@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.applications
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applicationNotEmpty
 import com.zalphion.featurecontrol.features.FeatureStorage
 import com.zalphion.featurecontrol.lib.filterItem
@@ -8,10 +9,9 @@ import com.zalphion.featurecontrol.teams.TeamId
 import dev.andrewohara.utils.result.failIf
 import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.peek
-import kotlin.random.Random
 
 class ApplicationService(
-    private val random: Random,
+    private val core: Core,
     private val applications: ApplicationStorage,
     private val features: FeatureStorage
 ) {
@@ -20,16 +20,16 @@ class ApplicationService(
         it.teamRead(teamId)
     }.map {
         applications.list(teamId)
-    }.after { permissions, _, applications ->
+    }.after { permissions, applications ->
         applications.filterItem { permissions.applicationRead(teamId, it.appId) }
     }
 
     fun create(teamId: TeamId, data: ApplicationCreateData) = preAuth {
         it.applicationCreate(teamId)
-    }.checkEntitlements(teamId) {
+    }.checkEntitlements(core, teamId) {
         it.getRequirements(data)
     }.map {
-        data.toModel(teamId, random).also(applications::plusAssign)
+        data.toModel(teamId, core.random).also(applications::plusAssign)
     }
 
     fun get(teamId: TeamId, appId: AppId) = preAuth {
@@ -40,7 +40,7 @@ class ApplicationService(
 
     fun update(teamId: TeamId, appId: AppId, data: ApplicationUpdateData) = preAuth {
         it.applicationUpdate(teamId, appId)
-    }.checkEntitlements(teamId) {
+    }.checkEntitlements(core, teamId) {
         it.getRequirements(data)
     }.flatMap {
         applications.getOrFail(teamId, appId)

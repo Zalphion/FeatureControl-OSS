@@ -1,30 +1,30 @@
 package com.zalphion.featurecontrol.features.web
 
-import com.microsoft.playwright.BrowserContext
+import org.http4k.playwright.Http4kBrowser
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.appName2
 import com.zalphion.featurecontrol.appName3
-import com.zalphion.featurecontrol.applications.AppId
-import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.applications.Environment
+import com.zalphion.featurecontrol.black
 import com.zalphion.featurecontrol.create
 import com.zalphion.featurecontrol.createApplication
 import com.zalphion.featurecontrol.dev
 import com.zalphion.featurecontrol.devName
 import com.zalphion.featurecontrol.idp1Email1
 import com.zalphion.featurecontrol.invoke
-import com.zalphion.featurecontrol.lib.Colour
 import com.zalphion.featurecontrol.prod
 import com.zalphion.featurecontrol.prodName
 import com.zalphion.featurecontrol.stagingName
 import com.zalphion.featurecontrol.web.asUser
 import com.zalphion.featurecontrol.web.playwright
+import com.zalphion.featurecontrol.white
 import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -39,8 +39,8 @@ class ApplicationUiTest: CoreTestDriver() {
     private val member = core.users.create(idp1Email1).shouldBeSuccess()
 
     @Test
-    fun `no applications`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `no applications`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.uriTeamId shouldBe member.team.teamId
             page.applications.list.shouldBeEmpty()
             page.applications.selected.shouldBeNull()
@@ -48,77 +48,65 @@ class ApplicationUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `create application`(context: BrowserContext) {
-        lateinit var createdId: AppId
-
-        context.asUser(app, member.user) { page ->
+    fun `create application`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.new { form ->
                 form.name = appName1
-                form.newEnvironment { env ->
+                form.add { env ->
                     env.name = devName
                     env.description = "dev stuff"
-                    env.colour = Colour.white
+                    env.colour = white
                 }
-                form.newEnvironment { env ->
+                form.add { env ->
                     env.name = prodName
                     env.description = "prod stuff"
-                    env.colour = Colour.black
+                    env.colour = black
                 }
             }.submit { page ->
                 page.applications.list.shouldContainExactly(appName1)
                 page.applications.selected shouldBe appName1
 
                 page.application.name shouldBe appName1
-                createdId = page.uriAppId
+
+                page.application.more().update { created ->
+                    created.name shouldBe appName1
+                    created.options.map { it.name }.shouldContainExactlyInAnyOrder(devName, prodName)
+                    created[devName] shouldNotBeNull {
+                        colour shouldBe white
+                        description shouldBe "dev stuff"
+                    }
+                    created[prodName] shouldNotBeNull {
+                        colour shouldBe black
+                        description shouldBe "prod stuff"
+                    }
+                }
             }
         }
-
-        core.applications.get(member.team.teamId, createdId).invoke(member.user, app) shouldBeSuccess Application(
-            teamId = member.team.teamId,
-            appId = createdId,
-            appName = appName1,
-            extensions = emptyMap(),
-            environments = listOf(
-                Environment(
-                    name = devName,
-                    description = "dev stuff",
-                    colour = Colour.white,
-                    extensions = emptyMap()
-                ),
-                Environment(
-                    name = prodName,
-                    description = "prod stuff",
-                    colour = Colour.black,
-                    extensions = emptyMap()
-                )
-            )
-        )
     }
 
     @Test
-    fun `select application`(context: BrowserContext) {
+    fun `select application`(browser: Http4kBrowser) {
         val app1 = createApplication(member, appName1)
         val app2 = createApplication(member, appName2)
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
             page.applications.selected.shouldBeNull()
 
             page.applications.select(app1.appName) { page ->
                 page.applications.list.shouldContainExactlyInAnyOrder(app1.appName, app2.appName)
                 page.applications.selected shouldBe app1.appName
-                page.uriAppId shouldBe app1.appId
                 page.application.name shouldBe app1.appName
             }
         }
     }
 
     @Test
-    fun `delete application`(context: BrowserContext) {
+    fun `delete application`(browser: Http4kBrowser) {
         val app1 = createApplication(member, appName1)
         val app2 = createApplication(member, appName2)
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app2.appName)
                 .application.more()
                 .delete().confirm { page ->
@@ -129,20 +117,20 @@ class ApplicationUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `edit application`(context: BrowserContext) {
+    fun `edit application`(browser: Http4kBrowser) {
         val app1 = createApplication(member, appName1, listOf(dev, prod))
         val app2 = createApplication(member, appName2, listOf(dev, prod))
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app2.appName)
                 .application.more().update { app ->
                     app.name = appName3
 
-                    app.forEnvironment(dev.name) { env ->
-                        env.description = "cool stuff happens here"
+                    app[dev.name] shouldNotBeNull {
+                        description = "cool stuff happens here"
                     }
 
-                    app.newEnvironment { env ->
+                    app.add { env ->
                         env.name = stagingName
                     }
                 }.submit { page ->
@@ -151,14 +139,14 @@ class ApplicationUiTest: CoreTestDriver() {
                 }
         }
 
-        core.applications.get(app2.teamId, app2.appId).invoke(member.user, app) shouldBeSuccess app2.copy(
+        core.applications.get(app2.teamId, app2.appId).invoke(core, member.user) shouldBeSuccess app2.copy(
             appName = appName3,
             environments = listOf(
                 dev.copy(description = "cool stuff happens here"),
                 prod,
                 Environment(
                     name = stagingName,
-                    colour = Colour.white,
+                    colour = white,
                     description = "",
                     extensions = emptyMap()
                 )

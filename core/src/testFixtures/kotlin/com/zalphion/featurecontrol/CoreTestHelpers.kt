@@ -43,7 +43,7 @@ fun CoreTestDriver.createApplication(
     teamId = principal.team.teamId,
     data = ApplicationCreateData(appName, environments, extensions)
 )
-    .invoke(principal.user, app)
+    .invoke(core, principal.user)
     .shouldBeSuccess()
 
 fun CoreTestDriver.createFeature(
@@ -70,7 +70,7 @@ fun CoreTestDriver.createFeature(
         extensions = extensions
     )
 )
-    .invoke(principal.user, app)
+    .invoke(core, principal.user)
     .shouldBeSuccess()
 
 fun CoreTestDriver.updateConfigSpec(
@@ -81,7 +81,7 @@ fun CoreTestDriver.updateConfigSpec(
     teamId = application.teamId,
     appId = application.appId,
     properties = properties
-).invoke(principal.user, app).shouldBeSuccess()
+).invoke(core, principal.user).shouldBeSuccess()
 
 fun CoreTestDriver.updateConfigEnvironment(
     principal: MemberDetails,
@@ -93,7 +93,7 @@ fun CoreTestDriver.updateConfigEnvironment(
     appId = application.appId,
     environmentName = environmentName,
     data = values
-).invoke(principal.user, app).shouldBeSuccess()
+).invoke(core, principal.user).shouldBeSuccess()
 
 fun UserService.create(
     emailAddress: EmailAddress,
@@ -122,7 +122,7 @@ fun User.addTo(core: Core, team: Team) = Member(
     extensions = emptyMap()
 ).also(core.memberStorage::plusAssign)
 
-fun <T: Any> ServiceAction<T>.invoke(user: User, app: FeatureControl): Result4k<T, AppError> {
-    val permissions = app.permissions.create(user.userId).shouldNotBeNull()
-    return invoke(permissions, app)
+fun <T: Any> ServiceAction<T>.invoke(core: Core, user: User): Result4k<T, AppError> {
+    val permissions = core.permissions.create(core, user.userId).shouldNotBeNull()
+    return invoke(permissions)
 }

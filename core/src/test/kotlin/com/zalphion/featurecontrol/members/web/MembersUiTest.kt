@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
-import com.microsoft.playwright.BrowserContext
+import org.http4k.playwright.Http4kBrowser
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.IDP1
 import com.zalphion.featurecontrol.addTo
@@ -43,12 +43,12 @@ class MembersUiTest: CoreTestDriver() {
         sender = member1.user.userId,
         data = MemberCreateData(idp2Email1, emptyMap())
     )
-        .invoke(member1.user, app)
+        .invoke(core, member1.user)
         .shouldBeSuccess()
 
     @Test
-    fun `show members`(context: BrowserContext) {
-        context.asUser(app, member1.user) { page ->
+    fun `show members`(browser: Http4kBrowser) {
+        browser.asUser(core, member1.user) { page ->
             page.mainNavBar.openTeams().manageTeam { page ->
                 page.members.map { it.emailAddress }.shouldContainExactlyInAnyOrder(
                     member1.user.emailAddress,
@@ -86,8 +86,8 @@ class MembersUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `search members`(context: BrowserContext) {
-        context.asUser(app, member1.user) { page ->
+    fun `search members`(browser: Http4kBrowser) {
+        browser.asUser(core, member1.user) { page ->
             page.mainNavBar.openTeams().manageTeam { page ->
                 page.searchTerm = IDP1
 
@@ -99,8 +99,8 @@ class MembersUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `invite member`(context: BrowserContext) {
-        context.asUser(app, member1.user) { page ->
+    fun `invite member`(browser: Http4kBrowser) {
+        browser.asUser(core, member1.user) { page ->
             page.mainNavBar.openTeams().manageTeam { page ->
                 page.inviteMember { form ->
                     form.emailAddress = idp1Email4

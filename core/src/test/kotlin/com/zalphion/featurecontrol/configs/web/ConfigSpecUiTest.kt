@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.configs.web
 
-import com.microsoft.playwright.BrowserContext
+import org.http4k.playwright.Http4kBrowser
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.booleanProperty
@@ -42,8 +42,8 @@ class ConfigSpecUiTest: CoreTestDriver() {
     )
 
     @Test
-    fun `no properties`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `no properties`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName) { page ->
                 page.environments.options.shouldContainExactly(devName, prodName)
                 page.environments.selected.shouldBeNull()
@@ -53,8 +53,8 @@ class ConfigSpecUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `add properties`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `add properties`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName) { page ->
                 page.newProperty { prop ->
                     prop.key = strProperty.first
@@ -87,14 +87,14 @@ class ConfigSpecUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `edit properties`(context: BrowserContext) {
+    fun `edit properties`(browser: Http4kBrowser) {
         updateConfigSpec(
             principal = member,
             application = app1,
             properties = mapOf(strProperty, secretProperty, numberProperty, booleanProperty)
         )
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName) { page ->
                 page.properties
                     .find { it.key == secretProperty.first }
@@ -123,14 +123,14 @@ class ConfigSpecUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `reset properties`(context: BrowserContext) {
+    fun `reset properties`(browser: Http4kBrowser) {
         updateConfigSpec(
             principal = member,
             application = app1,
             properties = mapOf(strProperty, secretProperty, numberProperty, booleanProperty)
         )
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName) { page ->
                 page.properties
                     .find { it.key == secretProperty.first }

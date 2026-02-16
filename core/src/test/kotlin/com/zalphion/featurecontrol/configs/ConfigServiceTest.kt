@@ -35,21 +35,21 @@ class ConfigServiceTest: CoreTestDriver() {
     fun `get config - not found`() {
         val id = AppId.random(core.random)
         core.configs.getSpec(user1.team.teamId,id)
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeFailure(applicationNotFound(id))
     }
 
     @Test
     fun `get config - not on team`() {
         core.configs.getSpec(app1.teamId, app1.appId)
-            .invoke(user2.user, app)
+            .invoke(core, user2.user)
             .shouldBeFailure(forbidden)
     }
 
     @Test
     fun `get config - empty`() {
         core.configs.getSpec(app2.teamId, app2.appId)
-            .invoke(user2.user, app)
+            .invoke(core, user2.user)
             .shouldBeSuccess(
                 ConfigSpec(
                     teamId = app2.teamId,
@@ -65,10 +65,10 @@ class ConfigServiceTest: CoreTestDriver() {
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.getSpec(app1.teamId, app1.appId)
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(expected)
     }
 
@@ -76,7 +76,7 @@ class ConfigServiceTest: CoreTestDriver() {
     fun `update config properties - not found`() {
         val id = AppId.random(core.random)
         core.configs.updateSpec(user1.team.teamId, id, mapOf(strProperty, numberProperty))
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeFailure(applicationNotFound(id))
     }
 
@@ -89,11 +89,11 @@ class ConfigServiceTest: CoreTestDriver() {
         )
 
         core.configs.updateSpec(app1.teamId, app1.appId, mapOf(strProperty, numberProperty))
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(expected)
 
         core.configs.getSpec(app1.teamId, app1.appId)
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(expected)
     }
 
@@ -104,7 +104,7 @@ class ConfigServiceTest: CoreTestDriver() {
             user1.team.teamId, id, devName, mapOf(
                 PropertyKey.parse("str") to "foo"
             )
-        ).invoke(user1.user, app) shouldBeFailure applicationNotFound(id)
+        ).invoke(core, user1.user) shouldBeFailure applicationNotFound(id)
     }
 
     @Test
@@ -114,7 +114,7 @@ class ConfigServiceTest: CoreTestDriver() {
                 PropertyKey.parse("str") to "foo"
             )
         )
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeFailure(environmentNotFound(app1.appId, stagingName))
     }
 
@@ -128,7 +128,7 @@ class ConfigServiceTest: CoreTestDriver() {
                 PropertyKey.parse("str") to "foo"
             )
         )
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeFailure(propertyNotFound(app1.appId, PropertyKey.parse("str")))
     }
 
@@ -138,7 +138,7 @@ class ConfigServiceTest: CoreTestDriver() {
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.updateEnvironment(
             teamId = app1.teamId,
@@ -149,7 +149,7 @@ class ConfigServiceTest: CoreTestDriver() {
                 PropertyKey.parse("num") to "123",
             )
         )
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(
                 ConfigEnvironment(
                     teamId = app1.teamId,
@@ -163,7 +163,7 @@ class ConfigServiceTest: CoreTestDriver() {
             )
 
         core.configs.getEnvironment(app1.teamId, app1.appId, devName)
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(ConfigEnvironment(
                 teamId = app1.teamId,
                 appId = app1.appId,
@@ -181,7 +181,7 @@ class ConfigServiceTest: CoreTestDriver() {
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty, numberProperty)
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.updateEnvironment(
             teamId = app1.teamId,
@@ -191,7 +191,7 @@ class ConfigServiceTest: CoreTestDriver() {
                 PropertyKey.parse("str") to "foo",
                 PropertyKey.parse("num") to "123"
             )
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.updateEnvironment(
             teamId = app1.teamId,
@@ -201,7 +201,7 @@ class ConfigServiceTest: CoreTestDriver() {
                 PropertyKey.parse("num") to "456"
             )
         )
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(
                 ConfigEnvironment(
                     teamId = app1.teamId,
@@ -214,7 +214,7 @@ class ConfigServiceTest: CoreTestDriver() {
             )
 
         core.configs.getEnvironment(app1.teamId, app1.appId, devName)
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(ConfigEnvironment(
                 teamId = app1.teamId,
                 appId = app1.appId,
@@ -231,17 +231,17 @@ class ConfigServiceTest: CoreTestDriver() {
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty)
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             data = mapOf(strProperty.first to "  ")
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.getEnvironment(app1.teamId, app1.appId, devName)
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(ConfigEnvironment(
                 teamId = app1.teamId,
                 appId = app1.appId,
@@ -256,17 +256,17 @@ class ConfigServiceTest: CoreTestDriver() {
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(strProperty)
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             data = mapOf(strProperty.first to " lol ")
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.getEnvironment(app1.teamId, app1.appId, devName)
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(ConfigEnvironment(
                 teamId = app1.teamId,
                 appId = app1.appId,
@@ -283,17 +283,17 @@ class ConfigServiceTest: CoreTestDriver() {
             teamId = app1.teamId,
             appId = app1.appId,
             properties = mapOf(secretProperty)
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.updateEnvironment(
             teamId = app1.teamId,
             appId = app1.appId,
             environmentName = devName,
             data = mapOf(secretProperty.first to "lol")
-        ).invoke(user1.user, app).shouldBeSuccess()
+        ).invoke(core, user1.user).shouldBeSuccess()
 
         core.configs.getEnvironment(app1.teamId, app1.appId, devName)
-            .invoke(user1.user, app)
+            .invoke(core, user1.user)
             .shouldBeSuccess(ConfigEnvironment(
                 teamId = app1.teamId,
                 appId = app1.appId,

@@ -1,9 +1,9 @@
 package com.zalphion.featurecontrol.web
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.auth.web.CSRF_COOKIE_NAME
 import com.zalphion.featurecontrol.auth.web.CSRF_FORM_PARAM
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
-import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.web.components.navButton
 import kotlinx.html.FlowContent
@@ -25,13 +25,13 @@ import kotlinx.html.unsafe
 import org.http4k.core.Uri
 import org.http4k.core.extend
 
-fun FeatureControl.pageSkeleton(
+fun Core.pageSkeleton(
     messages: List<FlashMessageDto>,
     subTitle: String? = null,
     topNav: MainNavBar<out MemberDetails?>? = null,
     sideNav: SideNav? = null,
-    innerNav: (SECTION.(FeatureControl) -> Unit)? = null,
-    mainContent: (FlowContent.(FeatureControl) -> Unit),
+    innerNav: (SECTION.(Core) -> Unit)? = null,
+    mainContent: (FlowContent.(Core) -> Unit),
 ) = createHTML().html {
     head {
         if (subTitle != null) {

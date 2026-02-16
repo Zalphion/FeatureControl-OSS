@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.applications.web
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.plugins.Component
@@ -29,8 +30,8 @@ class FeatureCardComponent(
 ) {
     companion object {
         fun core(
-            badge: FlowContent.(FeatureCardComponent) -> Unit = {}
-        ) = Component<FeatureCardComponent> { flow, data ->
+            badge: FlowContent.(FeatureCardComponent, Core) -> Unit = { _, _ -> }
+        ) = Component<FeatureCardComponent> { flow, core, data ->
             flow.renderCard(
                 name = data.feature.key.value,
                 link = data.feature.uri(),
@@ -38,7 +39,7 @@ class FeatureCardComponent(
                 icon = PageSpec.features.icon,
                 selected = data.selected,
                 filterModel = data.filterModel,
-                badge = { badge(this, data) }
+                badge = { badge(this, data, core) }
             )
         }
     }
@@ -48,7 +49,7 @@ class ConfigCardComponent(val application: Application, val selected: Boolean, v
     companion object {
         fun core(
             badge: FlowContent.(ConfigCardComponent) -> Unit = {}
-        ) = Component<ConfigCardComponent> { flow, data ->
+        ) = Component<ConfigCardComponent> { flow, _, data ->
             flow.renderCard(
                 name = "Config",
                 link = configUri(data.application.teamId, data.application.appId),
@@ -66,7 +67,7 @@ class ApplicationCardComponent(val application: Application, val selected: Boole
     companion object {
         fun core(
             badge: FlowContent.(ApplicationCardComponent) -> Unit = {}
-        ) = Component<ApplicationCardComponent> { flow, data ->
+        ) = Component<ApplicationCardComponent> { flow, _, data ->
             flow.renderCard(
                 name = data.application.appName.value,
                 link = data.application.uri(),

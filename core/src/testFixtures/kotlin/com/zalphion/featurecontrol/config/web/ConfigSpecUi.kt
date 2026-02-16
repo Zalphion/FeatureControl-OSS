@@ -4,13 +4,12 @@ import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
-import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.web.application
 import com.zalphion.featurecontrol.applications.web.applicationsList
 import com.zalphion.featurecontrol.web.waitForAll
 import com.zalphion.featurecontrol.web.waitForReady
 
-private val urlRegex = ".*/applications/([^/]+)/config.*".toRegex()
+private val urlRegex = ".*teams/([^/]+)/applications/([^/]+)/config.*".toRegex()
 
 class ConfigSpecUi(private val page: Page) {
 
@@ -18,8 +17,6 @@ class ConfigSpecUi(private val page: Page) {
         page.waitForReady()
         assertThat(page).hasURL(urlRegex.toPattern())
     }
-
-    val uriAppId get() = AppId.parse(urlRegex.find(page.url())!!.groupValues[1])
 
     val applications get() = page.applicationsList()
     val application get() = page.application()

@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.configs.web
 
-import com.zalphion.featurecontrol.FeatureControl
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.web.ApplicationsPage
 import com.zalphion.featurecontrol.applications.web.render
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
@@ -26,7 +26,7 @@ import org.http4k.core.Status
 import org.http4k.core.with
 import org.http4k.lens.location
 
-internal fun FeatureControl.httpGetConfigSpec(): HttpHandler = fn@{ request ->
+internal fun Core.httpGetConfigSpec(): HttpHandler = fn@{ request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
@@ -34,7 +34,7 @@ internal fun FeatureControl.httpGetConfigSpec(): HttpHandler = fn@{ request ->
     ApplicationsPage.forConfigSpec(this, principal, teamId, appId)
         .map { model ->
             model.render(
-                app = this,
+                core = this,
                 messages = request.messages(),
                 selectedFeature = null
             ) {
@@ -45,14 +45,14 @@ internal fun FeatureControl.httpGetConfigSpec(): HttpHandler = fn@{ request ->
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun FeatureControl.httpPostConfigSpec(): HttpHandler = { request ->
+internal fun Core.httpPostConfigSpec(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val data = extract<ConfigSpecDataDto>(request)
 
-    val result = core.configs.updateSpec(teamId, appId, data.properties)
-        .invoke(principal, this)
+    val result = configs.updateSpec(teamId, appId, data.properties)
+        .invoke(principal)
         .map { FlashMessageDto(FlashMessageDto.Type.Success, "Config Properties Updated") }
         .recover { it.toFlashMessage() }
 
@@ -61,7 +61,7 @@ internal fun FeatureControl.httpPostConfigSpec(): HttpHandler = { request ->
         .withMessage(result)
 }
 
-internal fun FeatureControl.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
+internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
@@ -70,7 +70,7 @@ internal fun FeatureControl.httpGetConfigEnvironment(): HttpHandler = fn@{ reque
     ApplicationsPage.forConfigEnvironment(this, principal, teamId, appId, environmentName)
         .map { model ->
             model.render(
-                app = this,
+                core = this,
                 messages = request.messages(),
                 selectedFeature = null
             ) {
@@ -81,15 +81,15 @@ internal fun FeatureControl.httpGetConfigEnvironment(): HttpHandler = fn@{ reque
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun FeatureControl.httpPostConfigEnvironment(): HttpHandler = { request ->
+internal fun Core.httpPostConfigEnvironment(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)
     val environmentName = environmentNameLens(request)
     val data = extract<ConfigEnvironmentDataDto>(request)
 
-    core.configs.updateEnvironment(teamId, appId, environmentName, data.properties)
-        .invoke(principal, this)
+    configs.updateEnvironment(teamId, appId, environmentName, data.properties)
+        .invoke(principal)
         .map { Response(Status.SEE_OTHER)
             .location(it.uri())
             .withMessage("Config Values Updated", FlashMessageDto.Type.Success)

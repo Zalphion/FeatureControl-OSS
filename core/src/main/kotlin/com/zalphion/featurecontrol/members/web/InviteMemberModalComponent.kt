@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.teams.Team
 import com.zalphion.featurecontrol.web.confirmCancelButtons
@@ -25,16 +26,17 @@ class InviteMemberModalComponent(val team: Team, val modalId: String) {
 
     companion object {
         fun core(
-            extraInputs: FlowContent.(InviteMemberModalComponent) -> Unit = {}
-        ) = Component<InviteMemberModalComponent> { flow, data ->
-            flow.createMemberModal(data, extraInputs)
+            extraInputs: FlowContent.(InviteMemberModalComponent, Core) -> Unit = { _, _ -> }
+        ) = Component<InviteMemberModalComponent> { flow, core, data ->
+            flow.createMemberModal(core, data,  extraInputs)
         }
     }
 }
 
 private fun FlowContent.createMemberModal(
+    core: Core,
     data: InviteMemberModalComponent,
-    extraInputs: FlowContent.(InviteMemberModalComponent) -> Unit
+    extraInputs: FlowContent.(InviteMemberModalComponent, Core) -> Unit
 ) = div("uk-modal uk-modal-container") {
     id = data.modalId
 
@@ -72,7 +74,7 @@ private fun FlowContent.createMemberModal(
                     }
                 }
 
-                extraInputs(data)
+                extraInputs(data, core)
             }
 
             div("uk-modal-footer") {

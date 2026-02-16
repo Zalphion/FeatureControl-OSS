@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
-import com.microsoft.playwright.BrowserContext
+import org.http4k.playwright.Http4kBrowser
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.create
@@ -69,7 +69,7 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
     )
 
     @Test
-    fun `no variants`(context: BrowserContext) {
+    fun `no variants`(browser: Http4kBrowser) {
         val emptyFeature = createFeature(
             principal = member,
             application = app1,
@@ -77,7 +77,7 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
             variants = emptyMap()
         )
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
             .application.select(emptyFeature.key)
             .environments.options.shouldBeEmpty()
@@ -85,8 +85,8 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `show environment`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `show environment`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
             .application.select(feature.key)
             .environments.select(devName) { page ->
@@ -134,8 +134,8 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `update environment`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `update environment`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
                 .application.select(feature.key)
                 .environments.select(devName) { page ->
@@ -160,8 +160,8 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `reset environment`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `reset environment`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
                 .application.select(feature.key)
                 .environments.select(prodName) { page ->

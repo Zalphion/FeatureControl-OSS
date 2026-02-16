@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.features.Variant
 import com.zalphion.featurecontrol.applications.Application
@@ -10,7 +11,6 @@ import com.zalphion.featurecontrol.web.template
 import com.zalphion.featurecontrol.web.tr
 import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.web.withRichMethod
-import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.ButtonType
@@ -42,9 +42,8 @@ class NewFeatureModalComponent(
 ) {
     companion object {
         fun core(
-            app: FeatureControl,
             extraControls: FlowContent.() -> Unit = {}
-        ) = Component<NewFeatureModalComponent> { flow, data ->
+        ) = Component<NewFeatureModalComponent> { flow, core, data ->
             flow.div("uk-modal uk-modal-container") {
                 id = data.modalId
 
@@ -80,7 +79,7 @@ class NewFeatureModalComponent(
                             }
 
                             editControls(
-                                app = app,
+                                core = core,
                                 idPrefix = "new-feature",
                                 description = "",
                                 variants = emptyMap(),
@@ -102,9 +101,8 @@ class NewFeatureModalComponent(
 class FeatureComponent(val application: Application, val feature: Feature) {
     companion object {
         fun core(
-            app: FeatureControl,
-            extraControls: FlowContent.(FeatureComponent) -> Unit = {}
-        ) = Component<FeatureComponent> { flow, data ->
+            extraControls: FlowContent.(FeatureComponent, Core) -> Unit = { _, _ -> }
+        ) = Component<FeatureComponent> { flow, core, data ->
             val feature = data.feature
             flow.div {
                 attributes["aria-label"] = "Edit Feature"
@@ -112,11 +110,11 @@ class FeatureComponent(val application: Application, val feature: Feature) {
                     withRichMethod(Method.PUT)
                     editControls(
                         idPrefix = "feature-${feature.key}",
-                        app = app,
+                        core = core,
                         description = feature.description,
                         variants = feature.variants,
                         defaultVariant = feature.defaultVariant,
-                        extraControls = { extraControls(this, data) }
+                        extraControls = { extraControls(this, data, core) }
                     )
 
                     div("uk-margin-top") {
@@ -140,7 +138,7 @@ private fun Map<Variant, String>.toViewModel() = map {
 }
 
 private fun FlowContent.editControls(
-    app: FeatureControl,
+    core: Core,
     description: String,
     variants: Map<Variant, String>,
     defaultVariant: Variant?,
@@ -152,7 +150,7 @@ private fun FlowContent.editControls(
         ?: listOf(VariantViewModel("", ""))
 
     attributes["x-data"] = $$"""{
-        variants: $${app.core.json.asFormatString(variantsViewModel)},
+        variants: $${core.json.asFormatString(variantsViewModel)},
         defaultIndex: $${variantsViewModel.indexOfFirst { it.name == defaultVariant?.value }.coerceAtLeast(0)},
         init() {
             this.$watch('variants', (list) => {

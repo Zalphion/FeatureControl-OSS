@@ -14,7 +14,14 @@ import com.zalphion.featurecontrol.lib.Colour
 import com.zalphion.featurecontrol.lib.Update
 import com.zalphion.featurecontrol.applications.Environment
 import com.zalphion.featurecontrol.applications.AppName
+import com.zalphion.featurecontrol.lib.Colour.Companion.parse
 import com.zalphion.featurecontrol.users.EmailAddress
+
+val white = parse("#FFFFFF")
+val black = parse("#000000")
+val red = parse("#FF0000")
+val green = parse("#00FF00")
+val blue = parse("#0000FF")
 
 val appName1 = AppName.of("app1")
 val appName2 = AppName.of("app2")

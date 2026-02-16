@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
-import com.zalphion.featurecontrol.FeatureControl
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.teams.web.TeamPageComponent
 import com.zalphion.featurecontrol.teams.web.teamPage
 import com.zalphion.featurecontrol.members.MemberCreateData
@@ -30,12 +30,12 @@ import org.http4k.core.with
 import org.http4k.lens.location
 import kotlin.collections.toList
 
-internal fun FeatureControl.showMembers(): HttpHandler = fn@{ request ->
+internal fun Core.showMembers(): HttpHandler = fn@{ request ->
     val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
 
-    val members = core.members.list(teamId)
-        .invoke(permissions, this)
+    val members = members.list(teamId)
+        .invoke(permissions)
         .onFailure { return@fn request.toIndex().withMessage(it.reason) }
         .toList()
 
@@ -49,12 +49,12 @@ internal fun FeatureControl.showMembers(): HttpHandler = fn@{ request ->
     ))
 }
 
-internal fun FeatureControl.acceptInvitation(): HttpHandler = { request ->
+internal fun Core.acceptInvitation(): HttpHandler = { request ->
     val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
 
-    core.members.acceptInvitation(teamId, permissions.principal.userId)
-        .invoke(permissions, this)
+    members.acceptInvitation(teamId, permissions.principal.userId)
+        .invoke(permissions)
         .map {
             Response(Status.SEE_OTHER)
                 .location(applicationsUri(teamId))
@@ -67,17 +67,17 @@ internal fun FeatureControl.acceptInvitation(): HttpHandler = { request ->
         }
 }
 
-internal fun FeatureControl.updateMember(): HttpHandler = { request ->
+internal fun Core.updateMember(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
-    core.members.update(
+    members.update(
         teamId = teamId,
         userId = userId,
         data = extract<MemberUpdateData>(request)
     )
-        .invoke(principal, this)
+        .invoke(principal)
         .map { Response(Status.SEE_OTHER)
             .location(referrerLens(request))
             .withSuccess("Member Updated")
@@ -88,13 +88,13 @@ internal fun FeatureControl.updateMember(): HttpHandler = { request ->
         }
 }
 
-internal fun FeatureControl.deleteMember(): HttpHandler = { request ->
+internal fun Core.deleteMember(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
-    core.members.remove(teamId, userId)
-        .invoke(principal, this)
+    members.remove(teamId, userId)
+        .invoke(principal)
         .map {
             Response(Status.SEE_OTHER)
                 .location(referrerLens(request))
@@ -106,12 +106,12 @@ internal fun FeatureControl.deleteMember(): HttpHandler = { request ->
         }
 }
 
-internal fun FeatureControl.resendInvitation(): HttpHandler = { request ->
+internal fun Core.resendInvitation(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val userId = userIdLens(request)
 
-    core.members.resendInvitation(teamId, userId).invoke(principal, this).map {
+    members.resendInvitation(teamId, userId).invoke(principal).map {
         Response(Status.SEE_OTHER)
             .location(referrerLens(request))
             .withSuccess("Invitation resent")
@@ -122,16 +122,16 @@ internal fun FeatureControl.resendInvitation(): HttpHandler = { request ->
     }
 }
 
-internal fun FeatureControl.createMember(): HttpHandler = { request ->
+internal fun Core.createMember(): HttpHandler = { request ->
     val permissions = permissionsLens(request)
     val teamId = teamIdLens(request)
 
-    val result = core.members.invite(
+    val result = members.invite(
         teamId = teamId,
         sender = permissions.principal.userId,
         data = extract<MemberCreateData>(request)
     )
-        .invoke(permissions, this)
+        .invoke(permissions)
         .map { FlashMessageDto(FlashMessageDto.Type.Success, "Invitation sent to ${it.member.userId.toEmailAddress()}") }
         .recover { it.toFlashMessage() }
 

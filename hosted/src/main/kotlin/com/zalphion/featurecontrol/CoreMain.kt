@@ -21,10 +21,10 @@ import java.security.SecureRandom
 import java.time.Clock
 import kotlin.random.asKotlinRandom
 
-fun main() = hostedMain()
+fun main() = hostedMain("Feature Control OSS")
 
 fun hostedMain(
-    appName: String = "Feature Control",
+    appName: String,
     env: Environment = Environment.ENV,
     additionalPlugins: List<PluginFactory<*>> = emptyList()
 ) {
@@ -56,7 +56,8 @@ fun hostedMain(
         invitationRetention = env[Settings.invitationsRetention]
     )
 
-    val core = Core.build(
+    Core(
+        appName = appName,
         clock = Clock.systemUTC(),
         random = SecureRandom().asKotlinRandom(),
         storageDriver = StorageDriver.postgres(
@@ -69,17 +70,9 @@ fun hostedMain(
             pageSize = PageSize.of(100)
         ),
         plugins = plugins,
-        config = coreConfig
-    )
-
-    FeatureControl(
-        appName = appName,
-        core = core,
-        plugins = plugins.map { it.create(core) },
-        eventBusFn = ::localEventBus,
-        config = coreConfig
-    )
-        .getRoutes()
+        config = coreConfig,
+        eventBusFn = ::localEventBus
+    ).getRoutes()
         .withFilter(ServerFilters.GZip())
         .asServer(Undertow(env[Settings.port].value))
         .start()

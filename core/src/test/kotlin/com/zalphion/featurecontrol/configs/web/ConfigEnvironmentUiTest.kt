@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.configs.web
 
-import com.microsoft.playwright.BrowserContext
+import org.http4k.playwright.Http4kBrowser
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.booleanProperty
@@ -64,8 +64,8 @@ class ConfigEnvironmentUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `show environment`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `show environment`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
                 .environments.select(devName) { page ->
                     page.environments.options.shouldContainExactly(devName, prodName)
@@ -93,8 +93,8 @@ class ConfigEnvironmentUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `update environment`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `update environment`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
                 .environments.select(devName) { page ->
                     page.values.find { it.key == booleanProperty.first }.shouldNotBeNull().booleanValue = true
@@ -114,8 +114,8 @@ class ConfigEnvironmentUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `reset environment`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `reset environment`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
                 .environments.select(devName) { page ->
                     page.values.find { it.key == strProperty.first }.shouldNotBeNull().textValue = "foobar"

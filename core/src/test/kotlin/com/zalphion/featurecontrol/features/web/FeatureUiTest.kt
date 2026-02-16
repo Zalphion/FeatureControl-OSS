@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.features.web
 
-import com.microsoft.playwright.BrowserContext
+import org.http4k.playwright.Http4kBrowser
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.appName1
 import com.zalphion.featurecontrol.create
@@ -36,8 +36,8 @@ class FeatureUiTest: CoreTestDriver() {
     private val app1 = createApplication(member, appName1)
 
     @Test
-    fun `list features - empty`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `list features - empty`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
             .application.features
             .shouldBeEmpty()
@@ -45,8 +45,8 @@ class FeatureUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `new feature`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `new feature`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
             .application.newFeature { form ->
                 form.key = featureKey1
@@ -68,7 +68,7 @@ class FeatureUiTest: CoreTestDriver() {
             }
         }
 
-        core.features.get(app1.teamId, app1.appId, featureKey1).invoke(member.user, app) shouldBeSuccess Feature(
+        core.features.get(app1.teamId, app1.appId, featureKey1).invoke(core, member.user) shouldBeSuccess Feature(
             teamId = member.team.teamId,
             appId = app1.appId,
             key = featureKey1,
@@ -81,7 +81,7 @@ class FeatureUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `edit feature`(context: BrowserContext) {
+    fun `edit feature`(browser: Http4kBrowser) {
         val feature1 = createFeature(member, app1, featureKey1)
         val feature2 = createFeature(
             principal = member,
@@ -91,7 +91,7 @@ class FeatureUiTest: CoreTestDriver() {
             defaultVariant = old
         )
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
                 .application.select(feature2.key) { page ->
                     page.edit.let { feature ->
@@ -115,7 +115,7 @@ class FeatureUiTest: CoreTestDriver() {
                 }
         }
 
-        core.features.get(app1.teamId, app1.appId, feature2.key).invoke(member.user, app) shouldBeSuccess feature2.copy(
+        core.features.get(app1.teamId, app1.appId, feature2.key).invoke(core, member.user) shouldBeSuccess feature2.copy(
             description = "really cool stuff",
             variants = mapOf(old to "legacy", new to "modern"),
             defaultVariant = new
@@ -123,7 +123,7 @@ class FeatureUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `remove variant`(context: BrowserContext) {
+    fun `remove variant`(browser: Http4kBrowser) {
         val feature = createFeature(
             principal = member,
             application = app1,
@@ -132,7 +132,7 @@ class FeatureUiTest: CoreTestDriver() {
             variants = mapOf(old to "old", new to "new")
         )
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
             .application.select(feature.key) { page ->
                 page.edit.variants
@@ -144,18 +144,18 @@ class FeatureUiTest: CoreTestDriver() {
             }
         }
 
-        core.features.get(app1.teamId, app1.appId, feature.key).invoke(member.user, app) shouldBeSuccess feature.copy(
+        core.features.get(app1.teamId, app1.appId, feature.key).invoke(core, member.user) shouldBeSuccess feature.copy(
             defaultVariant = new,
             variants = mapOf(new to "new")
         )
     }
 
     @Test
-    fun `delete feature`(context: BrowserContext) {
+    fun `delete feature`(browser: Http4kBrowser) {
         val feature1 = createFeature(member, app1, featureKey1)
         val feature2 = createFeature(member, app1, featureKey2)
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
                 .application.select(feature2.key)
                 .environments.more().delete().confirm { page ->
@@ -167,7 +167,7 @@ class FeatureUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `reset feature`(context: BrowserContext) {
+    fun `reset feature`(browser: Http4kBrowser) {
         val feature = createFeature(
             principal = member,
             application = app1,
@@ -176,7 +176,7 @@ class FeatureUiTest: CoreTestDriver() {
             variants = mapOf(old to "old", new to "new")
         )
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.applications.select(app1.appName)
                 .application.select(feature.key) { page ->
                     page.edit.description = "foobar"

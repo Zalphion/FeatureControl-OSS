@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.web
 
-import com.microsoft.playwright.BrowserContext
+import org.http4k.playwright.Http4kBrowser
 import com.zalphion.featurecontrol.CoreTestDriver
 import com.zalphion.featurecontrol.create
 import com.zalphion.featurecontrol.idp1Email1
@@ -19,15 +19,15 @@ class MainMainNavBarUiTest: CoreTestDriver() {
 
     private val member = core.users.create(idp1Email1).shouldBeSuccess()
     private val team2 = core.teams.create(member.user.userId, TeamCreateUpdateData(TeamName.parse("new team")))
-        .invoke(member.user, app)
+        .invoke(core, member.user)
         .shouldBeSuccess()
 
     @RegisterExtension
     val playwright = playwright()
 
     @Test
-    fun `show team selector`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `show team selector`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.mainNavBar.openTeams { teams ->
                 teams.options.shouldContainExactlyInAnyOrder(member.team.teamName, team2.teamName)
             }
@@ -35,8 +35,8 @@ class MainMainNavBarUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `switch teams`(context: BrowserContext) {
-        context.asUser(app, member.user) { page ->
+    fun `switch teams`(browser: Http4kBrowser) {
+        browser.asUser(core, member.user) { page ->
             page.mainNavBar.openTeams { teams ->
                 teams.goToTeam(team2.teamName) { result ->
                     result.mainNavBar.currentTeam shouldBe team2.teamName
@@ -46,10 +46,10 @@ class MainMainNavBarUiTest: CoreTestDriver() {
     }
 
     @Test
-    fun `create team`(context: BrowserContext) {
+    fun `create team`(browser: Http4kBrowser) {
         val name = TeamName.parse("super team")
 
-        context.asUser(app, member.user) { page ->
+        browser.asUser(core, member.user) { page ->
             page.mainNavBar.openTeams { teams ->
                 teams.createTeam { team ->
                     team.name = name

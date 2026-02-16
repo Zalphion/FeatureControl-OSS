@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.teams.web
 
-import com.zalphion.featurecontrol.FeatureControl
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.teams.TeamCreateUpdateData
 import com.zalphion.featurecontrol.teams.TeamName
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
@@ -29,21 +29,21 @@ private object CreateUpdateTeamForm {
     val form = Body.webForm(Validator.Strict, teamName).toLens()
 }
 
-internal fun FeatureControl.createTeam(): HttpHandler = fn@{ request ->
+internal fun Core.createTeam(): HttpHandler = fn@{ request ->
     val permissions = permissionsLens(request)
     val form = CreateUpdateTeamForm.form(request)
     val data = TeamCreateUpdateData(
         teamName = CreateUpdateTeamForm.teamName(form)
     )
 
-    val team = core.teams.create(permissions.principal.userId, data)
-        .invoke(permissions, this)
+    val team = teams.create(permissions.principal.userId, data)
+        .invoke(permissions)
         .onFailure { return@fn request.toIndex().withMessage(it.reason) }
 
     Response(Status.SEE_OTHER).location(membersUri(team.teamId))
 }
 
-internal fun FeatureControl.updateTeam(): HttpHandler = fn@ { request ->
+internal fun Core.updateTeam(): HttpHandler = fn@ { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
 
@@ -52,8 +52,8 @@ internal fun FeatureControl.updateTeam(): HttpHandler = fn@ { request ->
         teamName = CreateUpdateTeamForm.teamName(form)
     )
 
-    val result = core.teams.update(teamId, data)
-        .invoke(principal, this)
+    val result = teams.update(teamId, data)
+        .invoke(principal)
         .map { FlashMessageDto(FlashMessageDto.Type.Success, "Team Updated") }
         .recover { it.toFlashMessage() }
 

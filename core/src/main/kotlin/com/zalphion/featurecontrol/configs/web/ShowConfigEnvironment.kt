@@ -5,7 +5,6 @@ import com.zalphion.featurecontrol.configs.ConfigSpec
 import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.configs.PropertyType
 import com.zalphion.featurecontrol.web.updateResetButtons
-import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.ariaLabel
@@ -39,13 +38,12 @@ class ConfigEnvironmentComponent(
 ) {
     companion object {
         fun core(
-            app: FeatureControl,
             extraContent: FlowContent.(ConfigEnvironmentComponent) -> Unit = {}
-        ) = Component<ConfigEnvironmentComponent> { flow, data ->
+        ) = Component<ConfigEnvironmentComponent> { flow, core, data ->
             val environment = data.environment
             val spec = data.spec
 
-            app.render(flow, ConfigNavBarComponent(data.application, data.environment))
+            core.render(flow, ConfigNavBarComponent(data.application, data.environment))
 
             val dto = spec.properties.mapValues { (key, spec) ->
                 val rawValue = environment.values[key]
@@ -58,7 +56,7 @@ class ConfigEnvironmentComponent(
             flow.form(environment.uri().toString(), method = FormMethod.post) {
                 // need to use the keys from the spec, because the environment may not have all the keys filled
                 attributes["x-data"] = """{
-                    values: ${app.core.json.asFormatString(dto)}
+                    values: ${core.json.asFormatString(dto)}
                 }""".trimIndent()
 
                 input(InputType.hidden, name = "values") {

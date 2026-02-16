@@ -75,6 +75,5 @@ kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version = 
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html-jvm", version = "0.12.0" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.7" }
 hikari-cp = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
-moshi = { module = "com.squareup.moshi:moshi", version = "1.15.2" }
 h2 = { module = "com.h2database:h2", version = "2.4.240" }
 mariadb = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.7" }

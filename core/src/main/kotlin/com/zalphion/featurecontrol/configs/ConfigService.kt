@@ -1,12 +1,12 @@
 package com.zalphion.featurecontrol.configs
 
 import com.zalphion.featurecontrol.AppError
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.crypto.Encryption
 import com.zalphion.featurecontrol.crypto.aesGcm
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.ApplicationStorage
-import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.lib.peekOrFail
 import com.zalphion.featurecontrol.preAuth
 import com.zalphion.featurecontrol.teams.TeamId
@@ -18,11 +18,9 @@ import dev.forkhandles.result4k.onFailure
 import dev.forkhandles.result4k.peek
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.random.Random
 
 class ConfigService(
-    private val appSecret: AppSecret,
-    private val random: Random,
+    private val core: Core,
     private val applications: ApplicationStorage,
     private val specs: ConfigSpecStorage,
     private val environments: ConfigEnvironmentStorage
@@ -31,10 +29,10 @@ class ConfigService(
         appId: AppId,
         environmentName: EnvironmentName
     ) = Encryption.aesGcm(
-        appSecret = appSecret,
+        appSecret = core.config.appSecret,
         keySalt = "$appId:$environmentName".encodeToByteArray(),
         usage = "config",
-        random = random
+        random = core.random
     )
 
     fun getSpec(teamId: TeamId, appId: AppId) = preAuth {

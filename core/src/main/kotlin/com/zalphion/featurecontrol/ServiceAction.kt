@@ -11,25 +11,25 @@ import dev.forkhandles.result4k.begin
 import dev.forkhandles.result4k.flatMap
 import dev.forkhandles.result4k.map
 
-fun preAuth(evaluate: (Permissions<*>) -> Boolean) = ServiceAction { _, _ -> Unit.asSuccess() }.preAuth(evaluate)
+fun preAuth(evaluate: (Permissions<*>) -> Boolean) = ServiceAction { Unit.asSuccess() }.preAuth(evaluate)
 
 fun interface ServiceAction<T: Any> {
-    operator fun invoke(permissions: Permissions<*>, app: FeatureControl): Result4k<T, AppError>
+    operator fun invoke(permissions: Permissions<*>): Result4k<T, AppError>
 
-    fun before(before: (Permissions<*>, FeatureControl) -> Result4k<Unit, AppError>) = ServiceAction { permissions, app ->
-        before(permissions, app).flatMap { this@ServiceAction(permissions, app) }
+    fun before(before: (Permissions<*>) -> Result4k<Unit, AppError>) = ServiceAction { permissions ->
+        before(permissions).flatMap { this@ServiceAction(permissions) }
     }
 
-    fun after(after: (Permissions<*>, FeatureControl, T) -> T) = ServiceAction { permissions, app ->
-        this@ServiceAction(permissions, app).map { after(permissions, app, it) }
+    fun after(after: (Permissions<*>, T) -> T) = ServiceAction { permissions ->
+        this@ServiceAction(permissions).map { after(permissions, it) }
     }
 
-    fun <O: Any> map(fn: (T) -> O) = ServiceAction { permissions, app ->
-        this@ServiceAction(permissions, app).map { fn(it) }
+    fun <O: Any> map(fn: (T) -> O) = ServiceAction { permissions ->
+        this@ServiceAction(permissions).map { fn(it) }
     }
 
-    fun <O: Any> flatMap(fn: (T) -> Result4k<O, AppError>) = ServiceAction { permissions, app ->
-        this@ServiceAction(permissions, app).flatMap { fn(it) }
+    fun <O: Any> flatMap(fn: (T) -> Result4k<O, AppError>) = ServiceAction { permissions ->
+        this@ServiceAction(permissions).flatMap { fn(it) }
     }
 
     fun failIf(predicate: (T) -> Boolean, toError: (T) -> AppError) = flatMap { success ->
@@ -38,12 +38,12 @@ fun interface ServiceAction<T: Any> {
 
     fun peek(fn: (T) -> Unit) = map { value -> fn(value); value }
 
-    fun preAuth(evaluate: (Permissions<*>) -> Boolean): ServiceAction<T> = before { permissions, app ->
+    fun preAuth(evaluate: (Permissions<*>) -> Boolean): ServiceAction<T> = before { permissions ->
         begin.failIf({!evaluate(permissions)}, { forbidden })
     }
 
-    fun checkEntitlements(teamId: TeamId, requirementsFn: (FeatureControl) -> Entitlements) = before { _, app ->
-        val missing = requirementsFn(app) - app.getEntitlements(teamId)
+    fun checkEntitlements(core: Core, teamId: TeamId, requirementsFn: (Core) -> Entitlements) = before { _ ->
+        val missing = requirementsFn(core) - core.getEntitlements(teamId)
 
         if (missing.isNotEmpty()) {
             missingEntitlements(missing).asFailure()

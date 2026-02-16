@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.members
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.invitationNotFound
 import com.zalphion.featurecontrol.memberAlreadyExists
 import com.zalphion.featurecontrol.events.EventId
@@ -27,9 +28,7 @@ import kotlin.collections.map
 import kotlin.random.Random
 
 class MemberService(
-    private val clock: Clock,
-    private val random: Random,
-    private val invitationRetention: Duration,
+    private val core: Core,
     private val userService: UserService,
     private val teams: TeamStorage,
     private val users: UserStorage,
@@ -38,7 +37,7 @@ class MemberService(
     // TODO cannot remove last admin of team
     fun update(teamId: TeamId, userId: UserId, data: MemberUpdateData) = preAuth {
         it.memberUpdate(teamId, userId)
-    }.checkEntitlements(teamId) {
+    }.checkEntitlements(core, teamId) {
         it.getRequirements(data)
     }.flatMap {
         members.getOrFail(teamId, userId)
@@ -63,7 +62,7 @@ class MemberService(
                 next = members.next
             )
         }.asSuccess()
-    }.after { permissions, _, members ->
+    }.after { permissions, members ->
         members.filterItem { permissions.memberRead(it.member) }
     }
 
@@ -82,7 +81,7 @@ class MemberService(
                 next = members.next
             )
         }.asSuccess()
-    }.after { permissions, _, members ->
+    }.after { permissions, members ->
         members.filterItem { permissions.memberRead(it.member) }
     }
 
@@ -100,7 +99,7 @@ class MemberService(
 
     fun invite(teamId: TeamId, sender: UserId, data: MemberCreateData) = preAuth {
         it.memberCreate(teamId)
-    }.checkEntitlements(teamId) {
+    }.checkEntitlements(core, teamId) {
         it.getRequirements(data)
     }.flatMap {
         val team = teams.getOrFail(teamId).onFailure { return@flatMap it }
@@ -115,24 +114,26 @@ class MemberService(
             return@flatMap memberAlreadyExists(existingMember).asFailure()
         }
 
+        val time = core.clock.instant()
+
         val member = Member(
             teamId = teamId,
             userId = user.userId,
-            invitationExpiresOn = clock.instant() + invitationRetention,
+            invitationExpiresOn = time + core.config.invitationRetention,
             invitedBy = sender,
             extensions = data.extensions
         )
+        val details = MemberDetails(member, user, team)
         members += member
 
-        MemberDetails(member, user, team).asSuccess()
-    }.after { _, app, details ->
-        app.emitEvent(MemberCreatedEvent(
+        core.emitEvent(MemberCreatedEvent(
             teamId = teamId,
-            eventId = EventId.random(random),
-            time = clock.instant(),
+            eventId = EventId.random(core.random),
+            time = time,
             member = details
         ))
-        details
+
+        details.asSuccess()
     }
 
     fun acceptInvitation(teamId: TeamId, userId: UserId) = preAuth {
@@ -160,14 +161,15 @@ class MemberService(
 
         val team = teams.getOrFail(teamId).onFailure { return@flatMap it }
         val user = users.getOrFail(userId).onFailure { return@flatMap it }
-         MemberDetails(member, user, team).asSuccess()
-    }.after { _, app, details ->
-        app.emitEvent(MemberCreatedEvent(
+        val details = MemberDetails(member, user, team)
+
+        core.emitEvent(MemberCreatedEvent(
             teamId = teamId,
-            eventId = EventId.random(random),
-            time = clock.instant(),
+            eventId = EventId.random(core.random),
+            time = core.clock.instant(),
             member = details
         ))
-        details
+
+        details.asSuccess()
     }
 }

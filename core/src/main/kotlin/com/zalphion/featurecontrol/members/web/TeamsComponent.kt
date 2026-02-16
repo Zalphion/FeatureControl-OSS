@@ -1,6 +1,6 @@
 package com.zalphion.featurecontrol.members.web
 
-import com.zalphion.featurecontrol.FeatureControl
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.members.MemberDetails
 import com.zalphion.featurecontrol.plugins.Component
@@ -36,12 +36,11 @@ class TeamsComponent(
 ) {
     companion object {
         fun core(
-            app: FeatureControl,
-            extraColumnsFn: (TeamsComponent) -> List<Pair<String, TD.(MemberDetails) -> Unit>> = { emptyList() },
-            extraActionsFn: (TeamsComponent) -> List<LI.(MemberDetails) -> Unit> = { emptyList() }
-        ) = Component<TeamsComponent> { flow, data ->
-            val extraColumns = extraColumnsFn(data)
-            val extraActions = extraActionsFn(data)
+            extraColumnsFn: (TeamsComponent, Core) -> List<Pair<String, TD.(MemberDetails) -> Unit>> = { _, _ -> emptyList() },
+            extraActionsFn: (TeamsComponent, Core) -> List<LI.(MemberDetails) -> Unit> = { _, _ -> emptyList() }
+        ) = Component<TeamsComponent> { flow, core, data ->
+            val extraColumns = extraColumnsFn(data, core)
+            val extraActions = extraActionsFn(data, core)
             flow.table("uk-table uk-table-hover") {
                 thead {
                     ariaHidden = true
@@ -64,7 +63,7 @@ class TeamsComponent(
 
                             td {
                                 ariaLabel = "Role"
-                                app.render(this, RoleComponent(details))
+                                core.render(this, RoleComponent(details))
                             }
 
                             for (render in extraColumns.map { it.second }) {

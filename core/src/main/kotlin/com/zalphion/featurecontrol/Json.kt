@@ -35,7 +35,7 @@ import java.math.BigDecimal
 private object CoreJsonAdapterFactory : JsonAdapter.Factory by KotshiCoreJsonAdapterFactory
 
 internal fun buildJson(plugins: List<PluginFactory<*>>): AutoMarshalling = plugins
-    .mapNotNull { it.jsonExport }
+    .map { it.getJson() }
     .fold(Moshi.Builder()) { builder, export -> export.moshi(builder) }
     .add(CoreJsonAdapterFactory)
     .add(BigDecimalAdapter)
@@ -58,7 +58,7 @@ internal fun buildJson(plugins: List<PluginFactory<*>>): AutoMarshalling = plugi
     .value(PropertyKey)
     .value(Colour)
     .value(EnginePrincipal)
-    .let { plugins.mapNotNull { p -> p.jsonExport }.fold(it) { builder, export -> export.mapping(builder)} }
+    .let { plugins.map { p -> p.getJson() }.fold(it) { builder, export -> export.mapping(builder)} }
     .done()
     .let { ConfigurableMoshi(it) }
 

@@ -8,8 +8,5 @@ import dev.forkhandles.values.regex
  * Holds a colour in its hex representation.
  */
 class Colour private constructor(value: String): StringValue(value) {
-    companion object: StringValueFactory<Colour>(::Colour, "^#[0-9A-Fa-f]{6}$".regex) {
-        val white = parse("#FFFFFF")
-        val black = parse("#000000")
-    }
+    companion object: StringValueFactory<Colour>(::Colour, "^#[0-9A-Fa-f]{6}$".regex)
 }

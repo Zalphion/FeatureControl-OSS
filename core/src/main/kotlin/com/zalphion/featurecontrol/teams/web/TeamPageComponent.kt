@@ -13,7 +13,7 @@ import com.zalphion.featurecontrol.web.membersUri
 import com.zalphion.featurecontrol.web.components.moreMenu
 import com.zalphion.featurecontrol.web.pageSkeleton
 import com.zalphion.featurecontrol.AppError
-import com.zalphion.featurecontrol.FeatureControl
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.auth.Permissions
 import com.zalphion.featurecontrol.memberNotFound
 import com.zalphion.featurecontrol.web.SideNav
@@ -38,8 +38,8 @@ data class TeamPageComponent(
     val filterModel = "team_element_filter"
 
     companion object {
-        fun create(app: FeatureControl, permissions: Permissions<User>, teamId: TeamId, selected: PageSpec?): Result4k<TeamPageComponent, AppError> {
-            val navBar = MainNavBar.get(app, permissions, teamId, selected).onFailure { return it }
+        fun create(core: Core, permissions: Permissions<User>, teamId: TeamId, selected: PageSpec?): Result4k<TeamPageComponent, AppError> {
+            val navBar = MainNavBar.get(core, permissions, teamId, selected).onFailure { return it }
             val team = navBar.memberships.find { (_, _, team) -> team.teamId == teamId } ?: return memberNotFound(teamId, permissions.principal.userId).asFailure()
 
             return TeamPageComponent(
@@ -53,7 +53,7 @@ data class TeamPageComponent(
     }
 }
 
-fun FeatureControl.teamPage(
+fun Core.teamPage(
     model: TeamPageComponent,
     messages: List<FlashMessageDto>,
     content: FlowContent.(TeamPageComponent) -> Unit

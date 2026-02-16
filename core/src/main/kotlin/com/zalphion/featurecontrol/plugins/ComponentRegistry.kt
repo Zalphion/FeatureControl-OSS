@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.plugins
 
+import com.zalphion.featurecontrol.Core
 import kotlinx.html.FlowContent
 import kotlin.reflect.KClass
 
@@ -11,13 +12,10 @@ class ComponentRegistry private constructor(private val components: Map<KClass<*
 
     fun <T: Any> with(type: KClass<T>, component: Component<T>) = ComponentRegistry(components + (type to component))
 
-    inline operator fun <reified T: Any> invoke(flow: FlowContent, data: T) =
-        invoke(T::class, flow, data)
-
     @Suppress("UNCHECKED_CAST")
-    operator fun <T: Any> invoke(type: KClass<T>, flow: FlowContent, data: T) =
+    fun <T: Any> render(type: KClass<T>, flow: FlowContent, core: Core, data: T) =
         (components[type] as? Component<T>)
-        ?.invoke(flow, data)
+        ?.invoke(flow, core,data)
         ?: error("Could not find $type component")
 
     operator fun plus(other: ComponentRegistry) = ComponentRegistry(components + other.components)
@@ -27,4 +25,4 @@ class ComponentRegistry private constructor(private val components: Map<KClass<*
     }
 }
 
-fun interface Component<T: Any>: (FlowContent, T) -> Unit
+fun interface Component<T: Any>: (FlowContent, Core, T) -> Unit

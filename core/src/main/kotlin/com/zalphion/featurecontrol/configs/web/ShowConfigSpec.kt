@@ -2,7 +2,6 @@ package com.zalphion.featurecontrol.configs.web
 
 import com.zalphion.featurecontrol.configs.ConfigSpec
 import com.zalphion.featurecontrol.web.updateResetButtons
-import com.zalphion.featurecontrol.FeatureControl
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.lib.asBiDiMapping
 import com.zalphion.featurecontrol.plugins.Component
@@ -16,8 +15,8 @@ import kotlinx.html.form
 
 class ConfigSpecComponent(val application: Application, val spec: ConfigSpec) {
     companion object {
-        fun core(app: FeatureControl) = Component<ConfigSpecComponent> { flow, data ->
-            app.render(flow, ConfigNavBarComponent(data.application, null))
+        fun core() = Component<ConfigSpecComponent> { flow, core, data ->
+            core.render(flow, ConfigNavBarComponent(data.application, null))
 
             flow.form(method = FormMethod.post, action = data.spec.uri().toString()) {
                 tableForm(
@@ -50,7 +49,7 @@ class ConfigSpecComponent(val application: Application, val spec: ConfigSpec) {
                         ),
                     ),
                     elements = data.spec.properties.map { it.value.toDto(it.key) },
-                    mapper = app.core.json.asBiDiMapping()
+                    mapper = core.json.asBiDiMapping()
                 )
 
                 updateResetButtons("Update", data.spec.uri())

@@ -1,5 +1,6 @@
 package com.zalphion.featurecontrol.features
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.applications.ApplicationStorage
 import com.zalphion.featurecontrol.featureAlreadyExists
@@ -11,6 +12,7 @@ import dev.forkhandles.result4k.map
 import dev.forkhandles.result4k.peek
 
 class FeatureService(
+    private val core: Core,
     private val features: FeatureStorage,
     private val applications: ApplicationStorage
 ) {
@@ -19,7 +21,7 @@ class FeatureService(
         it.applicationRead(teamId, appId)
     }.map {
         features.list(appId)
-    }.after { permissions, _, features ->
+    }.after { permissions, features ->
         features.filterItem { permissions.featureRead(teamId, appId, it.key) }
     }
 
@@ -32,7 +34,7 @@ class FeatureService(
 
     fun create(teamId: TeamId, appId: AppId, data: FeatureCreateData) = preAuth {
         it.featureCreate(teamId, appId)
-    }.checkEntitlements(teamId) {
+    }.checkEntitlements(core, teamId) {
         it.getRequirements(data)
     }.failIf(
         predicate = {features[appId, data.featureKey] != null},
@@ -45,7 +47,7 @@ class FeatureService(
 
     fun update(teamId: TeamId, appId: AppId, featureKey: FeatureKey, data: FeatureUpdateData) = preAuth {
         it.featureUpdate(teamId, appId, featureKey)
-    }.checkEntitlements(teamId) {
+    }.checkEntitlements(core, teamId) {
         it.getRequirements(data)
     }.flatMap {
         applications.getOrFail(teamId, appId)

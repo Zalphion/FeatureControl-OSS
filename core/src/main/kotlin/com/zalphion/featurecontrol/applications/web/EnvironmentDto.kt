@@ -9,7 +9,7 @@ import se.ansman.kotshi.JsonSerializable
 data class EnvironmentDto(
     val name: EnvironmentName,
     val description: String = "",
-    val colour: Colour = Colour.white
+    val colour: Colour = Colour.parse("#FFFFFF") // white
 ) {
     companion object
 }

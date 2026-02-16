@@ -5,7 +5,6 @@ import com.zalphion.featurecontrol.crypto.AppSecret
 import com.zalphion.featurecontrol.events.localEventBus
 import com.zalphion.featurecontrol.plugins.Plugin
 import com.zalphion.featurecontrol.plugins.PluginFactory
-import com.zalphion.featurecontrol.plugins.toFactory
 import com.zalphion.featurecontrol.plugins.webjars
 import com.zalphion.featurecontrol.storage.PageSize
 import com.zalphion.featurecontrol.storage.StorageDriver
@@ -38,9 +37,10 @@ abstract class CoreTestDriver(
     private val plugins = listOf(
         *additionalPlugins.toTypedArray(),
         Plugin.webjars(),
-        object : Plugin {
+        object: PluginFactory<Plugin> {
             override fun getEntitlements(teamId: TeamId) = entitlements[teamId].orEmpty()
-        }.toFactory()
+            override fun create(core: Core) = object: Plugin {}
+        }
     )
 
     private val coreConfig = CoreConfig(
@@ -58,19 +58,13 @@ abstract class CoreTestDriver(
         invitationRetention = invitationRetention
     )
 
-    val core = Core.build(
+    val core = Core(
+        appName = "Test Control",
         storageDriver = storageDriver,
         clock = clock,
         random = Random(1337),
         config = coreConfig,
-        plugins = plugins
-    )
-
-    val app = FeatureControl(
-        appName = "Test Control",
-        core = core,
-        plugins = plugins.map { it.create(core) },
+        plugins = plugins,
         eventBusFn = ::localEventBus,
-        config = coreConfig
     )
 }
