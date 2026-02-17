@@ -337,10 +337,10 @@ class Core(
                 },
                 "members" bind routes(listOf(
                     Method.GET bind showMembers(),
-                    isRichPut bind updateMember(),
                     Method.POST bind createMember(),
                     "$userIdLens" bind routes(listOf(
                         isRichDelete bind deleteMember(),
+                        isRichPut bind updateMember(),
                         Method.POST bind resendInvitation()
                     ))
                 )),

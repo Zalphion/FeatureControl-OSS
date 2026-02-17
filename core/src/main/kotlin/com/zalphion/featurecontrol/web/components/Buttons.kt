@@ -28,16 +28,20 @@ fun FlowContent.modalIconButton(
     tooltip: String,
     icon: String,
     modalId: String,
+    label: String = tooltip,
+    enabled: Boolean = true,
     dropdownToCloseId: String? = null, // dropdown to close when clicked
     attrs: BUTTON.() -> Unit = {}
 ) {
     button(type = ButtonType.button, classes = "uk-icon-button uk-button-default") {
         ariaHasPopup = AriaPopup.Dialog
         ariaControls = modalId
+        disabled = !enabled
+        ariaDisabled = !enabled
         attrs()
 
         this.tooltip = tooltip
-        ariaLabel = tooltip // icon-only means we need an assistive label
+        ariaLabel = label // icon-only means we need an assistive label
         onClick = "${if (dropdownToCloseId == null) "" else "UIkit.dropdown('#$dropdownToCloseId').hide(true); "}UIkit.modal('#$modalId').show()"
         span {
             attributes["uk-icon"] = icon

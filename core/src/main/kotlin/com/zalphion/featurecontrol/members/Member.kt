@@ -14,6 +14,7 @@ data class Member(
     override val extensions: Extensions
 ): Extendable<Member> {
     val active get() = invitationExpiresOn == null
+    val emailAddress get() = userId.toEmailAddress()
 
     fun ifInactive(block: (Instant) -> Unit) = if (invitationExpiresOn == null) null else {
         block(invitationExpiresOn)

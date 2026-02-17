@@ -9,7 +9,7 @@ class RoleComponent(val member: MemberDetails) {
     companion object {
         fun core() = Component<RoleComponent> { flow, _, data ->
             flow.h5 {
-                +"Member"
+                + if (data.member.member.active) "Member" else "Pending"
             }
         }
     }

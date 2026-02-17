@@ -3,11 +3,10 @@
 
 # Feature Control
 
-The Complete FOSS Edition of Feature Control.
-Fully extendable, no limitations, no DRM.
+The Complete FOSS Edition.
 Build it yourself or use the official docker image.
 
-None of the dependencies place any limitations on commercial use of this software.
+None of the dependencies place any limitations on commercial use.
 See the [Allowed Licenses](https://github.com/Zalphion/FeatureControl/blob/main/allowed-licenses.json) for details.
 
 > [!WARNING]

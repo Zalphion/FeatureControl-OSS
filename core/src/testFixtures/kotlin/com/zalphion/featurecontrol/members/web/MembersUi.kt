@@ -42,7 +42,7 @@ class MembersUi(private val page: Page) {
         .also(block)
 }
 
-class MemberUi(private val locator: Locator) {
+class MemberUi(val locator: Locator) {
     val username get() = locator
         .getByRole(AriaRole.CELL, Locator.GetByRoleOptions().setName("Username"))
         .textContent().trim()

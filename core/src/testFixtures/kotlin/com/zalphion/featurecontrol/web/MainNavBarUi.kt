@@ -53,7 +53,7 @@ class TeamMenuUi(private val locator: Locator) {
         return ApplicationsUi(locator.page()).also(block)
     }
 
-    fun manageTeam(block: (MembersUi) -> Unit): MembersUi {
+    fun manageTeam(block: (MembersUi) -> Unit = {}): MembersUi {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName("Manage Team")).click()
         return MembersUi(locator.page()).also(block)
     }
