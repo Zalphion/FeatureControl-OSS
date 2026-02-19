@@ -71,7 +71,7 @@ testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", ve
 # other
 jakarta-mail = { module = "com.sun.mail:jakarta.mail", version = "2.0.2"}
 service-utils = { module = "dev.andrewohara:service-utils", version = "1.26.0" }
-kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version = "7.0.14" }
+kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version = "8.0.01" }
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html-jvm", version = "0.12.0" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.7" }
 hikari-cp = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
