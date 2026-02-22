@@ -8,7 +8,11 @@ import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.ariaLabel
+import com.zalphion.featurecontrol.web.cssStyle
+import com.zalphion.featurecontrol.web.tooltip
 import com.zalphion.featurecontrol.web.uri
+import com.zalphion.featurecontrol.web.xData
+import com.zalphion.featurecontrol.web.xModel
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.INPUT
@@ -55,7 +59,7 @@ class ConfigEnvironmentComponent(
 
             flow.form(environment.uri().toString(), method = FormMethod.post) {
                 // need to use the keys from the spec, because the environment may not have all the keys filled
-                attributes["x-data"] = """{
+                xData = """{
                     values: ${core.json.asFormatString(dto)}
                 }""".trimIndent()
 
@@ -75,12 +79,16 @@ class ConfigEnvironmentComponent(
                         for ((key, spec) in spec.properties.entries.sortedBy { it.key }) {
                             tr {
                                 td {
-                                    h5 { +key.value }
+                                    h5 {
+                                        // set inline so the tooltip icon renders inline and not below
+                                        style = cssStyle("display" to "inline-block")
+                                        +key.value
+                                    }
                                     if (spec.description.isNotBlank()) {
                                         span("uk-margin-small-left") {
                                             style = "color: #03a9fc"
                                             attributes["uk-icon"] = "icon: info"
-                                            attributes["uk-tooltip"] = spec.description
+                                            tooltip = spec.description
                                         }
                                     }
                                 }
@@ -102,9 +110,8 @@ class ConfigEnvironmentComponent(
 
 private fun TD.valueInput(key: PropertyKey, type: PropertyType) {
     fun INPUT.configure() {
-        attributes["x-model"] = "values['$key']"
+        xModel = "values['$key']"
         ariaLabel = "Value"
-        placeholder = "Value"
     }
 
     when(type) {
@@ -112,9 +119,9 @@ private fun TD.valueInput(key: PropertyKey, type: PropertyType) {
             configure()
         }
         PropertyType.Boolean -> select("uk-select") {
-            attributes["x-model"] = "values['$key']"
+            xModel = "values['$key']"
             ariaLabel = "Value"
-            option { }
+            option { } // need a placeholder for the default to be selected properly
             option {
                 value = "true"
                 +"True"

@@ -4,7 +4,6 @@ import com.zalphion.featurecontrol.applications.ApplicationCreateData
 import com.zalphion.featurecontrol.applications.ApplicationService
 import com.zalphion.featurecontrol.applications.ApplicationStorage
 import com.zalphion.featurecontrol.applications.ApplicationUpdateData
-import com.zalphion.featurecontrol.applications.Environment
 import com.zalphion.featurecontrol.applications.web.ApplicationCardComponent
 import com.zalphion.featurecontrol.applications.web.ConfigCardComponent
 import com.zalphion.featurecontrol.applications.web.FeatureCardComponent
@@ -134,6 +133,9 @@ import kotlin.collections.minByOrNull
 import kotlin.random.Random
 import kotlin.reflect.KClass
 
+// TODO maybe split OSS into its own plugin; but pro depends on it...
+// could maybe allow plugins to be retrieved during init
+// this would allow community plugins to depend on core without oss
 class Core(
     val appName: String,
     val clock: Clock,
@@ -145,6 +147,7 @@ class Core(
 ) {
     val json = buildJson(plugins)
 
+    // TODO make these private/constructor-args and force consumers to use the services
     val teamStorage = TeamStorage.create(config.teamsStorageName, storageDriver, json)
     val userStorage = UserStorage.create(config.usersStorageName, storageDriver, json)
     val memberStorage = MemberStorage.create(config.membersStorageName, storageDriver, json)
@@ -190,7 +193,7 @@ class Core(
         .with(createCoreFeatureEnvironmentLens(json))
         .with(createCoreConfigSpecDataLens(json))
         .with(createCoreConfigEnvironmentDataLens(json))
-        .plus(plugins.map { it.getLensRegistry(json) })
+        .plus(plugins.map { it.buildLensRegistry(json) })
 
     private val components: ComponentRegistry = ComponentRegistry()
         .with(TeamsComponent.core())
@@ -208,7 +211,7 @@ class Core(
         .with(FeatureCardComponent.core())
         .with(ConfigNavBarComponent.core())
         .with(RoleComponent.core())
-        .plus(plugins.map { it.getComponentRegistry(json, storageDriver) })
+        .plus(plugins.map { it.buildComponentRegistry(json, storageDriver) })
 
     inline fun <reified T: Any> render(flow: FlowContent, data: T) = render(T::class, flow, data)
     fun <T: Any> render(type: KClass<T>, flow: FlowContent, data: T) = components.render(type, flow, this, data)
@@ -231,10 +234,6 @@ class Core(
 
     fun getRequirements(data: FeatureUpdateData) = plugins
         .flatMap { it.getRequirements(data) }
-        .toSet()
-
-    fun getRequirements(environment: Environment) = plugins
-        .flatMap { it.getRequirements(environment) }
         .toSet()
 
     fun getRequirements(data: MemberCreateData) = plugins
@@ -285,11 +284,12 @@ class Core(
             .logSummary(clock = clock)
             .then(ServerFilters.logErrors())
             .then(routes(listOf(
-                *runtimePlugins.mapNotNull { it.getRoutes(this) }.toTypedArray(),
+                *runtimePlugins.mapNotNull { it.getRoutes() }.toTypedArray(),
                 LOGIN_PATH bind Method.GET to {
                     Response(Status.OK).with(htmlLens of loginView())
                 },
                 REDIRECT_PATH bind Method.POST to fn@{ request ->
+                    // FIXME this "credential" form data is google-specific.  Move to google plugin?
                     val userData = request.form("credential")
                         ?.let(socialAuth::invoke)
                         ?: return@fn Response(Status.UNAUTHORIZED)
@@ -307,13 +307,13 @@ class Core(
 
     private fun getWebRoutes() = routes(listOf(
         // plugins can override existing routes
-        *runtimePlugins.mapNotNull { it.getWebRoutes(this) }.toTypedArray(),
+        *runtimePlugins.mapNotNull { it.getWebRoutes() }.toTypedArray(),
         INDEX_PATH bind Method.GET to { request: Request ->
             val permissions = permissionsLens(request)
             // FIXME go to team selector instead of trying to find a team
             val team = members.list(permissions.principal.userId)
                 .invoke(permissions)
-                .onFailure { error(it) }
+                .onFailure { error(it.reason) }
                 .minByOrNull { it.member.teamId }
                 ?.team
                 ?: error("No teams available")
@@ -327,7 +327,7 @@ class Core(
         LOGOUT_PATH bind Method.POST to {
             it.toIndex().invalidateCookie(SESSION_COOKIE_NAME, path = INDEX_PATH)
         },
-        "/teams" bind routes(
+        "teams" bind routes(
             Method.POST bind createTeam(),
             "$teamIdLens" bind routes(listOf(
                 Method.POST bind updateTeam(),
