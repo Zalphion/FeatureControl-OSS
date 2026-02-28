@@ -1,16 +1,26 @@
 package com.zalphion.featurecontrol.web
 
+import kotlinx.html.FORM
 import kotlinx.html.FlowContent
 import kotlinx.html.HTMLTag
+import kotlinx.html.TIME
+import kotlinx.html.role
 import kotlinx.html.time
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 fun cssStyle(vararg styles: Pair<String, String>) =
     styles.joinToString(";") { (key, value) -> "$key: $value" }
 
-fun FlowContent.timestamp(time: Instant) = time("timestamp") {
-    attributes["datetime"] = time.toString() //
-    +time.toString()
+/**
+ * Create a timestamp that will be rendered into a friendly format by day.js
+ */
+fun FlowContent.timestamp(time: Instant, attrs: TIME.() -> Unit = {}) = time("timestamp") {
+    role = "time"
+    attributes["datetime"] = time.toString() // automation helper; not used by day.js
+    tooltip = time.toString()
+    attrs(this)
+    +time.truncatedTo(ChronoUnit.SECONDS).toString()
 }
 
 var HTMLTag.ariaLabel: String
@@ -54,4 +64,3 @@ var HTMLTag.ariaDisabled: Boolean
 var HTMLTag.tooltip: String?
     get() = attributes["uk-tooltip"]
     set(value) { if (value != null) { attributes["uk-tooltip"] = value } else attributes.remove("uk-tooltip") }
-

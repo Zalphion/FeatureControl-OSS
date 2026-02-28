@@ -9,14 +9,23 @@ import com.zalphion.featurecontrol.web.table.InputTableElementSchema
 import com.zalphion.featurecontrol.web.table.SelectTableElementSchema
 import com.zalphion.featurecontrol.web.table.tableForm
 import com.zalphion.featurecontrol.web.uri
+import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
 import kotlinx.html.form
 
-class ConfigSpecComponent(val application: Application, val spec: ConfigSpec) {
+class ConfigSpecComponent(
+    val application: Application,
+    val spec: ConfigSpec
+) {
     companion object {
-        fun core() = Component<ConfigSpecComponent> { flow, core, data ->
+        fun core(
+            beforeContent: FlowContent.(ConfigSpecComponent) -> Unit = { _, _ -> },
+            afterContent: FlowContent.(ConfigSpecComponent) -> Unit = { _, _ -> }
+        ) = Component<ConfigSpecComponent> { flow, core, data ->
             core.render(flow, ConfigNavBarComponent(data.application, null))
+
+            flow.beforeContent(data)
 
             flow.form(method = FormMethod.post, action = data.spec.uri().toString()) {
                 tableForm(
@@ -52,7 +61,9 @@ class ConfigSpecComponent(val application: Application, val spec: ConfigSpec) {
                     mapper = core.json.asBiDiMapping()
                 )
 
-                updateResetButtons("Update", data.spec.uri())
+                flow.afterContent(data)
+
+                updateResetButtons("Update")
             }
         }
     }

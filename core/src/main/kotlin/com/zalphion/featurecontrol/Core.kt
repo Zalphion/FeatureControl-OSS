@@ -27,7 +27,8 @@ import com.zalphion.featurecontrol.configs.ConfigService
 import com.zalphion.featurecontrol.configs.ConfigSpecStorage
 import com.zalphion.featurecontrol.configs.dto.createCoreConfigEnvironmentDataLens
 import com.zalphion.featurecontrol.configs.dto.createCoreConfigSpecDataLens
-import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentComponent
+import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentEditModalComponent
+import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentViewComponent
 import com.zalphion.featurecontrol.configs.web.ConfigNavBarComponent
 import com.zalphion.featurecontrol.configs.web.ConfigSpecComponent
 import com.zalphion.featurecontrol.configs.web.httpGetConfigEnvironment
@@ -205,12 +206,13 @@ class Core(
         .with(FeatureComponent.core())
         .with(FeatureEnvironmentComponent.core(json))
         .with(ConfigSpecComponent.core())
-        .with(ConfigEnvironmentComponent.core())
+        .with(ConfigEnvironmentViewComponent.core())
         .with(ApplicationCardComponent.core())
         .with(ConfigCardComponent.core())
         .with(FeatureCardComponent.core())
-        .with(ConfigNavBarComponent.core())
         .with(RoleComponent.core())
+        .with(ConfigEnvironmentEditModalComponent.core())
+        .with(ConfigNavBarComponent.core())
         .plus(plugins.map { it.buildComponentRegistry(json, storageDriver) })
 
     inline fun <reified T: Any> render(flow: FlowContent, data: T) = render(T::class, flow, data)

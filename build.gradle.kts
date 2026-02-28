@@ -12,6 +12,7 @@ allprojects {
 
     apply(plugin = "kotlin")
     apply(plugin = "java-test-fixtures")
+    apply(plugin = "com.google.devtools.ksp")
 
     // TODO can upgrade to gradle convention plugin once the kotlin-dsl plugin supports JDK 25
     apply(from = "$rootDir/gradle/build-conventions.gradle.kts")

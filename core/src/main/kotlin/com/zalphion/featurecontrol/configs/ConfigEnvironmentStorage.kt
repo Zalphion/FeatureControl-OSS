@@ -4,6 +4,7 @@ import com.zalphion.featurecontrol.storage.Repository
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.lib.toBiDiMapping
+import com.zalphion.featurecontrol.plugins.Extensions
 import com.zalphion.featurecontrol.storage.StorageCompanion
 import com.zalphion.featurecontrol.teams.TeamId
 import se.ansman.kotshi.JsonSerializable
@@ -15,7 +16,7 @@ class ConfigEnvironmentStorage private constructor(
 
     fun getOrEmpty(teamId: TeamId, appId: AppId, environmentName: EnvironmentName) = get(appId, environmentName)
         ?.takeIf { it.teamId == teamId }
-        ?: ConfigEnvironment(teamId, appId, environmentName, emptyMap())
+        ?: ConfigEnvironment(teamId, appId, environmentName, emptyMap(), emptyMap())
 
     operator fun plusAssign(environment: ConfigEnvironment) = storage.save(environment.appId, environment.name, environment.toStored())
 
@@ -38,19 +39,22 @@ data class StoredConfigEnvironment(
     val teamId: TeamId,
     val appId: AppId,
     val environmentName: EnvironmentName,
-    val values: Map<PropertyKey, String>
+    val values: Map<PropertyKey, String>,
+    val extensions: Extensions = emptyMap()
 )
 
 fun ConfigEnvironment.toStored() = StoredConfigEnvironment(
     teamId = teamId,
     appId = appId,
     environmentName = name,
-    values = values
+    values = values,
+    extensions = extensions
 )
 
 fun StoredConfigEnvironment.toModel() = ConfigEnvironment(
     teamId = teamId,
     appId = appId,
     name = environmentName,
-    values = values
+    values = values,
+    extensions = extensions.orEmpty()
 )

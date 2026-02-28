@@ -12,7 +12,6 @@ import com.zalphion.featurecontrol.web.tr
 import com.zalphion.featurecontrol.web.updateResetButtons
 import com.zalphion.featurecontrol.web.withRichMethod
 import com.zalphion.featurecontrol.plugins.Component
-import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
@@ -118,7 +117,7 @@ class FeatureComponent(val application: Application, val feature: Feature) {
                     )
 
                     div("uk-margin-top") {
-                        updateResetButtons("Update", feature.uri())
+                        updateResetButtons("Update")
                     }
                 }
             }

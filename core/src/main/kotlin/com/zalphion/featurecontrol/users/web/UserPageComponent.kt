@@ -43,7 +43,7 @@ import org.http4k.core.Uri
 fun Core.userPageComponent(
     permissions: Permissions<User>,
     navBar: MainNavBar<MemberDetails?>,
-    messages: List<FlashMessageDto>,
+    messages: List<FlashMessageDto>
 ) = pageSkeleton(
     messages = messages,
     subTitle = PageSpec.userSettings.name,

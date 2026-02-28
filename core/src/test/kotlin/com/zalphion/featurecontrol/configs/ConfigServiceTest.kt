@@ -54,7 +54,8 @@ class ConfigServiceTest: CoreTestDriver() {
                 ConfigSpec(
                     teamId = app2.teamId,
                     appId = app2.appId,
-                    properties = emptyMap()
+                    properties = emptyMap(),
+                    extensions = emptyMap()
                 )
             )
     }
@@ -85,7 +86,8 @@ class ConfigServiceTest: CoreTestDriver() {
         val expected = ConfigSpec(
             teamId = app1.teamId,
             appId = app1.appId,
-            properties = mapOf(strProperty, numberProperty)
+            properties = mapOf(strProperty, numberProperty),
+            extensions = emptyMap()
         )
 
         core.configs.updateSpec(app1.teamId, app1.appId, mapOf(strProperty, numberProperty))
@@ -158,7 +160,8 @@ class ConfigServiceTest: CoreTestDriver() {
                     values = mapOf(
                         PropertyKey.parse("str") to "lolcats",
                         PropertyKey.parse("num") to "123"
-                    )
+                    ),
+                    extensions = emptyMap()
                 )
             )
 
@@ -171,7 +174,8 @@ class ConfigServiceTest: CoreTestDriver() {
                 values = mapOf(
                     PropertyKey.parse("str") to "lolcats",
                     PropertyKey.parse("num") to "123"
-                )
+                ),
+                extensions = emptyMap()
             ))
     }
 
@@ -209,7 +213,8 @@ class ConfigServiceTest: CoreTestDriver() {
                     name = devName,
                     values = mapOf(
                         PropertyKey.parse("num") to "456"
-                    )
+                    ),
+                    extensions = emptyMap()
                 )
             )
 
@@ -221,7 +226,8 @@ class ConfigServiceTest: CoreTestDriver() {
                 name = devName,
                 values = mapOf(
                     PropertyKey.parse("num") to "456"
-                )
+                ),
+                extensions = emptyMap()
             ))
     }
 
@@ -246,7 +252,8 @@ class ConfigServiceTest: CoreTestDriver() {
                 teamId = app1.teamId,
                 appId = app1.appId,
                 name = devName,
-                values = emptyMap()
+                values = emptyMap(),
+                extensions = emptyMap()
             ))
     }
 
@@ -273,7 +280,8 @@ class ConfigServiceTest: CoreTestDriver() {
                 name = devName,
                 values = mapOf(
                     strProperty.first to "lol"
-                )
+                ),
+                extensions = emptyMap()
             ))
     }
 
@@ -300,7 +308,8 @@ class ConfigServiceTest: CoreTestDriver() {
                 name = devName,
                 values = mapOf(
                     secretProperty.first to "80c39b4246a0310e7a82df20883b9ec82dbcc13705f7e1889482a8a210e1aa"
-                )
+                ),
+                extensions = emptyMap()
             ))
     }
 }

@@ -7,7 +7,7 @@ import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.configUri
 import com.zalphion.featurecontrol.web.components.subNavLinks
 import com.zalphion.featurecontrol.web.uri
-import kotlinx.html.FlowContent
+import kotlinx.html.DIV
 import kotlinx.html.a
 import kotlinx.html.div
 import kotlinx.html.h3
@@ -22,7 +22,8 @@ class ConfigNavBarComponent(
 ) {
     companion object {
         fun core(
-            extraNavBarLeft: FlowContent.(ConfigNavBarComponent, Core) -> Unit = { _, _ ->}
+            extraNavBarLeft: (DIV.(Core, Application, ConfigEnvironment?) -> Unit) = { _, _, _ -> },
+            extraNavBarRight: (DIV.(Core, Application, ConfigEnvironment?) -> Unit) = { _, _, _ -> },
         ) = Component<ConfigNavBarComponent> { flow, core, data ->
             flow.nav {
                 div("uk-navbar-container uk-navbar-transparent") {
@@ -35,7 +36,8 @@ class ConfigNavBarComponent(
                             }
                             +"Config"
                         }
-                        extraNavBarLeft(data, core)
+
+                        extraNavBarLeft(core, data.application, data.selected)
                     }
 
                     div("uk-navbar-right") {
@@ -47,6 +49,8 @@ class ConfigNavBarComponent(
                                 }
                             }
                         }
+
+                        extraNavBarRight(core, data.application, data.selected)
                     }
                 }
 

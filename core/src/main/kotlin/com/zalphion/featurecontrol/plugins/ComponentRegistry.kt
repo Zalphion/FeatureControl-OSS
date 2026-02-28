@@ -15,7 +15,7 @@ class ComponentRegistry private constructor(private val components: Map<KClass<*
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> render(type: KClass<T>, flow: FlowContent, core: Core, data: T) =
         (components[type] as? Component<T>)
-        ?.invoke(flow, core,data)
+        ?.invoke(flow, core, data)
         ?: error("Could not find $type component")
 
     operator fun plus(other: ComponentRegistry) = ComponentRegistry(components + other.components)

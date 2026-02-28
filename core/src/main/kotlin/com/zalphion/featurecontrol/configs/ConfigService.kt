@@ -88,6 +88,6 @@ class ConfigService(
             if (processedValue.isNotBlank()) key to processedValue else null
         }.toMap()
 
-        return ConfigEnvironment(teamId, appId, environment, processed).asSuccess()
+        return ConfigEnvironment(teamId, appId, environment, processed, emptyMap()).asSuccess()
     }
 }

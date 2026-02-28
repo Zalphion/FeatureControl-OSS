@@ -15,12 +15,12 @@ fun FlowContent.confirmCancelButtons(confirmText: String) {
     }
 }
 
-fun FlowContent.updateResetButtons(confirmText: String = "Update", resetPath: Uri) {
+fun FlowContent.updateResetButtons(confirmText: String = "Update") {
     button(type = ButtonType.submit, classes = "uk-button uk-button-primary") {
         +confirmText
     }
-    button(type = ButtonType.button, classes = "uk-button uk-button-danger uk-modal-close") {
-        onClick = "window.location.href = '$resetPath'"
+    button(type = ButtonType.button, classes = "uk-button uk-button-danger") {
+        onClick = "window.location.reload()"
         +"Reset"
     }
 }

@@ -60,13 +60,15 @@ class ConfigStorageTest {
         val config1 = ConfigSpec(
             teamId = application1.teamId,
             appId = application1.appId,
-            properties = mapOf(strProperty, numberProperty, booleanProperty, secretProperty)
+            properties = mapOf(strProperty, numberProperty, booleanProperty, secretProperty),
+            extensions = emptyMap()
         ).also(specs::plusAssign)
 
         val config2 = ConfigSpec(
             teamId = application2.teamId,
             appId = application2.appId,
-            properties = mapOf(strProperty)
+            properties = mapOf(strProperty),
+            extensions = emptyMap()
         ).also(specs::plusAssign)
 
         specs[application1.teamId, application1.appId] shouldBe config1
@@ -78,7 +80,8 @@ class ConfigStorageTest {
         val properties = ConfigSpec(
             teamId = application1.teamId,
             appId = application1.appId,
-            properties = emptyMap()
+            properties = emptyMap(),
+            extensions = emptyMap()
         )
         specs += properties
 
@@ -90,7 +93,8 @@ class ConfigStorageTest {
         val properties = ConfigSpec(
             teamId = application1.teamId,
             appId = application1.appId,
-            properties = mapOf(strProperty)
+            properties = mapOf(strProperty),
+            extensions = emptyMap()
         ).also(specs::plusAssign)
 
         val updated = properties.copy(
@@ -111,7 +115,8 @@ class ConfigStorageTest {
                 numberProperty.first to "123",
                 booleanProperty.first to "true",
                 secretProperty.first to encryption.encrypt("lolcats").decodeToString(),
-            )
+            ),
+            extensions = emptyMap()
         ).also(environments::plusAssign)
 
         environments[application1.appId, devName] shouldBe values
@@ -131,7 +136,8 @@ class ConfigStorageTest {
             name = devName,
             values = mapOf(
                 strProperty.first to "foo",
-            )
+            ),
+            extensions = emptyMap()
         ).also(environments::plusAssign)
 
         val updated = original.copy(
@@ -154,7 +160,8 @@ class ConfigStorageTest {
         ConfigSpec(
             teamId = application1.teamId,
             appId = application1.appId,
-            properties = mapOf(strProperty)
+            properties = mapOf(strProperty),
+            extensions = emptyMap()
         ).also(specs::plusAssign)
 
         ConfigEnvironment(
@@ -163,7 +170,8 @@ class ConfigStorageTest {
             name = devName,
             values = mapOf(
                 strProperty.first to "foo"
-            )
+            ),
+            extensions = emptyMap()
         ).also(environments::plusAssign)
 
         specs.delete(application1.teamId, application1.appId)
@@ -182,7 +190,8 @@ class ConfigStorageTest {
         val config = ConfigSpec(
             teamId = application1.teamId,
             appId = application1.appId,
-            properties = mapOf(strProperty)
+            properties = mapOf(strProperty),
+            extensions = emptyMap()
         ).also(specs::plusAssign)
 
         ConfigEnvironment(
@@ -191,7 +200,8 @@ class ConfigStorageTest {
             name = devName,
             values = mapOf(
                 strProperty.first to "foo"
-            )
+            ),
+            extensions = emptyMap()
         ).also(environments::plusAssign)
 
         environments.delete(application1.appId, devName)

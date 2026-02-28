@@ -116,8 +116,6 @@ fun Core.pageSkeleton(
                         const utcTime = dayjs.utc(el.textContent.trim())
                         const format = el.dataset.format || 'MMM DD, YYYY HH:mm'
                         el.textContent = utcTime.local().format(format)
-                        
-                        el.setAttribute('uk-tooltip', `title: ${utcTime}; delay: 500;`)
                         UIkit.tooltip(el)
                     })
                 }

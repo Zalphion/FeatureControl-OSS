@@ -180,7 +180,7 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
     core: Core,
     messages: List<FlashMessageDto>,
     selectedFeature: FeatureKey?,
-    content: (FlowContent.() -> Unit)? = null,
+    content: (FlowContent.() -> Unit)? = null
 ) = core.pageSkeleton(
     messages = messages,
     topNav = navBar,
@@ -308,7 +308,8 @@ private fun FlowContent.applicationNavBar(
                                 label = "Update Application",
                                 modalId = updateModalId,
                                 icon = "icon: file-edit",
-                                dropdownToCloseId = dropdownId)
+                                dropdownToCloseId = dropdownId
+                            )
                         }
                         li {
                             val deleteModalId = deleteModal(application.appName.value, application.uri())

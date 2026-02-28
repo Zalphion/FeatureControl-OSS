@@ -2,6 +2,7 @@ package com.zalphion.featurecontrol.configs
 
 import com.zalphion.featurecontrol.applications.AppId
 import com.zalphion.featurecontrol.lib.toBiDiMapping
+import com.zalphion.featurecontrol.plugins.Extensions
 import com.zalphion.featurecontrol.storage.Repository
 import com.zalphion.featurecontrol.storage.StorageCompanion
 import com.zalphion.featurecontrol.teams.TeamId
@@ -14,7 +15,7 @@ class ConfigSpecStorage private constructor(private val storage: Repository<Stor
 
     fun delete(teamId: TeamId, appId: AppId) = storage.delete(teamId, appId)
 
-    fun getOrEmpty(teamId: TeamId, appId: AppId) = get(teamId, appId) ?: ConfigSpec(teamId, appId, emptyMap())
+    fun getOrEmpty(teamId: TeamId, appId: AppId) = get(teamId, appId) ?: ConfigSpec(teamId, appId, emptyMap(), emptyMap())
 
     companion object: StorageCompanion<ConfigSpecStorage, StoredConfigSpec, TeamId, AppId>(
         documentType = StoredConfigSpec::class,
@@ -28,7 +29,8 @@ class ConfigSpecStorage private constructor(private val storage: Repository<Stor
 data class StoredConfigSpec(
     val teamId: TeamId,
     val appId: AppId,
-    val properties: Map<PropertyKey, StoredProperty>
+    val properties: Map<PropertyKey, StoredProperty>,
+    val extensions: Extensions?
 )
 
 @JsonSerializable
@@ -45,7 +47,8 @@ private fun ConfigSpec.toStored() = StoredConfigSpec(
             description = value.description,
             type = value.type.toStored()
         )
-    }
+    },
+    extensions = extensions
 )
 
 private fun StoredConfigSpec.toModel() = ConfigSpec(
@@ -56,7 +59,8 @@ private fun StoredConfigSpec.toModel() = ConfigSpec(
             description = value.description,
             type = value.type.toModel()
         )
-    }
+    },
+    extensions = extensions.orEmpty()
 )
 
 internal fun PropertyType.toStored() = when(this) {

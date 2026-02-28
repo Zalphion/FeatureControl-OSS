@@ -74,7 +74,7 @@ internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
                 messages = request.messages(),
                 selectedFeature = null
             ) {
-                render(this, ConfigEnvironmentComponent(model.selectedApplication, model.selectedItem, model.selectedEnvironment))
+                render(this, ConfigEnvironmentViewComponent(model.selectedApplication, model.selectedItem, model.selectedEnvironment))
             }
         }
         .map { Response(Status.OK).with(htmlLens of it) }

@@ -25,6 +25,8 @@ abstract class CoreTestDriver(
     val invitationRetention: Duration = Duration.ofHours(5),
     appSecret: AppSecret = AppSecret.of("secret")
 ) {
+    val random = Random(1337)
+
     var time: Instant = Instant.parse("2025-07-29T12:00:00Z")
     private val clock get() = object: Clock() {
         override fun getZone() = ZoneOffset.UTC
@@ -62,7 +64,7 @@ abstract class CoreTestDriver(
         appName = "Test Control",
         storageDriver = storageDriver,
         clock = clock,
-        random = Random(1337),
+        random = random,
         config = coreConfig,
         plugins = plugins,
         eventBusFn = ::localEventBus,

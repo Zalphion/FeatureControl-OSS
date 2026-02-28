@@ -13,7 +13,10 @@ fun extensions(vararg updates: (Extensions) -> Extensions) = emptyMap<String, St
 
 interface Extendable<SELF: Extendable<SELF>> {
     val extensions: Extensions
+    // TODO maybe KSP can implement this for me
     fun with(extensions: Extensions): SELF
+
+    fun with(vararg updates: (Extensions) -> Extensions): SELF = with(extensions(*updates))
 }
 
 object Extension: BiDiLensSpec<Extensions, String>("extensions", ParamMeta.StringParam,

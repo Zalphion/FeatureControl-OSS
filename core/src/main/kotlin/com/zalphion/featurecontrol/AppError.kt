@@ -91,6 +91,8 @@ fun memberNotFound(teamId: TeamId, userId: UserId) = AppError(
     )
 )
 
+fun missingEntitlements(vararg entitlements: Entitlement) = missingEntitlements(entitlements.toList())
+
 fun missingEntitlements(entitlements: Collection<Entitlement>) = AppError(
     messageCode = "missingEntitlement",
     messageArguments = entitlements.associate { it.toString() to "true" }

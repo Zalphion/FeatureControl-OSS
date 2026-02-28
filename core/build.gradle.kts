@@ -1,8 +1,8 @@
-plugins {
-    alias(libs.plugins.ksp)
-}
-
 dependencies {
+    // for 3rd party plugins to use
+    api(platform(libs.http4k.bom))
+    api(platform(libs.forkhandles.bom))
+
     api(libs.http4k.core)
     api(libs.http4k.format.core)
     api(libs.service.utils)

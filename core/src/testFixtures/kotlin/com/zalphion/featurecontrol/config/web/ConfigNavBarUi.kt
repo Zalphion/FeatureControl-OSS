@@ -27,10 +27,9 @@ class ConfigNavBarUi(private val locator: Locator) {
         return ConfigSpecUi(locator.page()).also(block)
     }
 
-    fun select(environment: EnvironmentName, block: (ConfigEnvironmentUi) -> Unit = {}): ConfigEnvironmentUi {
+    fun select(environment: EnvironmentName, block: (ConfigEnvironmentViewUi) -> Unit = {}): ConfigEnvironmentViewUi {
         locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName(environment.value)).click()
-        return ConfigEnvironmentUi(locator.page())
-            .also { it.uriEnvironmentName shouldBe environment }
+        return ConfigEnvironmentViewUi(locator.page())
             .also { it.environments.selected shouldBe environment }
             .also(block)
     }

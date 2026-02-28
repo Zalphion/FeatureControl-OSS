@@ -1,7 +1,3 @@
-plugins {
-    alias(libs.plugins.ksp)
-}
-
 dependencies {
     api(project(":core"))
     implementation(libs.http4k.format.moshi) {

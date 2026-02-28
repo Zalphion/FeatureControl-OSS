@@ -16,7 +16,6 @@ import com.zalphion.featurecontrol.web.table.InputTableElementSchema
 import com.zalphion.featurecontrol.web.table.ModalTableElementSchema
 import com.zalphion.featurecontrol.web.table.StaticTableElementSchema
 import com.zalphion.featurecontrol.web.table.tableForm
-import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -85,7 +84,7 @@ class FeatureEnvironmentComponent(
                     mapper = jsonMapper
                 )
 
-                updateResetButtons("Update", data.feature.uri(data.environmentName))
+                updateResetButtons("Update")
             }
         }
     }
