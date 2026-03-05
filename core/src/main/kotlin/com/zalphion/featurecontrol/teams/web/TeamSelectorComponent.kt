@@ -18,10 +18,11 @@ fun FlowContent.teamSelector(
     current: MemberDetails?,
     permissions: Permissions<User>
 ) {
+    val dropdownId = "team-menu"
     button(type = ButtonType.button, classes = "uk-button uk-button-default uk-border-pill") {
         style = "padding-left: 10px; padding-right: 10px"
         ariaLabel= "Team"
-        ariaControls = "team-menu"
+        ariaControls = dropdownId
 
         span("uk-margin-small-right") {
             attributes["uk-icon"] = "icon: users; ratio: 1.5"
@@ -32,10 +33,10 @@ fun FlowContent.teamSelector(
         }
     }
 
-    div("uk-navbar-dropdown") {
+    div {
         id = "team-menu"
         role = "menu"
-        ariaLabel = "Team Menu"
+        ariaLabel = dropdownId
         attributes["uk-dropdown"] = "mode: click;"
 
         ul("uk-nav uk-navbar-dropdown-nav") {

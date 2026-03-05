@@ -163,7 +163,7 @@ private fun FlowContent.userWidget(user: User) {
         }
     }
 
-    div("uk-navbar-dropdown") {
+    div {
         id = dropdownId
         attributes["uk-dropdown"] = "mode: click;"
 
