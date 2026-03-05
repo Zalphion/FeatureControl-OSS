@@ -6,7 +6,7 @@ forkhandles = "2.25.2.1"
 http4k = "6.31.1.0"
 kotshi = "4.0.0"
 tinylog = "2.7.0"
-flyway = "12.0.2"
+flyway = "12.0.3"
 
 # webjars
 alpinejs = "3.15.8"
@@ -16,9 +16,9 @@ uikit = "3.23.11"
 [plugins]
 
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.10" }
-ksp = { id = "com.google.devtools.ksp", version = "2.3.5" }
+ksp = { id = "com.google.devtools.ksp", version = "2.3.6" }
 license-report = { id = "com.github.jk1.dependency-license-report", version = "3.1.1" }
-shadow = { id = "com.gradleup.shadow", version = "9.3.1" }
+shadow = { id = "com.gradleup.shadow", version = "9.3.2" }
 
 [libraries]
 
@@ -73,7 +73,7 @@ jakarta-mail = { module = "com.sun.mail:jakarta.mail", version = "2.0.2"}
 service-utils = { module = "dev.andrewohara:service-utils", version = "1.26.0" }
 kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version = "8.0.01" }
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html-jvm", version = "0.12.0" }
-nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.7" }
+nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.8" }
 hikari-cp = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
 h2 = { module = "com.h2database:h2", version = "2.4.240" }
 mariadb = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.7" }
