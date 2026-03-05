@@ -184,7 +184,7 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
 ) = core.pageSkeleton(
     messages = messages,
     topNav = navBar,
-    sideNav = SideNav(
+    leftNav = SideNav(
         pages = emptyList(),
         selected = null,
         topBar = {
@@ -209,7 +209,7 @@ fun <A: Application?, I, E> ApplicationsPage<A, I, E>.render(
             }
         }
     ),
-    innerNav = if (selectedApplication == null) null else { core: Core ->
+    leftNavSecondary = if (selectedApplication == null) null else { core: Core ->
         ariaLabel = "Application Details"
         xData = "{ $filterModel: ''}"
         style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"

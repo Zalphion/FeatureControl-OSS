@@ -48,7 +48,7 @@ fun Core.userPageComponent(
     messages = messages,
     subTitle = PageSpec.userSettings.name,
     topNav = navBar,
-    sideNav = SideNav(
+    leftNav = SideNav(
         pages = listOf(PageLink(PageSpec.userSettings, Uri.of("profile"))),
         selected = PageSpec.userSettings,
         topBar = { h3 { +navBar.permissions.principal.let { it.userName ?: it.emailAddress.value } }}

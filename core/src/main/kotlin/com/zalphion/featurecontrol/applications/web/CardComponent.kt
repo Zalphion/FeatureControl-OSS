@@ -12,6 +12,7 @@ import com.zalphion.featurecontrol.web.cssStyle
 import com.zalphion.featurecontrol.web.flowTemplate
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
+import kotlinx.html.H3
 import kotlinx.html.a
 import kotlinx.html.classes
 import kotlinx.html.div
@@ -35,8 +36,7 @@ class FeatureCardComponent(
             flow.renderCard(
                 name = data.feature.key.value,
                 link = data.feature.uri(),
-                type = "Feature",
-                icon = PageSpec.features.icon,
+                type = PageSpec.features,
                 selected = data.selected,
                 filterModel = data.filterModel,
                 badge = { badge(this, data, core) }
@@ -53,8 +53,7 @@ class ConfigCardComponent(val application: Application, val selected: Boolean, v
             flow.renderCard(
                 name = "Config",
                 link = configUri(data.application.teamId, data.application.appId),
-                type = "Config",
-                icon = PageSpec.config.icon,
+                type = PageSpec.config,
                 selected = data.selected,
                 filterModel = data.filterModel,
                 badge = { badge(this, data) }
@@ -71,8 +70,7 @@ class ApplicationCardComponent(val application: Application, val selected: Boole
             flow.renderCard(
                 name = data.application.appName.value,
                 link = data.application.uri(),
-                type = "Application",
-                icon = "icon: album",
+                type = PageSpec.applications,
                 selected = data.selected,
                 filterModel = data.filterModel,
                 badge = { badge(this, data) }
@@ -84,46 +82,73 @@ class ApplicationCardComponent(val application: Application, val selected: Boole
 fun FlowContent.renderCard(
     name: String,
     link: Uri,
-    icon: String,
-    type: String,
     selected: Boolean,
-    filterModel: String,
-    badge: FlowContent.() -> Unit
+    type: PageSpec? = null,
+    filterModel: String? = null,
+    badge: FlowContent.() -> Unit = {},
+    content: FlowContent.() -> Unit = {}
+) = renderCard(
+    name = { +name },
+    link = link,
+    type = type,
+    selected = selected,
+    filterModel = filterModel,
+    badge = badge,
+    content = content,
+)
+
+fun FlowContent.renderCard(
+    name: H3.() -> Unit,
+    link: Uri,
+    selected: Boolean,
+    type: PageSpec? = null,
+    filterModel: String? = null,
+    badge: FlowContent.() -> Unit = {},
+    content: FlowContent.() -> Unit = {}
 ) {
-    flowTemplate {
-        attributes["x-if"] = "'$name'.toLowerCase().includes($filterModel.toLowerCase())"
+    fun FlowContent.render() = a(link.toString()) {
+        if (selected) {
+            ariaCurrent = AriaCurrent.Page
+        }
 
-        a(link.toString()) {
-            if (selected) {
-                ariaCurrent = AriaCurrent.Page
-            }
-
-            div("uk-card uk-card-hover uk-card-small uk-margin") {
-                classes += if (selected) "uk-card-primary" else "uk-card-default"
+        div("uk-card uk-card-hover uk-card-small uk-margin") {
+            classes += if (selected) "uk-card-primary" else "uk-card-default"
 
 
-                div("uk-card-body") {
-                    h3("uk-card-title") {
-                        +name
-                    }
+            div("uk-card-body") {
+                h3("uk-card-title") {
+                    name()
+                }
 
-                    div {
-                        style = cssStyle(
-                            "position" to "absolute",
-                            "top" to "8px",
-                            "right" to "8px"
-                        )
-                        badge(this)
-                    }
+                div {
+                    style = cssStyle(
+                        "position" to "absolute",
+                        "top" to "8px",
+                        "right" to "8px"
+                    )
+                    badge(this)
+                }
 
+                content()
+
+                if (type != null) {
                     p {
                         span("uk-margin-small-right") {
-                            attributes["uk-icon"] = icon
+                            attributes["uk-icon"] = type.icon
                         }
-                        +type
+                        +type.name
                     }
                 }
             }
+        }
+    }
+
+    if (filterModel == null) {
+        render()
+    } else {
+        flowTemplate {
+            attributes["x-if"] = "'$name'.toLowerCase().includes($filterModel.toLowerCase())"
+            render()
         }
     }
 }

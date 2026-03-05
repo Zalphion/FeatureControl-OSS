@@ -61,7 +61,7 @@ fun Core.teamPage(
     messages = messages,
     subTitle = "Manage Team",
     topNav = model.navBar,
-    sideNav = SideNav(
+    leftNav = SideNav(
         topBar = { teamNavBar(model.team.team) },
         pages = model.pages,
         selected = model.navBar.selectedPage,

@@ -5,11 +5,9 @@ import com.zalphion.featurecontrol.auth.web.CSRF_COOKIE_NAME
 import com.zalphion.featurecontrol.auth.web.CSRF_FORM_PARAM
 import com.zalphion.featurecontrol.web.flash.FlashMessageDto
 import com.zalphion.featurecontrol.members.MemberDetails
-import com.zalphion.featurecontrol.web.components.navButton
 import kotlinx.html.FlowContent
 import kotlinx.html.SECTION
 import kotlinx.html.ScriptCrossorigin
-import kotlinx.html.aside
 import kotlinx.html.body
 import kotlinx.html.div
 import kotlinx.html.head
@@ -19,7 +17,6 @@ import kotlinx.html.main
 import kotlinx.html.script
 import kotlinx.html.section
 import kotlinx.html.stream.createHTML
-import kotlinx.html.style
 import kotlinx.html.title
 import kotlinx.html.unsafe
 import org.http4k.core.Uri
@@ -29,9 +26,10 @@ fun Core.pageSkeleton(
     messages: List<FlashMessageDto>,
     subTitle: String? = null,
     topNav: MainNavBar<out MemberDetails?>? = null,
-    sideNav: SideNav? = null,
-    innerNav: (SECTION.(Core) -> Unit)? = null,
-    mainContent: (FlowContent.(Core) -> Unit),
+    leftNav: SideNav? = null,
+    leftNavSecondary: (SECTION.(Core) -> Unit)? = null,
+    contextNav: SideNav? = null,
+    mainContent: (FlowContent.(Core) -> Unit)
 ) = createHTML().html {
     head {
         if (subTitle != null) {
@@ -60,7 +58,7 @@ fun Core.pageSkeleton(
     }
 
     body {
-        attributes["x-data"] = "" // required for x-cloak to work
+        xData = "" // required for x-cloak to work
         attributes["x-cloak"] = ""  // signal for automated testing readiness; alpine.js will remove this when it's complete
 
         if (topNav != null) {
@@ -68,31 +66,19 @@ fun Core.pageSkeleton(
         }
 
         div("uk-flex uk-height-viewport") {
-            if (sideNav != null) {
-                aside("uk-width-large uk-background-muted uk-padding-small uk-overflow-auto") {
-                    style = "box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);"
+            leftNav?.render(this, this@pageSkeleton)
 
-                    sideNav.topBar(this, this@pageSkeleton)
-
-                    if (sideNav.pages.isNotEmpty()) {
-                        div {
-                            for (page in sideNav.pages) {
-                                navButton(page, selected = page.spec == sideNav.selected)
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (innerNav != null) {
+            if (leftNavSecondary != null) {
                 section("uk-width-large uk-padding-small uk-overflow-auto") {
-                    innerNav(this, this@pageSkeleton)
+                    leftNavSecondary(this, this@pageSkeleton)
                 }
             }
 
             main("uk-width-expand uk-padding-small uk-overflow-auto") {
                 mainContent(this@pageSkeleton)
             }
+
+            contextNav?.render(this, this@pageSkeleton, rightSide = true)
         }
 
         val messagesScript = messages.joinToString("\n") { message ->

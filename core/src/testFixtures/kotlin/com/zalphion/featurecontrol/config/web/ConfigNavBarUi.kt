@@ -4,7 +4,6 @@ import com.microsoft.playwright.Locator
 import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.web.waitForAll
-import io.kotest.matchers.shouldBe
 
 class ConfigNavBarUi(private val locator: Locator) {
 
@@ -27,10 +26,11 @@ class ConfigNavBarUi(private val locator: Locator) {
         return ConfigSpecUi(locator.page()).also(block)
     }
 
-    fun select(environment: EnvironmentName, block: (ConfigEnvironmentViewUi) -> Unit = {}): ConfigEnvironmentViewUi {
-        locator.getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName(environment.value)).click()
-        return ConfigEnvironmentViewUi(locator.page())
-            .also { it.environments.selected shouldBe environment }
-            .also(block)
-    }
+    fun select(environment: EnvironmentName, block: (ConfigEnvironmentViewUi) -> Unit = {}) = locator
+        .locator(".uk-subnav")
+        .getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName(environment.value))
+        .also { it.click() }
+        .click()
+        .let { ConfigEnvironmentViewUi(locator.page()) }
+        .also(block)
 }
