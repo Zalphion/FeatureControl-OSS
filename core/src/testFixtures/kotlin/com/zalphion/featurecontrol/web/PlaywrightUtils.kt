@@ -78,9 +78,3 @@ fun Locator.assertEnabled(enabled: Boolean) {
         if (enabled) isEnabled() else isDisabled()
     }
 }
-
-fun Locator.assertVisible(visible: Boolean) {
-    PlaywrightAssertions.assertThat(this).apply {
-        if (visible) isVisible() else isHidden()
-    }
-}

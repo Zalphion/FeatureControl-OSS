@@ -4,7 +4,6 @@ import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.button
 import kotlinx.html.onClick
-import org.http4k.core.Uri
 
 fun FlowContent.confirmCancelButtons(confirmText: String) {
     button(type = ButtonType.submit, classes = "uk-button uk-button-primary") {
@@ -19,6 +18,10 @@ fun FlowContent.updateResetButtons(confirmText: String = "Update") {
     button(type = ButtonType.submit, classes = "uk-button uk-button-primary") {
         +confirmText
     }
+    resetButton()
+}
+
+fun FlowContent.resetButton() {
     button(type = ButtonType.button, classes = "uk-button uk-button-danger") {
         onClick = "window.location.reload()"
         +"Reset"

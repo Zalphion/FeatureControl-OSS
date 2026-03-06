@@ -89,6 +89,7 @@ fun FlowContent.renderCard(
     content: FlowContent.() -> Unit = {}
 ) = renderCard(
     name = { +name },
+    searchTerm = name,
     link = link,
     type = type,
     selected = selected,
@@ -102,6 +103,7 @@ fun FlowContent.renderCard(
     link: Uri,
     selected: Boolean,
     type: PageSpec? = null,
+    searchTerm: String? = null,
     filterModel: String? = null,
     badge: FlowContent.() -> Unit = {},
     content: FlowContent.() -> Unit = {}
@@ -143,12 +145,12 @@ fun FlowContent.renderCard(
         }
     }
 
-    if (filterModel == null) {
-        render()
-    } else {
+    if (filterModel != null && searchTerm != null) {
         flowTemplate {
-            attributes["x-if"] = "'$name'.toLowerCase().includes($filterModel.toLowerCase())"
+            attributes["x-if"] = "'$searchTerm'.toLowerCase().includes($filterModel.toLowerCase())"
             render()
         }
+    } else {
+        render()
     }
 }

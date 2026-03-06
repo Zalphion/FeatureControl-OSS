@@ -16,10 +16,11 @@ import com.zalphion.featurecontrol.web.table.InputTableElementSchema
 import com.zalphion.featurecontrol.web.table.ModalTableElementSchema
 import com.zalphion.featurecontrol.web.table.StaticTableElementSchema
 import com.zalphion.featurecontrol.web.table.tableForm
-import kotlinx.html.FlowContent
+import kotlinx.html.FORM
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
 import kotlinx.html.form
+import kotlinx.html.id
 import org.http4k.format.AutoMarshalling
 import org.http4k.lens.BiDiMapping
 
@@ -36,12 +37,14 @@ class FeatureEnvironmentComponent(
         )
 
         fun <DTO: VariantEnvironmentDto> create(
+            formId: String = "feature-environment-form",
             jsonMapper: BiDiMapping<String, List<DTO>>,
             dtoMapper: (FeatureEnvironment, Variant) -> DTO,
-            extraInputs: FlowContent.(FeatureEnvironmentComponent, Core) -> Unit = { _, _ -> },
+            extraInputs: FORM.(FeatureEnvironmentComponent, Core) -> Unit = { _, _ -> },
             extraTableSchema: (FeatureEnvironmentComponent, Core) -> List<TableElementSchema> = { _, _ -> emptyList() },
         ) = Component<FeatureEnvironmentComponent> { flow, core, data ->
             flow.form(method = FormMethod.post) {
+                id = formId
                 extraInputs(data, core)
 
                 val subjectIdsModalId = "subject-ids-modal"

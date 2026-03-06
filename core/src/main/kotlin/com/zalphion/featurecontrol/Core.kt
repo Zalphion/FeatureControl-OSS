@@ -6,6 +6,7 @@ import com.zalphion.featurecontrol.applications.ApplicationStorage
 import com.zalphion.featurecontrol.applications.ApplicationUpdateData
 import com.zalphion.featurecontrol.applications.web.ApplicationCardComponent
 import com.zalphion.featurecontrol.applications.web.ConfigCardComponent
+import com.zalphion.featurecontrol.applications.web.EnvironmentsSubNavComponent
 import com.zalphion.featurecontrol.applications.web.FeatureCardComponent
 import com.zalphion.featurecontrol.applications.web.NewApplicationModalComponent
 import com.zalphion.featurecontrol.applications.web.UpdateApplicationModalComponent
@@ -213,6 +214,7 @@ class Core(
         .with(RoleComponent.core())
         .with(ConfigEnvironmentEditModalComponent.core())
         .with(ConfigNavBarComponent.core())
+        .with(EnvironmentsSubNavComponent.core())
         .plus(plugins.map { it.buildComponentRegistry(json, storageDriver) })
 
     inline fun <reified T: Any> render(flow: FlowContent, data: T) = render(T::class, flow, data)

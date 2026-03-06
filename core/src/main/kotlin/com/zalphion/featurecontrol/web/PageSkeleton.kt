@@ -17,6 +17,7 @@ import kotlinx.html.main
 import kotlinx.html.script
 import kotlinx.html.section
 import kotlinx.html.stream.createHTML
+import kotlinx.html.style
 import kotlinx.html.title
 import kotlinx.html.unsafe
 import org.http4k.core.Uri
@@ -38,8 +39,11 @@ fun Core.pageSkeleton(
             title(appName)
         }
 
-        unsafe { // required for x-cloak to work
-            raw("<style>[x-cloak] { display: none !important; }</style>")
+        style {
+            type = "text/css"
+            unsafe {
+                +STYLES
+            }
         }
 
         // UI Kit
@@ -89,48 +93,68 @@ fun Core.pageSkeleton(
                 FlashMessageDto.Type.Warning -> "warning"
             }
 
-            """UIkit.notification({
-                message: '${message.message}',
-                status: '$status',
-            })"""
+            "UIkit.notification({message: '${message.message}',status: '$status'})"
         }
 
         script {
-            unsafe { raw($$"""
-                function convertTimestamps() {
-                    document.querySelectorAll('.timestamp').forEach(el => {
-                        const utcTime = dayjs.utc(el.textContent.trim())
-                        const format = el.dataset.format || 'MMM DD, YYYY HH:mm'
-                        el.textContent = utcTime.local().format(format)
-                        UIkit.tooltip(el)
-                    })
-                }
-                
-                function setupCsrf() {
-                    const csrfCookie = document.cookie.match(`(^|;)\\s*$$CSRF_COOKIE_NAME\\s*=\\s*["']?([^;"']+)["']?`)
-                    const csrfToken = csrfCookie ? csrfCookie.pop() : null
-                    if (!csrfToken) {
-                        throw new Error('Could not find CSRF token')
-                    }
-                
-                    document.querySelectorAll('form').forEach(form => {
-                        let input = form.querySelector(`input[name="$$CSRF_FORM_PARAM"]`)
-                        if (!input) {
-                            input = document.createElement('input')
-                            input.type = 'hidden'
-                            input.name = '$$CSRF_FORM_PARAM'
-                            form.appendChild(input)
-                        }
-                        input.value = csrfToken
-                    })
-                }
-                
-                dayjs.extend(dayjs_plugin_utc)
-                document.addEventListener('DOMContentLoaded', convertTimestamps)
-                document.addEventListener('DOMContentLoaded', setupCsrf)
-                $$messagesScript
-            """.trimIndent()
-            ) }
+            type = "text/javascript"
+            unsafe {
+                + "$GLOBAL_SCRIPT\n$messagesScript"
+            }
         }
     }
 }
+
+private const val STYLES = """
+/* hide elements only intended for screen-readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* required for x-cloak to work */
+[x-clock] {
+  display: none !important;
+}
+"""
+
+private const val GLOBAL_SCRIPT = """
+    function convertTimestamps() {
+        document.querySelectorAll('.timestamp').forEach(el => {
+            const utcTime = dayjs.utc(el.textContent.trim())
+            const format = el.dataset.format || 'MMM DD, YYYY HH:mm'
+            el.textContent = utcTime.local().format(format)
+            UIkit.tooltip(el)
+        })
+    }
+    
+    function setupCsrf() {
+        const csrfCookie = document.cookie.match(`(^|;)\\s*$CSRF_COOKIE_NAME\\s*=\\s*["']?([^;"']+)["']?`)
+        const csrfToken = csrfCookie ? csrfCookie.pop() : null
+        if (!csrfToken) {
+            throw new Error('Could not find CSRF token')
+        }
+    
+        document.querySelectorAll('form').forEach(form => {
+            let input = form.querySelector(`input[name="$CSRF_FORM_PARAM"]`)
+            if (!input) {
+                input = document.createElement('input')
+                input.type = 'hidden'
+                input.name = '$CSRF_FORM_PARAM'
+                form.appendChild(input)
+            }
+            input.value = csrfToken
+        })
+    }
+    
+    dayjs.extend(dayjs_plugin_utc)
+    document.addEventListener('DOMContentLoaded', convertTimestamps)
+    document.addEventListener('DOMContentLoaded', setupCsrf)
+"""

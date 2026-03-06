@@ -1,12 +1,13 @@
 package com.zalphion.featurecontrol.features.web
 
+import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.features.EnvironmentName
 import com.zalphion.featurecontrol.features.Feature
 import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.applications.web.EnvironmentsSubNavComponent
 import com.zalphion.featurecontrol.web.components.deleteModal
 import com.zalphion.featurecontrol.web.components.modalTextButton
 import com.zalphion.featurecontrol.web.components.moreMenu
-import com.zalphion.featurecontrol.web.components.subNavLinks
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.FlowContent
 import kotlinx.html.a
@@ -20,6 +21,7 @@ import kotlinx.html.ul
 import kotlin.collections.plus
 
 fun FlowContent.featureNavbar(
+    core: Core,
     application: Application,
     feature: Feature,
     selected: EnvironmentName?,
@@ -67,11 +69,10 @@ fun FlowContent.featureNavbar(
         }
     }
 
-    subNavLinks(
-        options = listOf(
-            "General" to feature.uri(),
-            *application.environments.map { it.name.value to feature.uri(it.name) }.toTypedArray()
-        ),
-        selected = selected?.value ?: "General"
-    )
+    core.render(this, EnvironmentsSubNavComponent(
+        application = application,
+        getUri = { feature.uri(it.name) },
+        selected = selected,
+        generalLink = "General" to feature.uri()
+    ))
 }

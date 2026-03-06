@@ -53,7 +53,7 @@ internal fun Core.httpGetFeature(): HttpHandler = fn@{ request ->
             messages = request.messages(),
             selectedFeature = featureKey,
             content = {
-                featureNavbar(model.selectedApplication, model.selectedItem, null)
+                featureNavbar(this@httpGetFeature, model.selectedApplication, model.selectedItem, null)
                 render(this, FeatureComponent(
                     application = model.selectedApplication,
                     feature = model.selectedItem
@@ -107,7 +107,7 @@ internal fun Core.httpGetFeatureEnvironment(): HttpHandler = fn@{ request ->
         messages = request.messages(),
         selectedFeature = featureKey,
         content = {
-            featureNavbar(pageModel.selectedApplication, pageModel.selectedItem, environmentName)
+            featureNavbar(this@httpGetFeatureEnvironment, pageModel.selectedApplication, pageModel.selectedItem, environmentName)
             render(this, FeatureEnvironmentComponent(
                 application = pageModel.selectedApplication,
                 feature = pageModel.selectedItem,

@@ -2,10 +2,10 @@ package com.zalphion.featurecontrol.configs.web
 
 import com.zalphion.featurecontrol.Core
 import com.zalphion.featurecontrol.applications.Application
+import com.zalphion.featurecontrol.applications.web.EnvironmentsSubNavComponent
 import com.zalphion.featurecontrol.configs.ConfigEnvironment
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.configUri
-import com.zalphion.featurecontrol.web.components.subNavLinks
 import com.zalphion.featurecontrol.web.uri
 import kotlinx.html.DIV
 import kotlinx.html.a
@@ -54,15 +54,12 @@ class ConfigNavBarComponent(
                     }
                 }
 
-                subNavLinks(
-                    options = listOf(
-                        "Properties" to data.application.uri(),
-                        *data.application.environments.map {
-                            it.name.value to configUri(data.application.teamId, data.application.appId, it.name)
-                        }.toTypedArray()
-                    ),
-                    selected = data.selected?.name?.value ?: "Properties"
-                )
+                core.render(flow, EnvironmentsSubNavComponent(
+                    application = data.application,
+                    getUri = { configUri(data.application.teamId, data.application.appId, it.name) },
+                    selected = data.selected?.name,
+                    generalLink = "Properties" to data.application.uri(),
+                ))
             }
         }
     }
