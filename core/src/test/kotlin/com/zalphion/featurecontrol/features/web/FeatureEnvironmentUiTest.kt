@@ -25,6 +25,8 @@ import dev.forkhandles.result4k.kotest.shouldBeSuccess
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Tag
@@ -78,10 +80,11 @@ class FeatureEnvironmentUiTest: CoreTestDriver() {
             variants = emptyMap()
         )
 
-        browser.asUser(core, member.user) { page ->
-            page.applications.select(app1.appName)
+        browser.asUser(core, member.user) { page -> page
+            .applications.select(app1.appName)
             .application.select(emptyFeature.key)
-            .environments.options.shouldBeEmpty()
+            .edit.variants.shouldHaveSize(1).first()
+            .name.shouldBeNull()
         }
     }
 

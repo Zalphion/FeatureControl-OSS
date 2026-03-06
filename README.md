@@ -5,9 +5,7 @@
 
 The Complete FOSS Edition.
 Build it yourself or use the official docker image.
-
-None of the dependencies place any limitations on commercial use.
-See the [Allowed Licenses](https://github.com/Zalphion/FeatureControl/blob/main/allowed-licenses.json) for details.
+No AI slop.  Hand-crafted with :heart:.
 
 > [!WARNING]
 > **Work in Progress**: This project is still under active development and is not yet ready for production use.
