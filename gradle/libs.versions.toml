@@ -1,9 +1,8 @@
 [versions]
 
 junit = "6.0.3"
-kotest = "6.1.4"
 forkhandles = "2.25.3.0"
-http4k = "6.31.1.0"
+http4k = "6.33.0.0"
 kotshi = "4.0.0"
 tinylog = "2.7.0"
 flyway = "12.1.0"
@@ -30,6 +29,7 @@ http4k-format-moshi = { module = "org.http4k:http4k-format-moshi", version.ref =
 http4k-config = { module = "org.http4k:http4k-config", version.ref = "http4k" }
 http4k-server-undertow = { module = "org.http4k:http4k-server-undertow", version.ref = "http4k" }
 http4k-testing-playwright = { module = "org.http4k:http4k-testing-playwright", version.ref = "http4k" }
+http4k-testing-kotest = { module = "org.http4k:http4k-testing-kotest", version.ref = "http4k" }
 
 # junit
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
@@ -41,9 +41,6 @@ forkhandles-bom = { module = "dev.forkhandles:forkhandles-bom", version.ref = "f
 forkhandles-values4k = { module = "dev.forkhandles:values4k", version.ref = "forkhandles" }
 forkhandles-result4k = { module = "dev.forkhandles:result4k", version.ref = "forkhandles" }
 forkhandles-result4k-kotest = { module = "dev.forkhandles:result4k-kotest", version.ref = "forkhandles" }
-
-# kotest
-kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
 
 # webjars
 webjars-alpinejs = { module = "org.webjars.npm:alpinejs", version.ref = "alpinejs" }

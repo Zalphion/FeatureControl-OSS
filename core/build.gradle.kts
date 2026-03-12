@@ -21,8 +21,8 @@ dependencies {
 
     testFixturesApi(libs.junit.jupiter.api)
     testFixturesApi(libs.forkhandles.result4k.kotest)
+    testFixturesApi(libs.http4k.testing.kotest)
     testFixturesApi(libs.http4k.testing.playwright)
-    testFixturesApi(libs.kotest.assertions.core.jvm)
     testFixturesApi(project(":storage-h2"))
 
     // include webjars for ui tests
