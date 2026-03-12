@@ -26,11 +26,11 @@ class ConfigNavBarUi(private val locator: Locator) {
         return ConfigSpecUi(locator.page()).also(block)
     }
 
-    fun select(environment: EnvironmentName, block: (ConfigEnvironmentViewUi) -> Unit = {}) = locator
+    fun select(environment: EnvironmentName, block: (ConfigEnvironmentUi) -> Unit = {}) = locator
         .locator(".uk-subnav")
         .getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName(environment.value))
         .also { it.click() }
         .click()
-        .let { ConfigEnvironmentViewUi(locator.page()) }
+        .let { ConfigEnvironmentUi(locator.page()) }
         .also(block)
 }

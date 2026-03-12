@@ -12,13 +12,17 @@ import com.zalphion.featurecontrol.lib.mapToList
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.table.TableElementSchema
 import com.zalphion.featurecontrol.web.components.listBuilderModal
+import com.zalphion.featurecontrol.web.resetButton
 import com.zalphion.featurecontrol.web.table.InputTableElementSchema
 import com.zalphion.featurecontrol.web.table.ModalTableElementSchema
 import com.zalphion.featurecontrol.web.table.StaticTableElementSchema
 import com.zalphion.featurecontrol.web.table.tableForm
+import kotlinx.html.BUTTON
+import kotlinx.html.ButtonType
 import kotlinx.html.FORM
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
+import kotlinx.html.button
 import kotlinx.html.form
 import kotlinx.html.id
 import org.http4k.format.AutoMarshalling
@@ -42,6 +46,7 @@ class FeatureEnvironmentComponent(
             dtoMapper: (FeatureEnvironment, Variant) -> DTO,
             extraInputs: FORM.(FeatureEnvironmentComponent, Core) -> Unit = { _, _ -> },
             extraTableSchema: (FeatureEnvironmentComponent, Core) -> List<TableElementSchema> = { _, _ -> emptyList() },
+            updateButtonContent: BUTTON.(FeatureEnvironmentComponent) -> Unit = { +"Update" }
         ) = Component<FeatureEnvironmentComponent> { flow, core, data ->
             flow.form(method = FormMethod.post) {
                 id = formId
@@ -87,7 +92,10 @@ class FeatureEnvironmentComponent(
                     mapper = jsonMapper
                 )
 
-                updateResetButtons("Update")
+                button(type = ButtonType.submit, classes = "uk-button uk-button-primary") {
+                    updateButtonContent(data)
+                }
+                resetButton()
             }
         }
     }

@@ -20,7 +20,7 @@ dependencies {
     ksp(libs.kotshi.compiler)
 
     testFixturesApi(libs.junit.jupiter.api)
-    testFixturesApi(libs.forkhandles.result4k.kotest)
+//    testFixturesApi(libs.forkhandles.result4k.kotest) TODO replace and remove override once forkhandles updates kotest
     testFixturesApi(libs.http4k.testing.kotest)
     testFixturesApi(libs.http4k.testing.playwright)
     testFixturesApi(project(":storage-h2"))

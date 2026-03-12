@@ -40,7 +40,6 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 forkhandles-bom = { module = "dev.forkhandles:forkhandles-bom", version.ref = "forkhandles" }
 forkhandles-values4k = { module = "dev.forkhandles:values4k", version.ref = "forkhandles" }
 forkhandles-result4k = { module = "dev.forkhandles:result4k", version.ref = "forkhandles" }
-forkhandles-result4k-kotest = { module = "dev.forkhandles:result4k-kotest", version.ref = "forkhandles" }
 
 # webjars
 webjars-alpinejs = { module = "org.webjars.npm:alpinejs", version.ref = "alpinejs" }

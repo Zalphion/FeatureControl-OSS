@@ -28,13 +28,14 @@ import com.zalphion.featurecontrol.configs.ConfigService
 import com.zalphion.featurecontrol.configs.ConfigSpecStorage
 import com.zalphion.featurecontrol.configs.dto.createCoreConfigEnvironmentDataLens
 import com.zalphion.featurecontrol.configs.dto.createCoreConfigSpecDataLens
-import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentEditModalComponent
-import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentViewComponent
+import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentEditComponent
+import com.zalphion.featurecontrol.configs.web.ConfigEnvironmentComponent
 import com.zalphion.featurecontrol.configs.web.ConfigNavBarComponent
 import com.zalphion.featurecontrol.configs.web.ConfigSpecComponent
 import com.zalphion.featurecontrol.configs.web.httpGetConfigEnvironment
 import com.zalphion.featurecontrol.configs.web.httpGetConfigSpec
-import com.zalphion.featurecontrol.configs.web.httpPostConfigEnvironment
+import com.zalphion.featurecontrol.configs.web.httpGetEditConfigEnvironment
+import com.zalphion.featurecontrol.configs.web.httpPostEditConfigEnvironment
 import com.zalphion.featurecontrol.configs.web.httpPostConfigSpec
 import com.zalphion.featurecontrol.events.Event
 import com.zalphion.featurecontrol.events.EventBus
@@ -207,12 +208,12 @@ class Core(
         .with(FeatureComponent.core())
         .with(FeatureEnvironmentComponent.core(json))
         .with(ConfigSpecComponent.core())
-        .with(ConfigEnvironmentViewComponent.core())
+        .with(ConfigEnvironmentComponent.core())
         .with(ApplicationCardComponent.core())
         .with(ConfigCardComponent.core())
         .with(FeatureCardComponent.core())
         .with(RoleComponent.core())
-        .with(ConfigEnvironmentEditModalComponent.core())
+        .with(ConfigEnvironmentEditComponent.core())
         .with(ConfigNavBarComponent.core())
         .with(EnvironmentsSubNavComponent.core())
         .plus(plugins.map { it.buildComponentRegistry(json, storageDriver) })
@@ -365,7 +366,10 @@ class Core(
                             Method.POST bind httpPostConfigSpec(),
                             "$environmentNameLens" bind routes(listOf(
                                 Method.GET bind httpGetConfigEnvironment(),
-                                Method.POST bind httpPostConfigEnvironment()
+                                "edit" bind routes(listOf(
+                                    Method.GET bind httpGetEditConfigEnvironment(),
+                                    Method.POST bind httpPostEditConfigEnvironment()
+                                ))
                             ))
                         )),
                         "features" bind routes(listOf(

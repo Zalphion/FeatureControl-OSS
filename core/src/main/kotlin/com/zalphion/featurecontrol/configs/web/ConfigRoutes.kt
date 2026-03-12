@@ -74,14 +74,36 @@ internal fun Core.httpGetConfigEnvironment(): HttpHandler = fn@{ request ->
                 messages = request.messages(),
                 selectedFeature = null
             ) {
-                render(this, ConfigEnvironmentViewComponent(model.selectedApplication, model.selectedItem, model.selectedEnvironment))
+                render(this, ConfigNavBarComponent(model.selectedApplication, model.selectedEnvironment))
+                render(this, ConfigEnvironmentComponent(model.selectedApplication, model.selectedItem, model.selectedEnvironment))
             }
         }
         .map { Response(Status.OK).with(htmlLens of it) }
         .recover { request.toIndex().withMessage(it) }
 }
 
-internal fun Core.httpPostConfigEnvironment(): HttpHandler = { request ->
+internal fun Core.httpGetEditConfigEnvironment(): HttpHandler = fn@{ request ->
+    val principal = permissionsLens(request)
+    val teamId = teamIdLens(request)
+    val appId = appIdLens(request)
+    val environmentName = environmentNameLens(request)
+
+    ApplicationsPage.forConfigEnvironment(this, principal, teamId, appId, environmentName)
+        .map { model ->
+            model.render(
+                core = this,
+                messages = request.messages(),
+                selectedFeature = null
+            ) {
+                render(this, ConfigNavBarComponent(model.selectedApplication, model.selectedEnvironment))
+                render(this, ConfigEnvironmentEditComponent(model.selectedApplication, model.selectedItem, model.selectedEnvironment))
+            }
+        }
+        .map { Response(Status.OK).with(htmlLens of it) }
+        .recover { request.samePageError(it) }
+}
+
+internal fun Core.httpPostEditConfigEnvironment(): HttpHandler = { request ->
     val principal = permissionsLens(request)
     val teamId = teamIdLens(request)
     val appId = appIdLens(request)

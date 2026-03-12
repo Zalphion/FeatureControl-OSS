@@ -8,11 +8,13 @@ import com.zalphion.featurecontrol.applications.Application
 import com.zalphion.featurecontrol.configs.PropertyKey
 import com.zalphion.featurecontrol.plugins.Component
 import com.zalphion.featurecontrol.web.ariaLabel
-import com.zalphion.featurecontrol.web.components.modalTextButton
 import com.zalphion.featurecontrol.web.cssStyle
 import com.zalphion.featurecontrol.web.tooltip
+import com.zalphion.featurecontrol.web.uri
+import kotlinx.html.A
 import kotlinx.html.FlowContent
 import kotlinx.html.TD
+import kotlinx.html.a
 import kotlinx.html.h5
 import kotlinx.html.span
 import kotlinx.html.style
@@ -22,21 +24,23 @@ import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.thead
 import kotlinx.html.tr
+import org.http4k.core.Uri
+import org.http4k.core.appendToPath
 import kotlin.collections.component1
 import kotlin.collections.component2
 
-class ConfigEnvironmentViewComponent(
+class ConfigEnvironmentComponent(
     val application: Application,
     val spec: ConfigSpec,
-    val environment: ConfigEnvironment
+    val environment: ConfigEnvironment,
 ) {
     companion object {
         fun core(
-            beforeContent: FlowContent.(Core, ConfigEnvironmentViewComponent) -> Unit = { _, _, _ -> },
-            afterContent: FlowContent.(Core, ConfigEnvironmentViewComponent) -> Unit = { _, _, _ -> }
-        ) = Component<ConfigEnvironmentViewComponent> { flow, core, data ->
-            core.render(flow, ConfigNavBarComponent(data.application, data.environment))
-
+            beforeContent: FlowContent.(Core, ConfigEnvironmentComponent) -> Unit = { _, _, _ -> },
+            afterContent: FlowContent.(Core, ConfigEnvironmentComponent) -> Unit = { _, _, _ -> },
+            updateButtonContent: A.(ConfigEnvironmentComponent) -> Unit = { _ -> +"Update" },
+            updateUriFn: (Core, ConfigEnvironmentComponent) -> Uri = { _, data -> data.environment.uri().appendToPath("edit") }
+        ) = Component<ConfigEnvironmentComponent> { flow, core, data ->
             flow.beforeContent(core, data)
 
             flow.configTable(data.spec, data.environment) { _, type, value ->
@@ -54,21 +58,14 @@ class ConfigEnvironmentViewComponent(
                 }
             }
 
-            val modalId = "update-${data.environment.appId}-${data.environment.name}-modal"
-            core.render(flow, ConfigEnvironmentEditModalComponent(
-                application = data.application,
-                environment = data.environment,
-                spec = data.spec,
-                modalId = modalId
-            ))
-
-            flow.modalTextButton(
-                label = "Update",
-                classes = "uk-button uk-button-primary",
-                modalId = modalId
-            )
-
             flow.afterContent(core, data)
+
+            flow.a(
+                classes = "uk-button uk-button-primary",
+                href = updateUriFn(core, data).toString(),
+            ) {
+                updateButtonContent(data)
+            }
         }
     }
 }

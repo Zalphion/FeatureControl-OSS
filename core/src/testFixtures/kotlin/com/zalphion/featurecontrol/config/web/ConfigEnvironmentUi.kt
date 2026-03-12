@@ -7,11 +7,10 @@ import com.microsoft.playwright.options.AriaRole
 import com.zalphion.featurecontrol.applications.web.application
 import com.zalphion.featurecontrol.applications.web.applicationsList
 import com.zalphion.featurecontrol.configs.PropertyKey
-import com.zalphion.featurecontrol.web.getControlled
 import com.zalphion.featurecontrol.web.waitForAll
 import com.zalphion.featurecontrol.web.waitForReady
 
-class ConfigEnvironmentViewUi(val page: Page) {
+class ConfigEnvironmentUi(val page: Page) {
 
     init {
         page.waitForReady()
@@ -40,9 +39,8 @@ class ConfigEnvironmentViewUi(val page: Page) {
 
     fun update(block: (ConfigEnvironmentEditUi) -> Unit = {}) = page
         .getByRole(AriaRole.MAIN)
-        .getByRole(AriaRole.BUTTON, Locator.GetByRoleOptions().setName("Update"))
+        .getByRole(AriaRole.LINK, Locator.GetByRoleOptions().setName("Update"))
         .also { it.click() }
-        .getControlled()
-        .let(::ConfigEnvironmentEditUi)
+        .let { ConfigEnvironmentEditUi(page) }
         .also(block)
 }
