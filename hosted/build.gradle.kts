@@ -20,7 +20,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.zalphion.featurecontrol.CoreMainKt")
+    mainClass.set("com.zalphion.featurecontrol.HostedMainKt")
 }
 
 tasks.build {
