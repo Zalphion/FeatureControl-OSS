@@ -2,11 +2,11 @@
 
 junit = "6.0.3"
 kotest = "6.1.4"
-forkhandles = "2.25.2.1"
+forkhandles = "2.25.3.0"
 http4k = "6.31.1.0"
 kotshi = "4.0.0"
 tinylog = "2.7.0"
-flyway = "12.0.3"
+flyway = "12.1.0"
 
 # webjars
 alpinejs = "3.15.8"
